@@ -322,7 +322,7 @@ class Window(QMainWindow):
             self.parameters.SpecterEValues = self.parameters.Specter[:,0]
             self.parameters.SpecterfValues = self.parameters.Specter[:,1]
         elif self.parameters.SpecterTypePBA == "Peak":
-            self.parameters.SpecterEValues = np.arange(self.parameters.SpecterMin-0.1,self.parameters.SpecterMin+0.1,0.01)
+            self.parameters.SpecterEValues = np.arange(self.parameters.SpecterMin-0.1,self.parameters.SpecterMin+0.1,0.001)
             self.parameters.SpecterfValues = np.zeros_like(self.parameters.SpecterEValues)
             self.parameters.SpecterfValues[int(self.parameters.SpecterfValues.shape[0]/2)] = 1
             self.parameters.Specter = np.zeros((self.parameters.SpecterfValues.shape[0],2))
