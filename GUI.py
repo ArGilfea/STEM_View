@@ -57,6 +57,7 @@ class Window(QMainWindow):
         self._addSpecterImagePBA()
         self._addMaterialTypePBA()
         self._addDepthSliderPBA()
+        self._addXCOMDataImagePBA()
 
         self._createExitButton() 
 
@@ -71,6 +72,13 @@ class Window(QMainWindow):
         """Adds the central image socket for Photon Beam Attenuation showing the Specter"""
         self.PBASpecter = MplCanvas(self, width=5, height=5, dpi=75)
         self.generalLayoutPBA.addWidget(self.PBASpecter,self.current_linePBA,1)
+
+        self.updateImagePBA()
+
+    def _addXCOMDataImagePBA(self):
+        """Adds the image of the XCOM Data"""
+        self.PBAXCOMData = MplCanvas(self, width=5, height=5, dpi=75)
+        self.generalLayoutPBA.addWidget(self.PBAXCOMData,self.current_linePBA,1)
 
         self.updateImagePBA()
 
@@ -197,6 +205,7 @@ class Window(QMainWindow):
         layout.addWidget(empty)
 
         self.generalLayoutPBA.addWidget(subWidget,self.current_linePBA,1)
+        self.current_linePBA += 1
 
     def _createExitButton(self):
         """Create an exit button"""
@@ -238,6 +247,31 @@ class Window(QMainWindow):
             self.updateImagePBASaved()
         else:
             self.updateImagePBANormal()
+
+    def updateXCOMImagePBA(self):
+        """Updates the Image of the XCOM Data"""
+        try:
+            self.PBAXCOMData.axes.cla()
+        except:
+            pass
+        if self.parameters.MaterialTypePBA != "None":
+            self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,7],label="Total")
+            self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,1],label="Rayleigh")
+            self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,2],label="Compton")
+            self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,3],label="P-E")
+            self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,4],label="Pair")
+            self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,5],label="Triple")
+
+            self.PBAXCOMData.axes.set_title(f"Cross Section of {self.parameters.MaterialTypePBA}")
+            self.PBAXCOMData.axes.set_ylabel("Cross Section (μ/ρ)")
+            self.PBAXCOMData.axes.set_ylim(1e-3)
+            self.PBAXCOMData.axes.set_xlabel("Energy (MeV)")
+            self.PBAXCOMData.axes.legend()
+            self.PBAXCOMData.axes.grid()
+
+            self.PBAXCOMData.axes.axvline(self.parameters.SpecterMin,color='y')
+            self.PBAXCOMData.axes.axvline(self.parameters.SpecterMax,color='y')
+        self.PBAXCOMData.draw() 
 
     def updateImagePBASaved(self):
         """Updates the Image with the Saved Specters"""
@@ -313,6 +347,7 @@ class Window(QMainWindow):
             self.parameters.XCOMData = np.loadtxt(f"XCOM_Data/XCOM_{self.parameters.MaterialTypePBA}.pl")
 
         self.updateImagePBA()
+        self.updateXCOMImagePBA()
 
     def update_Combo_SpecterPBA(self):
         """Updates the Combo of the Spectrum of the PBA"""
@@ -347,6 +382,7 @@ class Window(QMainWindow):
             self.parameters.Specter[:,0] = self.parameters.SpecterEValues
             self.parameters.Specter[:,1] = self.parameters.SpecterfValues
         self.updateImagePBA()
+        self.updateXCOMImagePBA()
 
     def updateCheckNormalizeBox(self):
         """Updates the Check Box of Normalize"""

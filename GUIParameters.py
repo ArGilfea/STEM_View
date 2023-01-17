@@ -26,6 +26,8 @@ class GUIParameters(object):
             "Zn" : 7.13,
         }
 
+        self.XCOMData = []
+
         self.ShowBaseSpecterPBA = False
         self.NormalizePBA = False
         self.MeanEPBA = False
