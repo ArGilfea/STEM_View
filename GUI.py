@@ -70,17 +70,18 @@ class Window(QMainWindow):
     
     def _addSpecterImagePBA(self):
         """Adds the central image socket for Photon Beam Attenuation showing the Specter"""
-        self.PBASpecter = MplCanvas(self, width=5, height=5, dpi=75)
+        self.PBASpecter = MplCanvas(self, width=6, height=6, dpi=75)
         self.generalLayoutPBA.addWidget(self.PBASpecter,self.current_linePBA,1)
 
         self.updateImagePBA()
 
     def _addXCOMDataImagePBA(self):
         """Adds the image of the XCOM Data"""
-        self.PBAXCOMData = MplCanvas(self, width=5, height=5, dpi=75)
+        self.PBAXCOMData = MplCanvas(self, width=6, height=6, dpi=75)
         self.generalLayoutPBA.addWidget(self.PBAXCOMData,self.current_linePBA,1)
 
         self.updateImagePBA()
+        self.updateXCOMImagePBA()
 
     def _addMaterialTypePBA(self):
         """Adds a Combo Box to determine the material for attenuation"""
@@ -91,6 +92,11 @@ class Window(QMainWindow):
         self.PBAMaterialType = QComboBox()
         self.PBAMaterialType.addItem("None")
         self.PBAMaterialType.addItem("Al")
+        self.PBAMaterialType.addItem("Cu")
+        self.PBAMaterialType.addItem("H")
+        self.PBAMaterialType.addItem("H2O")
+        self.PBAMaterialType.addItem("I")
+        self.PBAMaterialType.addItem("O")
         self.PBAMaterialType.addItem("Pb")
         self.PBAMaterialType.addItem("Zn")
 
@@ -255,22 +261,24 @@ class Window(QMainWindow):
         except:
             pass
         if self.parameters.MaterialTypePBA != "None":
-            self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,7],label="Total")
+            self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,6],label="Total")
             self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,1],label="Rayleigh")
             self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,2],label="Compton")
             self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,3],label="P-E")
             self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,4],label="Pair")
             self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,5],label="Triple")
 
-            self.PBAXCOMData.axes.set_title(f"Cross Section of {self.parameters.MaterialTypePBA}")
-            self.PBAXCOMData.axes.set_ylabel("Cross Section (μ/ρ)")
-            self.PBAXCOMData.axes.set_ylim(1e-3)
+            self.PBAXCOMData.axes.set_title(f"μ/ρ of {self.parameters.MaterialTypePBA}")
+            self.PBAXCOMData.axes.set_ylabel(r'μ/ρ (cm$^2$/g)')
+            self.PBAXCOMData.axes.set_ylim(1e-5)
             self.PBAXCOMData.axes.set_xlabel("Energy (MeV)")
             self.PBAXCOMData.axes.legend()
             self.PBAXCOMData.axes.grid()
 
-            self.PBAXCOMData.axes.axvline(self.parameters.SpecterMin,color='y')
-            self.PBAXCOMData.axes.axvline(self.parameters.SpecterMax,color='y')
+            self.PBAXCOMData.axes.axvline(self.parameters.SpecterMin,color='y',linestyle='dashed')
+            self.PBAXCOMData.axes.axvline(self.parameters.SpecterMax,color='y',linestyle='dashed')
+            self.PBAXCOMData.axes.axvline(2*0.511,ymax = 1e-2, color='r',linestyle='dashed')
+            self.PBAXCOMData.axes.axvline(4*0.511,ymax = 1e-2, color='r',linestyle='dashed')
         self.PBAXCOMData.draw() 
 
     def updateImagePBASaved(self):

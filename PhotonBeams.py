@@ -3,7 +3,7 @@ import numpy as np
 def BeerLambert(f,x,mu_rho,rho):
   output = np.zeros_like(f[:,0])
   for i in range(output.shape[0]):
-    closest = closest_E(f[i,0],mu_rho[:,0],mu_rho[:,7])
+    closest = closest_E(f[i,0],mu_rho[:,0],mu_rho[:,6])
     output[i] = f[i,1]*np.exp(-closest*x*rho)
   return output
 

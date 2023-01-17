@@ -22,6 +22,11 @@ class GUIParameters(object):
 
         self.rho = {
             "Al" : 2.6989,
+            "Cu" : 8.96,
+            "H" : 0,
+            "H2O" : 1,
+            "I" : 0,
+            "O" : 0,
             "Pb" : 10.66,
             "Zn" : 7.13,
         }
