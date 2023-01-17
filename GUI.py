@@ -325,6 +325,7 @@ class Window(QMainWindow):
             self.parameters.SpecterEValues = np.arange(self.parameters.SpecterMin-0.1,self.parameters.SpecterMin+0.1,0.01)
             self.parameters.SpecterfValues = np.zeros_like(self.parameters.SpecterEValues)
             self.parameters.SpecterfValues[int(self.parameters.SpecterfValues.shape[0]/2)] = 1
+            self.parameters.Specter = np.zeros((self.parameters.SpecterfValues.shape[0],2))
             self.parameters.Specter[:,0] = self.parameters.SpecterEValues
             self.parameters.Specter[:,1] = self.parameters.SpecterfValues
         elif self.parameters.SpecterTypePBA == "Flat":
