@@ -58,6 +58,7 @@ class Window(QMainWindow):
         self._addMaterialTypePBA()
         self._addDepthSliderPBA()
         self._addXCOMDataImagePBA()
+        self._addDataImageAttenuationPBA()
 
         self._createExitButton() 
 
@@ -82,6 +83,14 @@ class Window(QMainWindow):
 
         self.updateImagePBA()
         self.updateXCOMImagePBA()
+
+    def _addDataImageAttenuationPBA(self):
+        """Adds the image of the total attenuation"""
+        self.PBAAttenuation = MplCanvas(self, width=6, height=6, dpi=75)
+        self.generalLayoutPBA.addWidget(self.PBAAttenuation,self.current_linePBA,2)
+        self.current_linePBA += 1
+
+        self.updateAttenuationImagePBA()
 
     def _addMaterialTypePBA(self):
         """Adds a Combo Box to determine the material for attenuation"""
@@ -120,6 +129,9 @@ class Window(QMainWindow):
         self.PBAInitValue.setText(f"{self.parameters.SpecterInitialValue}")
         self.PBAKFactor.setText(f"{self.parameters.SpecterKFactor}")
 
+        self.PBAMaxDepthValue = QLineEdit()
+        self.PBAMaxDepthValue.setText(f"{self.parameters.maxDepthPBA}")
+
         self.PBANormalizeBox = QCheckBox()
         self.PBASuperposeBox = QCheckBox()
 
@@ -137,6 +149,8 @@ class Window(QMainWindow):
 
         self.PBAInitValue.editingFinished.connect(self.updateInitKSpecter)
         self.PBAKFactor.editingFinished.connect(self.updateInitKSpecter)
+
+        self.PBAMaxDepthValue.editingFinished.connect(self.updateMaxDepth)
 
         self.PBANormalizeBox.stateChanged.connect(self.updateCheckNormalizeBox)
         self.PBASuperposeBox.stateChanged.connect(self.updateCheckSuperposeBox)
@@ -160,18 +174,21 @@ class Window(QMainWindow):
         layout.addWidget(QLabel("Factor."),2,2)
         layout.addWidget(self.PBAKFactor,2,3)
 
-        layout.addWidget(QLabel("Norm."),3,0)
-        layout.addWidget(self.PBANormalizeBox,3,1)
-        layout.addWidget(QLabel("Sup."),3,2)
-        layout.addWidget(self.PBASuperposeBox,3,3)
+        layout.addWidget(QLabel("Max Depth"),3,0)
+        layout.addWidget(self.PBAMaxDepthValue,3,1)
 
-        layout.addWidget(QLabel("Avg."),4,0)
-        layout.addWidget(self.PBAAvgBox,4,1)
+        layout.addWidget(QLabel("Norm."),4,0)
+        layout.addWidget(self.PBANormalizeBox,4,1)
+        layout.addWidget(QLabel("Sup."),4,2)
+        layout.addWidget(self.PBASuperposeBox,4,3)
 
-        layout.addWidget(self.PBASaveButton,5,0)
-        layout.addWidget(self.PBAClearButton,5,1)
-        layout.addWidget(QLabel("Show"),5,2)
-        layout.addWidget(self.PBAShowBox,5,3)
+        layout.addWidget(QLabel("Avg."),5,0)
+        layout.addWidget(self.PBAAvgBox,5,1)
+
+        layout.addWidget(self.PBASaveButton,6,0)
+        layout.addWidget(self.PBAClearButton,6,1)
+        layout.addWidget(QLabel("Show"),6,2)
+        layout.addWidget(self.PBAShowBox,6,3)
 
         layout.setColumnStretch(0,1)
         layout.setColumnStretch(1,1)
@@ -198,7 +215,7 @@ class Window(QMainWindow):
         self.lineEditDepthPBA.setFixedWidth(sizeText)
         self.lineEditDepthPBA.setText("0")
 
-        self.sliderDepthPBA.setMaximum(10000)
+        self.sliderDepthPBA.setMaximum(self.parameters.maxDepthPBA * 1000)
         self.sliderDepthPBA.setTickPosition(QSlider.TicksBothSides)
         self.sliderDepthPBA.setSingleStep(1000)
         self.sliderDepthPBA.setTickInterval(1000)
@@ -281,6 +298,60 @@ class Window(QMainWindow):
             self.PBAXCOMData.axes.axvline(4*0.511,ymax = 1e-2, color='r',linestyle='dashed')
         self.PBAXCOMData.draw() 
 
+    def updateAttenuationImagePBA(self):
+        """Updates the Image of the whole attenuation"""
+        try:
+            self.PBAAttenuation.axes.cla()
+        except:
+            pass
+        if self.parameters.MaterialTypePBA != "None":
+            if self.parameters.NormalizePBA:
+                self.PBAAttenuation.axes.plot(self.parameters.depthRangePBA,self.parameters.attenuatedEnergy/self.parameters.attenuatedEnergy[0],color='b')
+            else:
+                self.PBAAttenuation.axes.plot(self.parameters.depthRangePBA,self.parameters.attenuatedEnergy,color='b')
+
+            if self.parameters.NormalizePBA:
+                valueHVL = np.interp(1/2,np.flip(self.parameters.attenuatedEnergy)/self.parameters.attenuatedEnergy[0],np.flip(self.parameters.depthRangePBA))
+                valueTVL = np.interp(1/10,np.flip(self.parameters.attenuatedEnergy)/self.parameters.attenuatedEnergy[0],np.flip(self.parameters.depthRangePBA))
+
+                self.PBAAttenuation.axes.axhline(0.5,xmin = 0,xmax = valueHVL/self.parameters.maxDepthPBA,
+                                                color = 'y',linestyle = 'dashed',label=f"HVL = {valueHVL:.3f} cm")
+                self.PBAAttenuation.axes.axhline(0.1,xmin = 0,xmax = valueTVL/self.parameters.maxDepthPBA,
+                                                color = 'g',linestyle = 'dashed',label=f"TVL = {valueTVL:.3f} cm")
+                self.PBAAttenuation.axes.axvline(valueHVL,
+                                                ymin = 0, ymax = 0.5,
+                                                color = 'y',linestyle = 'dashed')
+                self.PBAAttenuation.axes.axvline(valueTVL,
+                                                ymin = 0, ymax = 0.1,
+                                                color = 'g',linestyle = 'dashed')                                                
+            else:
+                valueHVL = np.interp(self.parameters.attenuatedEnergy[0]/2,np.flip(self.parameters.attenuatedEnergy),np.flip(self.parameters.depthRangePBA))
+                valueTVL = np.interp(self.parameters.attenuatedEnergy[0]/10,np.flip(self.parameters.attenuatedEnergy),np.flip(self.parameters.depthRangePBA))
+
+                self.PBAAttenuation.axes.axhline(self.parameters.attenuatedEnergy[0]/2,xmin = 0,xmax = valueHVL/self.parameters.maxDepthPBA,
+                                                color = 'y',linestyle = 'dashed',label=f"HVL = {valueHVL:.3f} cm")
+                self.PBAAttenuation.axes.axvline(valueHVL,
+                                                ymin = 0, ymax = 1/2,
+                                                color = 'y',linestyle = 'dashed')
+                self.PBAAttenuation.axes.axhline(self.parameters.attenuatedEnergy[0]/10,xmin = 0,xmax = valueTVL/self.parameters.maxDepthPBA,
+                                                color = 'g',linestyle = 'dashed',label=f"TVL = {valueTVL:.3f} cm")
+                self.PBAAttenuation.axes.axvline(valueTVL,
+                                                ymin = 0, ymax = 1/10,
+                                                color = 'g',linestyle = 'dashed')
+
+            self.PBAAttenuation.axes.set_xlim([0,self.parameters.maxDepthPBA])
+            if not self.parameters.NormalizePBA:
+                self.PBAAttenuation.axes.set_ylim([0,self.parameters.attenuatedEnergy[0]])
+            else:
+                self.PBAAttenuation.axes.set_ylim([0,1])
+            self.PBAAttenuation.axes.set_xlabel("Depth (cm)")
+            self.PBAAttenuation.axes.set_ylabel("Remaining Spectrum")
+            self.PBAAttenuation.axes.set_title(f"Total attenuated spectrum for {self.parameters.MaterialTypePBA}")
+            self.PBAAttenuation.axes.grid()
+            self.PBAAttenuation.axes.axvline(self.parameters.depthPBA,color='r')
+            self.PBAAttenuation.axes.legend()
+        self.PBAAttenuation.draw() 
+
     def updateImagePBASaved(self):
         """Updates the Image with the Saved Specters"""
         try:
@@ -354,8 +425,11 @@ class Window(QMainWindow):
         if self.parameters.MaterialTypePBA != "None":
             self.parameters.XCOMData = np.loadtxt(f"XCOM_Data/XCOM_{self.parameters.MaterialTypePBA}.pl")
 
+        self.updateAttenuatedPBA()
+
         self.updateImagePBA()
         self.updateXCOMImagePBA()
+        self.updateAttenuationImagePBA()
 
     def update_Combo_SpecterPBA(self):
         """Updates the Combo of the Spectrum of the PBA"""
@@ -389,8 +463,11 @@ class Window(QMainWindow):
                     self.parameters.SpecterfValues[i] = self.parameters.SpecterInitialValue*np.exp(self.parameters.SpecterKFactor*(self.parameters.SpecterEValues[i] - self.parameters.SpecterMin))
             self.parameters.Specter[:,0] = self.parameters.SpecterEValues
             self.parameters.Specter[:,1] = self.parameters.SpecterfValues
+        self.updateAttenuatedPBA()
+
         self.updateImagePBA()
         self.updateXCOMImagePBA()
+        self.updateAttenuationImagePBA()
 
     def updateCheckNormalizeBox(self):
         """Updates the Check Box of Normalize"""
@@ -399,6 +476,7 @@ class Window(QMainWindow):
         else:
             self.parameters.NormalizePBA = False
         self.updateImagePBA()
+        self.updateAttenuationImagePBA()
 
     def updateCheckSuperposeBox(self):
         """Updates the Check Box of Normalize"""
@@ -424,7 +502,9 @@ class Window(QMainWindow):
         try:
             self.parameters.SpecterMax = float(self.PBAMaxLineEdit.text())
         except: pass
+        self.updateAttenuatedPBA()
         self.update_Combo_SpecterPBA()
+        self.updateAttenuationImagePBA()
 
     def updateInitKSpecter(self):
         """Updates the Initial and k Factor values of the specter"""
@@ -434,7 +514,20 @@ class Window(QMainWindow):
         try:
             self.parameters.SpecterKFactor = float(self.PBAKFactor.text())
         except: pass
+        self.updateAttenuatedPBA()
         self.update_Combo_SpecterPBA()
+        self.updateAttenuationImagePBA()
+
+    def updateMaxDepth(self):
+        """Updates the max depth value of the parameters"""
+        try:
+            self.parameters.maxDepthPBA = float(self.PBAMaxDepthValue.text())
+            self.parameters.depthRangePBA = np.linspace(0,self.parameters.maxDepthPBA,1000)
+            self.sliderDepthPBA.setMaximum(self.parameters.maxDepthPBA * 1000)
+        except: pass
+        self.updateAttenuatedPBA()
+        self.update_Combo_SpecterPBA()
+        self.updateAttenuationImagePBA()
 
     def updateLineEditDepthPBA(self):
         """Updates the Depth of attenuation based on the Line Edit"""
@@ -443,6 +536,7 @@ class Window(QMainWindow):
         except:
             self.parameters.depthPBA = 0
         self.updateImagePBA()
+        self.updateAttenuationImagePBA()
 
     def updateSliderDepthPBA(self):
         """Updates the Depth of attenuation based on the Slider"""
@@ -451,6 +545,7 @@ class Window(QMainWindow):
         except:
             self.parameters.depthPBA = 0
         self.updateImagePBA()
+        self.updateAttenuationImagePBA()
 
     def clearSavedSpecterPBA(self):
         """Clears the Saved Specters"""
@@ -471,6 +566,15 @@ class Window(QMainWindow):
         else: 
             self.parameters.ShowSavedPBA = False
         self.updateImagePBA()
+
+    def updateAttenuatedPBA(self):
+        """Updates the Attenuated Beam in the parameters"""
+        if self.parameters.MaterialTypePBA != "None":
+            self.parameters.attenuatedEnergy = PhotonBeams.TotalAttenuation(self.parameters.Specter,
+                                                self.parameters.XCOMData,self.parameters.rho[f"{self.parameters.MaterialTypePBA}"],
+                                                self.parameters.depthRangePBA)
+        else:
+            self.parameters.attenuatedEnergy = []
 
 
 

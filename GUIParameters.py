@@ -38,3 +38,7 @@ class GUIParameters(object):
         self.MeanEPBA = False
 
         self.depthPBA = 0
+        self.maxDepthPBA = 2
+        self.depthRangePBA = np.linspace(0,self.maxDepthPBA,1000)
+
+        self.attenuatedEnergy = []
