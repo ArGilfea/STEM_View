@@ -171,7 +171,7 @@ class Window(QMainWindow):
 
         layout.addWidget(QLabel("In. Value"),2,0)
         layout.addWidget(self.PBAInitValue,2,1)
-        layout.addWidget(QLabel("Factor."),2,2)
+        layout.addWidget(QLabel("Factor"),2,2)
         layout.addWidget(self.PBAKFactor,2,3)
 
         layout.addWidget(QLabel("Max Depth"),3,0)
@@ -209,13 +209,11 @@ class Window(QMainWindow):
 
         self.sliderDepthPBA = QSlider(Qt.Horizontal)
         self.lineEditDepthPBA = QLineEdit()
-        empty = QLineEdit()
 
-        empty.setFixedWidth(sizeText)
         self.lineEditDepthPBA.setFixedWidth(sizeText)
         self.lineEditDepthPBA.setText("0")
 
-        self.sliderDepthPBA.setMaximum(self.parameters.maxDepthPBA * 1000)
+        self.sliderDepthPBA.setMaximum(int(self.parameters.maxDepthPBA * 1000))
         self.sliderDepthPBA.setTickPosition(QSlider.TicksBothSides)
         self.sliderDepthPBA.setSingleStep(1000)
         self.sliderDepthPBA.setTickInterval(1000)
@@ -225,7 +223,6 @@ class Window(QMainWindow):
 
         layout.addWidget(self.sliderDepthPBA)
         layout.addWidget(self.lineEditDepthPBA)
-        layout.addWidget(empty)
 
         self.generalLayoutPBA.addWidget(subWidget,self.current_linePBA,1)
         self.current_linePBA += 1
@@ -382,17 +379,22 @@ class Window(QMainWindow):
                 basic = basic/np.sum(basic)
             except:
                 pass
-        self.PBASpecter.axes.plot(self.parameters.SpecterEValues,through,label = "Attenuated")
+        
         self.throughPBA = through
         if self.parameters.ShowBaseSpecterPBA:
-            self.PBASpecter.axes.plot(self.parameters.SpecterEValues,basic,label="Base")
             if self.parameters.MeanEPBA:
-                self.PBASpecter.axes.axvline(PhotonBeams.AverageE(self.parameters.Specter))
+                self.PBASpecter.axes.axvline(PhotonBeams.AverageE(self.parameters.Specter),color = 'b')
+                self.PBASpecter.axes.plot(self.parameters.SpecterEValues,basic,label=f"Base, μ = {PhotonBeams.AverageE(self.parameters.Specter):.3f}MeV",color = 'b')
+            else:
+                self.PBASpecter.axes.plot(self.parameters.SpecterEValues,basic,label="Base",color = 'b')
         if self.parameters.MeanEPBA:
             Specter_tmp = np.zeros((self.parameters.SpecterfValues.shape[0],2))
             Specter_tmp[:,0] = self.parameters.SpecterEValues
             Specter_tmp[:,1] = through
             self.PBASpecter.axes.axvline(PhotonBeams.AverageE(Specter_tmp),color = 'r')
+            self.PBASpecter.axes.plot(self.parameters.SpecterEValues,through,label = f"Attenuated, μ = {PhotonBeams.AverageE(Specter_tmp):.3f}MeV",color = 'r')
+        else:
+            self.PBASpecter.axes.plot(self.parameters.SpecterEValues,through,label = "Attenuated",color = 'r')
         self.baseImagePBA()
         self.PBASpecter.draw() 
 
@@ -523,7 +525,7 @@ class Window(QMainWindow):
         try:
             self.parameters.maxDepthPBA = float(self.PBAMaxDepthValue.text())
             self.parameters.depthRangePBA = np.linspace(0,self.parameters.maxDepthPBA,1000)
-            self.sliderDepthPBA.setMaximum(self.parameters.maxDepthPBA * 1000)
+            self.sliderDepthPBA.setMaximum(int(self.parameters.maxDepthPBA * 1000))
         except: pass
         self.updateAttenuatedPBA()
         self.update_Combo_SpecterPBA()
