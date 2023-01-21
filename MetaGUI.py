@@ -7,7 +7,7 @@ import time
 import sys
 from PyQt5.QtWidgets import *
 ###
-from MedPhys.GUI import MedPhysWindow
+from MedPhys.MedPhysGUI import MedPhysWindow
 
 class MetaGUI(QMainWindow):
     def __init__(self,parent=None):
@@ -26,15 +26,23 @@ class MetaGUI(QMainWindow):
         self.setCentralWidget(centralWidget)
 
         self._createCalculusButton()
+        self._createWavesAndOpticsButton()
         self._createPhysMedButton()
         self._createExitButton()
 
     def _createCalculusButton(self):
-        """Creates the button for the Medical Physics GUI"""
+        """Creates the button for the Calculus GUI"""
         self.Calc = QPushButton("Calculus")
         self.Calc.setToolTip("TBA")
         self.Calc.clicked.connect(self.openCalc)
         self.generalLayout.addWidget(self.Calc)  
+
+    def _createWavesAndOpticsButton(self):
+        """Creates the button for the Waves and Optics GUI"""
+        self.WavesOptics = QPushButton("Waves & Optics")
+        self.WavesOptics.setToolTip("TBA")
+        self.WavesOptics.clicked.connect(self.openWavesOptics)
+        self.generalLayout.addWidget(self.WavesOptics)  
 
     def _createPhysMedButton(self):
         """Creates the button for the Medical Physics GUI"""
@@ -51,7 +59,11 @@ class MetaGUI(QMainWindow):
         self.generalLayout.addWidget(self.exit)  
 
     def openCalc(self):
-        "Opens a the Medical Physics GUI"
+        "Opens a the Calculus GUI"
+        pass
+
+    def openWavesOptics(self):
+        "Opens a the Waves and Optics GUI"
         pass
 
     def openPhysMed(self):
