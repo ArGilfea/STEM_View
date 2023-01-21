@@ -6,7 +6,7 @@ class GUIParameters(object):
         self.SpecterTypePBA = "Bump"
         self.MaterialTypePBA = "None"
 
-        self.Specter = np.loadtxt("Specters/"+self.SpecterTypePBA+".txt")
+        self.Specter = np.loadtxt("MedPhys/Specters/"+self.SpecterTypePBA+".txt")
 
         self.SpecterEValues = self.Specter[:,0]
         self.SpecterfValues = self.Specter[:,1]

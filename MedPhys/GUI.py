@@ -11,8 +11,12 @@ from PyQt5.QtCore import Qt
 from PyQt5 import QtGui
 from functools import partial
 ###
-import GUIParameters
-import PhotonBeams
+try:
+    import GUIParameters as GUIParameters
+    import PhotonBeams as PhotonBeams
+except:
+    import MedPhys.GUIParameters as GUIParameters
+    import MedPhys.PhotonBeams as PhotonBeams
 ###
 import matplotlib
 matplotlib.use('Qt5Agg')
@@ -23,11 +27,11 @@ import markdown
 
 size_Image = 200
 
-class Window(QMainWindow):
+class MedPhysWindow(QMainWindow):
     """
     Main window of the GUI.
     """    
-    def __init__(self):
+    def __init__(self,parent=None):
         """Initializes the GUI Window"""
         self.parameters = GUIParameters.GUIParameters()
 
@@ -35,7 +39,7 @@ class Window(QMainWindow):
         self.BUTTON_SIZE = 40
         self.DISPLAY_HEIGHT = 35
         self.current_linePBA = 1
-        super().__init__(parent=None)
+        super().__init__(parent=parent)
         self.setMinimumSize(800, 600)
         self.setWindowTitle("My GUI")
         self.generalLayoutPBA = QGridLayout()
@@ -233,32 +237,18 @@ class Window(QMainWindow):
         self.exit.setToolTip("Closes the GUI and its dependencies")
         self.exit.clicked.connect(self.closing_button)
         self.generalLayoutPBA.addWidget(self.exit,self.current_linePBA+1,3)  
-        self.current_linePBA += 2
+        self.current_linePBA += 1
 
     def _createReadMe(self):
         """Creates a ReadMe tab with the ReadMe file infos"""
         self.ReadMeText = QTextEdit()
         self.ReadMeText.setReadOnly(True)
-        f = open('ReadMe.md', 'r')
+        f = open('MedPhys/ReadMe.md', 'r')
         htmlmarkdown = markdown.markdown( f.read() )
         self.ReadMeText.setText(htmlmarkdown)
         self.generalLayoutReadMe.addWidget(self.ReadMeText)
 
     def closing_button(self):
-        try:
-            self.generalLayout.removeWidget(self.GraphRunPlot)
-            self.generalLayout.removeWidget(self.GraphTracePlot)
-            self.generalLayout.removeWidget(self.GraphCornerPlot)
-            self.GraphRunPlot.deleteLater()
-            self.GraphTracePlot.deleteLater()
-            self.GraphCornerPlot.deleteLater()
-            self.GraphRunPlot = None
-            self.GraphTracePlot = None
-            self.GraphCornerPlot = None
-            del self.GraphRunPlot
-            del self.GraphTracePlot
-            del self.GraphCornerPlot
-        except: pass
         self.close()
 
     def updateImagePBA(self):
@@ -425,7 +415,7 @@ class Window(QMainWindow):
         self.parameters.MaterialTypePBA = self.PBAMaterialType.currentText()
 
         if self.parameters.MaterialTypePBA != "None":
-            self.parameters.XCOMData = np.loadtxt(f"XCOM_Data/XCOM_{self.parameters.MaterialTypePBA}.pl")
+            self.parameters.XCOMData = np.loadtxt(f"MedPhys/XCOM_Data/XCOM_{self.parameters.MaterialTypePBA}.pl")
 
         self.updateAttenuatedPBA()
 
@@ -437,7 +427,7 @@ class Window(QMainWindow):
         """Updates the Combo of the Spectrum of the PBA"""
         self.parameters.SpecterTypePBA = self.PBASpecterType.currentText()
         if self.parameters.SpecterTypePBA in ["Bump"]:
-            self.parameters.Specter = np.loadtxt("Specters/"+self.parameters.SpecterTypePBA+".txt")
+            self.parameters.Specter = np.loadtxt("MedPhys/Specters/"+self.parameters.SpecterTypePBA+".txt")
             self.parameters.SpecterEValues = self.parameters.Specter[:,0]
             self.parameters.SpecterfValues = self.parameters.Specter[:,1]
         elif self.parameters.SpecterTypePBA == "Peak":
@@ -595,6 +585,6 @@ if __name__ == "__main__":
     print(f"Starting program at {time.strftime('%H:%M:%S')}")
     initial = time.time()
     app = QApplication([])
-    window=Window()
+    window=MedPhysWindow()
     window.show()
     sys.exit(app.exec())
