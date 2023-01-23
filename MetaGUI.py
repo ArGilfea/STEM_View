@@ -18,7 +18,7 @@ class MetaGUI(QMainWindow):
         self.current_line = 1
         super().__init__(parent=None)
         self.setMinimumSize(300, 200)
-        self.setWindowTitle("My GUI")
+        self.setWindowTitle("Science GUI")
 
         self.generalLayout = QVBoxLayout()
         centralWidget = QWidget(self)

@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.image as mpimg
 
 class GUIParameters(object):
     """Class where the parameters of the GUI are stored"""
@@ -42,3 +43,7 @@ class GUIParameters(object):
         self.depthRangePBA = np.linspace(0,self.maxDepthPBA,1000)
 
         self.attenuatedEnergy = []
+
+        self.angleTomo = 0
+        self.ImageTomoName = "Lenna"
+        self.ImageTomo = mpimg.imread(f'TomoImage/{self.ImageTomoName}.pgm')

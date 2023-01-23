@@ -12,16 +12,19 @@ from PyQt5 import QtGui
 from functools import partial
 ###
 try:
-    import GUIParameters as GUIParameters
-    import PhotonBeams as PhotonBeams
+    import GUIParameters
+    import PhotonBeams
+    import Tomography
 except:
     import MedPhys.GUIParameters as GUIParameters
     import MedPhys.PhotonBeams as PhotonBeams
+    import MedPhys.Tomography as Tomography
 ###
 import matplotlib
 matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
+import matplotlib.image as mpimg
 ###
 import markdown
 
@@ -39,30 +42,39 @@ class MedPhysWindow(QMainWindow):
         self.BUTTON_SIZE = 40
         self.DISPLAY_HEIGHT = 35
         self.current_linePBA = 1
+        self.current_lineTomo = 1
         super().__init__(parent=parent)
         self.setMinimumSize(800, 600)
-        self.setWindowTitle("My GUI")
+        self.setWindowTitle("Medical Physics")
         self.generalLayoutPBA = QGridLayout()
+        self.generalLayoutTomo = QGridLayout()
         self.generalLayoutTBA1 = QGridLayout()
         self.generalLayoutReadMe = QGridLayout()
         centralWidgetPBA = QWidget(self)
+        centralWidgetTomo = QWidget(self)
         centralWidgetTBA1 = QWidget(self)
         centralWidgetReadMe = QWidget(self)
         centralWidgetPBA.setLayout(self.generalLayoutPBA)
+        centralWidgetTomo.setLayout(self.generalLayoutTomo)
         centralWidgetTBA1.setLayout(self.generalLayoutTBA1)
         centralWidgetReadMe.setLayout(self.generalLayoutReadMe)
         self.tabs.addTab(centralWidgetPBA,"Photon Beam Attenuation")
+        self.tabs.addTab(centralWidgetTomo,"Tomography")
         self.tabs.addTab(centralWidgetTBA1,"TBA")
         self.tabs.addTab(centralWidgetReadMe,"Read Me")
 
         self.setCentralWidget(self.tabs)
-        self.setWindowTitle("PhyMedGUI")
 
         self._addSpecterImagePBA()
         self._addMaterialTypePBA()
         self._addDepthSliderPBA()
         self._addXCOMDataImagePBA()
         self._addDataImageAttenuationPBA()
+
+        self._addImageTomo()
+        self._addAngleSliderTomo()
+        self._addFlatImageTomo()
+        self._addSinoImageTomo()
 
         self._createExitButton() 
 
@@ -95,6 +107,53 @@ class MedPhysWindow(QMainWindow):
         self.current_linePBA += 1
 
         self.updateAttenuationImagePBA()
+
+    def _addImageTomo(self):
+        """Adds the original image for tomography"""
+        self.TomoImage = MplCanvas(self, width=6, height=6, dpi=75)
+        self.generalLayoutTomo.addWidget(self.TomoImage,self.current_lineTomo,1)
+        self.current_lineTomo += 1
+
+        self.updateImageTomoBase()
+
+    def _addAngleSliderTomo(self):
+        """Adds the slider for the angle of the tomography"""
+        subWidget = QWidget()
+        layout = QHBoxLayout()
+        subWidget.setLayout(layout)
+
+        sizeText = 30
+
+        self.sliderAngleTomo = QSlider(Qt.Horizontal)
+        self.lineEditAngleTomo = QLineEdit()
+
+        self.lineEditAngleTomo.setFixedWidth(sizeText)
+        self.lineEditAngleTomo.setText("0")
+
+        self.sliderAngleTomo.setMaximum(360)
+        self.sliderAngleTomo.setTickPosition(QSlider.TicksBothSides)
+        self.sliderAngleTomo.setSingleStep(90)
+        self.sliderAngleTomo.setTickInterval(90)
+
+        self.lineEditAngleTomo.editingFinished.connect(self.updateLineEditAngleTomo)
+        self.sliderAngleTomo.valueChanged.connect(self.updateSliderAngleTomo)
+
+        layout.addWidget(self.sliderAngleTomo)
+        layout.addWidget(self.lineEditAngleTomo)
+
+        self.generalLayoutTomo.addWidget(subWidget,self.current_lineTomo,1)
+        self.current_lineTomo += 1
+
+    def _addFlatImageTomo(self):
+        """Adds the flattened line image for tomography"""
+        self.FlatImage = MplCanvas(self, width=6, height=6, dpi=75)
+        self.generalLayoutTomo.addWidget(self.FlatImage,self.current_lineTomo,1)
+
+    def _addSinoImageTomo(self):
+        """Adds the sinogram of the image for tomography"""
+        self.SinoImage = MplCanvas(self, width=6, height=6, dpi=75)
+        self.generalLayoutTomo.addWidget(self.SinoImage,self.current_lineTomo,2)
+        self.current_lineTomo += 1
 
     def _addMaterialTypePBA(self):
         """Adds a Combo Box to determine the material for attenuation"""
@@ -233,11 +292,16 @@ class MedPhysWindow(QMainWindow):
 
     def _createExitButton(self):
         """Create an exit button"""
-        self.exit = QPushButton("Exit")
-        self.exit.setToolTip("Closes the GUI and its dependencies")
-        self.exit.clicked.connect(self.closing_button)
-        self.generalLayoutPBA.addWidget(self.exit,self.current_linePBA+1,3)  
+        self.exitPBA = QPushButton("Exit")
+        self.exitTomo = QPushButton("Exit")
+        self.exitPBA.setToolTip("Closes the GUI and its dependencies")
+        self.exitTomo.setToolTip("Closes the GUI and its dependencies")
+        self.exitPBA.clicked.connect(self.closing_button)
+        self.exitTomo.clicked.connect(self.closing_button)
+        self.generalLayoutPBA.addWidget(self.exitPBA,self.current_linePBA+1,3)  
+        self.generalLayoutTomo.addWidget(self.exitTomo,self.current_lineTomo+1,3)  
         self.current_linePBA += 1
+        self.current_lineTomo += 1
 
     def _createReadMe(self):
         """Creates a ReadMe tab with the ReadMe file infos"""
@@ -387,6 +451,23 @@ class MedPhysWindow(QMainWindow):
             self.PBASpecter.axes.plot(self.parameters.SpecterEValues,through,label = "Attenuated",color = 'r')
         self.baseImagePBA()
         self.PBASpecter.draw() 
+
+    def updateImageTomoBase(self):
+        """Updates the basic Image for the Tomography"""
+        try:
+            self.TomoImage.axes.cla()
+        except:
+            pass
+
+        try:
+            img = mpimg.imread(f'TomoImage/{self.parameters.ImageTomoName}.pgm')
+        except:
+            pass
+        self.TomoImage.axes.pcolormesh(img,cmap = 'binary')
+        self.TomoImage.axes.invert_yaxis()
+
+        self.TomoImage.axes.set_title(f"{self.parameters.ImageTomoName}, angle = {self.parameters.angleTomo}")
+        self.TomoImage.draw()
 
 
     def baseImagePBA(self):
@@ -567,6 +648,22 @@ class MedPhysWindow(QMainWindow):
                                                 self.parameters.depthRangePBA)
         else:
             self.parameters.attenuatedEnergy = []
+
+    def updateLineEditAngleTomo(self):
+        """Updates the Angle of tomography based on the Line Edit"""
+        try:
+            self.parameters.angleTomo = int(self.lineEditAngleTomo.text())
+        except:
+            self.parameters.angleTomo = 0
+        self.updateImageTomoBase()
+
+    def updateSliderAngleTomo(self):
+        """Updates the Angle of tomography based on the Slider"""
+        try:
+            self.parameters.angleTomo = int(self.sliderAngleTomo.value())
+        except:
+            self.parameters.angleTomo = 0
+        self.updateImageTomoBase()
 
 
 
