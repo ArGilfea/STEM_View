@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.image as mpimg
+import Tomography
 
 class GUIParameters(object):
     """Class where the parameters of the GUI are stored"""
@@ -23,16 +24,21 @@ class GUIParameters(object):
 
         self.rho = {
             "Al" : 2.6989,
+            "C" : 0,
+            "Ca" : 0,
             "Cu" : 8.96,
             "H" : 0,
             "H2O" : 1,
             "I" : 0,
+            "N" : 0,
             "O" : 0,
+            "P" : 0,
             "Pb" : 10.66,
+            "Skull" : 1.517,
             "Zn" : 7.13,
         }
-
         self.XCOMData = []
+
 
         self.ShowBaseSpecterPBA = False
         self.NormalizePBA = False
@@ -46,4 +52,8 @@ class GUIParameters(object):
 
         self.angleTomo = 0
         self.ImageTomoName = "Lenna"
-        self.ImageTomo = mpimg.imread(f'TomoImage/{self.ImageTomoName}.pgm')
+        self.ImageTomo = mpimg.imread(f'TomoImage/{self.ImageTomoName}.pgm')        
+        self.ImageRotatedTomo =  np.copy(self.ImageTomo)
+
+        self.FlatImageAngleTomo = np.sum(self.ImageRotatedTomo,axis=1)
+        self.SinogramTomo = Tomography.Sinogram(self.ImageTomo, angles_step = 1)

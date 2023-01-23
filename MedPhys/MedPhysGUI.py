@@ -21,6 +21,7 @@ except:
     import MedPhys.Tomography as Tomography
 ###
 import matplotlib
+import matplotlib.pyplot as plt
 matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -149,11 +150,15 @@ class MedPhysWindow(QMainWindow):
         self.FlatImage = MplCanvas(self, width=6, height=6, dpi=75)
         self.generalLayoutTomo.addWidget(self.FlatImage,self.current_lineTomo,1)
 
+        self.updateImageTomoSlice()
+
     def _addSinoImageTomo(self):
         """Adds the sinogram of the image for tomography"""
         self.SinoImage = MplCanvas(self, width=6, height=6, dpi=75)
         self.generalLayoutTomo.addWidget(self.SinoImage,self.current_lineTomo,2)
         self.current_lineTomo += 1
+
+        self.updateImageTomoSino()
 
     def _addMaterialTypePBA(self):
         """Adds a Combo Box to determine the material for attenuation"""
@@ -164,12 +169,17 @@ class MedPhysWindow(QMainWindow):
         self.PBAMaterialType = QComboBox()
         self.PBAMaterialType.addItem("None")
         self.PBAMaterialType.addItem("Al")
+        self.PBAMaterialType.addItem("C")
+        self.PBAMaterialType.addItem("Ca")
         self.PBAMaterialType.addItem("Cu")
         self.PBAMaterialType.addItem("H")
         self.PBAMaterialType.addItem("H2O")
         self.PBAMaterialType.addItem("I")
+        self.PBAMaterialType.addItem("N")
         self.PBAMaterialType.addItem("O")
+        self.PBAMaterialType.addItem("P")
         self.PBAMaterialType.addItem("Pb")
+        self.PBAMaterialType.addItem("Skull")
         self.PBAMaterialType.addItem("Zn")
 
         self.PBASpecterType = QComboBox()
@@ -345,8 +355,8 @@ class MedPhysWindow(QMainWindow):
 
             self.PBAXCOMData.axes.axvline(self.parameters.SpecterMin,color='y',linestyle='dashed')
             self.PBAXCOMData.axes.axvline(self.parameters.SpecterMax,color='y',linestyle='dashed')
-            self.PBAXCOMData.axes.axvline(2*0.511,ymax = 1e-2, color='r',linestyle='dashed')
-            self.PBAXCOMData.axes.axvline(4*0.511,ymax = 1e-2, color='r',linestyle='dashed')
+            self.PBAXCOMData.axes.axvline(2*0.511,ymax = 1e-1, color='r',linestyle='dashed')
+            self.PBAXCOMData.axes.axvline(4*0.511,ymax = 1e-1, color='r',linestyle='dashed')
         self.PBAXCOMData.draw() 
 
     def updateAttenuationImagePBA(self):
@@ -459,16 +469,39 @@ class MedPhysWindow(QMainWindow):
         except:
             pass
 
-        try:
-            img = mpimg.imread(f'TomoImage/{self.parameters.ImageTomoName}.pgm')
-        except:
-            pass
-        self.TomoImage.axes.pcolormesh(img,cmap = 'binary')
+        self.TomoImage.axes.pcolormesh(self.parameters.ImageRotatedTomo,cmap = 'Greys_r')
         self.TomoImage.axes.invert_yaxis()
 
         self.TomoImage.axes.set_title(f"{self.parameters.ImageTomoName}, angle = {self.parameters.angleTomo}")
         self.TomoImage.draw()
 
+    def updateImageTomoSlice(self):
+        """Updates the Slice Image for the Tomography"""
+        try:
+            self.FlatImage.axes.cla()
+        except:
+            pass
+
+        self.FlatImage.axes.plot(self.parameters.FlatImageAngleTomo)
+        self.FlatImage.axes.set_title(f"Line Intensity of {self.parameters.ImageTomoName} at angle {self.parameters.angleTomo}")
+        self.FlatImage.axes.grid()
+        self.FlatImage.axes.set_xlabel("Position")
+        self.FlatImage.axes.set_ylabel("Summed Intensity")
+
+        self.FlatImage.draw()
+
+    def updateImageTomoSino(self):
+        """Update the Sinogram Image for the Tomography"""
+        try:
+            self.SinoImage.axes.cla()
+        except:
+            pass
+        self.SinoImage.axes.pcolormesh(self.parameters.SinogramTomo,cmap = 'Greys_r')
+        self.SinoImage.axes.axvline(self.parameters.angleTomo,color = 'r',alpha=0.3)
+
+        self.SinoImage.axes.set_title(f"Sinogram of {self.parameters.ImageTomoName}")
+
+        self.SinoImage.draw()
 
     def baseImagePBA(self):
         self.PBASpecter.axes.grid()
@@ -655,7 +688,8 @@ class MedPhysWindow(QMainWindow):
             self.parameters.angleTomo = int(self.lineEditAngleTomo.text())
         except:
             self.parameters.angleTomo = 0
-        self.updateImageTomoBase()
+        self.updateRotatedImageTomo()
+        self.updateImageSliceTomo()
 
     def updateSliderAngleTomo(self):
         """Updates the Angle of tomography based on the Slider"""
@@ -663,8 +697,29 @@ class MedPhysWindow(QMainWindow):
             self.parameters.angleTomo = int(self.sliderAngleTomo.value())
         except:
             self.parameters.angleTomo = 0
-        self.updateImageTomoBase()
+        self.updateRotatedImageTomo()
+        self.updateImageSliceTomo()
+        
 
+    def updateRotatedImageTomo(self):
+        """Rotate the stored image around an axis"""
+        self.parameters.ImageRotatedTomo = Tomography.Rotate(self.parameters.ImageTomo,angle = self.parameters.angleTomo*2*np.pi/360)
+        self.updateImageTomoSlice()
+        self.updateImageTomoBase()
+        self.updateImageTomoSino()
+
+    def updateSinogramImageTomo(self):
+        """Updates the Sinogram"""
+        self.parameters.SinogramTomo = Tomography.Sinogram(self.ImageTomo, angles_step = 1)
+        self.updateImageTomoSlice()
+        self.updateImageTomoBase()
+        self.updateImageTomoSino()
+
+    def updateImageSliceTomo(self):
+        self.parameters.FlatImageAngleTomo = np.sum(self.parameters.ImageRotatedTomo,axis=1)
+        self.updateImageTomoSlice()
+        self.updateImageTomoBase()
+        self.updateImageTomoSino()
 
 
 class MplCanvas(FigureCanvasQTAgg):
