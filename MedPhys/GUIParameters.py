@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.image as mpimg
-import Tomography
+try:
+    import Tomography
+except:
+    import MedPhys.Tomography as Tomography
 
 class GUIParameters(object):
     """Class where the parameters of the GUI are stored"""
