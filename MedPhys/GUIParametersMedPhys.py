@@ -58,5 +58,6 @@ class GUIParameters(object):
         self.ImageTomo = mpimg.imread(f'TomoImage/{self.ImageTomoName}.pgm')        
         self.ImageRotatedTomo =  np.copy(self.ImageTomo)
 
+        self.AngleStepTomo = 1
         self.FlatImageAngleTomo = np.sum(self.ImageRotatedTomo,axis=1)
-        self.SinogramTomo = Tomography.Sinogram(self.ImageTomo, angles_step = 1)
+        self.SinogramTomo = Tomography.Sinogram(self.ImageTomo, angles_step = self.AngleStepTomo)

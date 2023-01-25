@@ -10,13 +10,15 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 from PyQt5 import QtGui
 from functools import partial
+from skimage.data import shepp_logan_phantom
+from skimage.transform import radon, rescale
 ###
 try:
-    import GUIParameters
+    import GUIParametersMedPhys
     import PhotonBeams
     import Tomography
 except:
-    import MedPhys.GUIParameters as GUIParameters
+    import MedPhys.GUIParametersMedPhys as GUIParametersMedPhys
     import MedPhys.PhotonBeams as PhotonBeams
     import MedPhys.Tomography as Tomography
 ###
@@ -35,10 +37,10 @@ class MedPhysWindow(QMainWindow):
     """
     Main window of the GUI.
     """    
-    def __init__(self,parent=None):
+    def __init__(self,parent=None,language= "En"):
         """Initializes the GUI Window"""
-        self.parameters = GUIParameters.GUIParameters()
-
+        self.parameters = GUIParametersMedPhys.GUIParameters()
+        self.language = language
         self.tabs = QTabWidget()
         self.BUTTON_SIZE = 40
         self.DISPLAY_HEIGHT = 35
@@ -73,9 +75,12 @@ class MedPhysWindow(QMainWindow):
         self._addDataImageAttenuationPBA()
 
         self._addImageTomo()
+        self._addImageReconsTomo()
         self._addAngleSliderTomo()
         self._addFlatImageTomo()
         self._addSinoImageTomo()
+        self._addOptionsTomo()
+
 
         self._createExitButton() 
 
@@ -113,6 +118,13 @@ class MedPhysWindow(QMainWindow):
         """Adds the original image for tomography"""
         self.TomoImage = MplCanvas(self, width=6, height=6, dpi=75)
         self.generalLayoutTomo.addWidget(self.TomoImage,self.current_lineTomo,1)
+
+        self.updateImageTomoBase()
+
+    def _addImageReconsTomo(self):
+        """Adds the Reconstructed image for tomography"""
+        self.TomoReconstructed = MplCanvas(self, width=6, height=6, dpi=75)
+        self.generalLayoutTomo.addWidget(self.TomoReconstructed,self.current_lineTomo,2)
         self.current_lineTomo += 1
 
         self.updateImageTomoBase()
@@ -312,12 +324,38 @@ class MedPhysWindow(QMainWindow):
         self.generalLayoutTomo.addWidget(self.exitTomo,self.current_lineTomo+1,3)  
         self.current_linePBA += 1
         self.current_lineTomo += 1
+    
+    def _addOptionsTomo(self):
+        """Creates the Option parameters for the Tomography"""
+        subWidget = QWidget()
+        layout = QGridLayout()
+        subWidget.setLayout(layout)        
+        sizeText = 30
+
+        self.ImageChoiceTomo = QComboBox()
+        self.ImageChoiceTomo.addItem("Lenna")
+        self.ImageChoiceTomo.addItem("Phantom")
+
+        self.StepAngleTomoLineEdit = QLineEdit()
+        self.StepAngleTomoLineEdit.setText(f"{self.parameters.AngleStepTomo}")
+        self.StepAngleTomoLineEdit.setFixedWidth(sizeText)
+
+        self.ImageChoiceTomo.activated[str].connect(self.update_Combo_ImageTomo)
+        self.StepAngleTomoLineEdit.editingFinished.connect(self.update_Step_AngleTomo)
+
+
+        layout.addWidget(self.ImageChoiceTomo,0,0)
+        layout.addWidget(QLabel("Step"),1,0)
+        layout.addWidget(self.StepAngleTomoLineEdit,1,1)
+
+        self.generalLayoutTomo.addWidget(subWidget,self.current_lineTomo,2)
+        self.current_lineTomo += 1
 
     def _createReadMe(self):
         """Creates a ReadMe tab with the ReadMe file infos"""
         self.ReadMeText = QTextEdit()
         self.ReadMeText.setReadOnly(True)
-        f = open('MedPhys/ReadMe.md', 'r')
+        f = open('MedPhys/ReadMePhysMed.md', 'r')
         htmlmarkdown = markdown.markdown( f.read() )
         self.ReadMeText.setText(htmlmarkdown)
         self.generalLayoutReadMe.addWidget(self.ReadMeText)
@@ -497,9 +535,9 @@ class MedPhysWindow(QMainWindow):
         except:
             pass
         self.SinoImage.axes.pcolormesh(self.parameters.SinogramTomo,cmap = 'Greys_r')
-        self.SinoImage.axes.axvline(self.parameters.angleTomo,color = 'r',alpha=0.3)
+        self.SinoImage.axes.axvline(self.parameters.angleTomo/self.parameters.AngleStepTomo,color = 'r',alpha=0.3)
 
-        self.SinoImage.axes.set_title(f"Sinogram of {self.parameters.ImageTomoName}")
+        self.SinoImage.axes.set_title(f"Sinogram of {self.parameters.ImageTomoName} with steps of {self.parameters.AngleStepTomo}")
 
         self.SinoImage.draw()
 
@@ -536,6 +574,33 @@ class MedPhysWindow(QMainWindow):
         self.updateImagePBA()
         self.updateXCOMImagePBA()
         self.updateAttenuationImagePBA()
+
+    def update_Combo_ImageTomo(self):
+        """Updates the Combo of the Image of the Tomo"""
+        self.parameters.ImageTomoName = self.ImageChoiceTomo.currentText()
+
+        if self.parameters.ImageTomoName == "Phantom":
+            self.parameters.ImageTomo = shepp_logan_phantom()
+            self.parameters.ImageTomo = rescale(self.parameters.ImageTomo,0.5)
+        else:
+            mpimg.imread(f'TomoImage/{self.parameters.ImageTomoName}.pgm')     
+
+        self.parameters.ImageRotatedTomo = Tomography.Rotate(self.parameters.ImageTomo,angle = self.parameters.angleTomo*2*np.pi/360)
+
+        self.parameters.FlatImageAngleTomo = np.sum(self.parameters.ImageRotatedTomo,axis=1)
+        self.parameters.SinogramTomo = Tomography.Sinogram(self.parameters.ImageTomo, angles_step = self.parameters.AngleStepTomo)
+
+        self.updateImageTomoSlice()
+        self.updateImageTomoBase()
+        self.updateImageTomoSino()
+
+    def update_Step_AngleTomo(self):
+        """Updates the Step in Angles"""
+        self.parameters.AngleStepTomo = float(self.StepAngleTomoLineEdit.text())
+
+        self.parameters.SinogramTomo = Tomography.Sinogram(self.parameters.ImageTomo, angles_step = self.parameters.AngleStepTomo)
+
+        self.updateImageTomoSino()
 
     def update_Combo_SpecterPBA(self):
         """Updates the Combo of the Spectrum of the PBA"""
@@ -678,7 +743,7 @@ class MedPhysWindow(QMainWindow):
         if self.parameters.MaterialTypePBA != "None":
             self.parameters.attenuatedEnergy = PhotonBeams.TotalAttenuation(self.parameters.Specter,
                                                 self.parameters.XCOMData,self.parameters.rho[f"{self.parameters.MaterialTypePBA}"],
-                                                self.parameters.depthRangePBA)
+                                                self.parameters.depthRangePBA)*(self.parameters.SpecterEValues[1]-self.parameters.SpecterEValues[0])
         else:
             self.parameters.attenuatedEnergy = []
 
