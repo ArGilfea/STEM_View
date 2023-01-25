@@ -1,15 +1,23 @@
 import numpy as np
+try:
+    import Curves
+except:
+    import Calculus.Curves as Curves
 
 class GUIParameters(object):
     """Class where the parameters of the GUI are stored"""
     def __init__(self):
-        self.IntegralCurve = "Constant"
+        self.IntegralCurveName = "Constant"
+
+        self.IntegralParameters = [0.0, 0.0, 0.0, 0.0]
+
+        self.IntegralBoxNumber = 2
+        self.IntegralShowBoxes = False
+        self.IntegralBoxType = "Left Box"
+        self.IntegralMinBox = -1.0
+        self.IntegralMaxBox = 1.0
 
         self.IntegralXAxis = np.linspace(-5,5,1000)
 
-        self.IntegralYAxis = np.zeros_like(self.IntegralXAxis)
-
-        self.IntegralFirstParam = 1.0
-        self.IntegralSecondParam = 1.0
-        self.IntegralThirdParam = 1.0
-        self.IntegralFourthParam = 1.0
+        self.IntegralCurve = Curves.FlatCurve
+        self.IntegralYAxis = self.IntegralCurve(self.IntegralXAxis,self.IntegralParameters)
