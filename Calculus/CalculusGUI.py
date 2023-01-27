@@ -14,9 +14,11 @@ from functools import partial
 try:
     import GUIParametersCalculus
     import Curves
+    import Integration
 except:
     import Calculus.GUIParametersCalculus as GUIParametersCalculus
     import Calculus.Curves as Curves
+    import Calculus.Integration as Integration
 ###
 import matplotlib
 import matplotlib.pyplot as plt
@@ -25,6 +27,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import matplotlib.image as mpimg
 from matplotlib.patches import Rectangle
+from matplotlib.patches import Polygon
+
 ###
 import markdown
 
@@ -97,6 +101,7 @@ class CalculusWindow(QMainWindow):
         self.IntegralBoxTypeCombo.addItem("Left Box")
         self.IntegralBoxTypeCombo.addItem("Right Box")
         self.IntegralBoxTypeCombo.addItem("Center Box")
+        self.IntegralBoxTypeCombo.addItem("Trapezoid")
         self.IntegralBoxTypeCombo.setCurrentText(self.parameters.IntegralBoxType)
         self.IntegralBoxTypeCombo.activated[str].connect(self.update_Combo_BoxTypeIntegral)
 
@@ -122,8 +127,8 @@ class CalculusWindow(QMainWindow):
         self.ThirdParameterIntegral.setText(str(self.parameters.IntegralParameters[2]))
         self.FourthParameterIntegral.setText(str(self.parameters.IntegralParameters[3]))
         self.NumberBoxIntegral.setText(str(self.parameters.IntegralBoxNumber))
-        self.IntegralMin.setText(str(self.parameters.IntegralMinBox))
-        self.IntegralMax.setText(str(self.parameters.IntegralMaxBox))
+        self.IntegralMin.setText(str(self.parameters.IntegralBoundsBox[0]))
+        self.IntegralMax.setText(str(self.parameters.IntegralBoundsBox[1]))
 
         self.FirstParameterIntegral.editingFinished.connect(self.updateCurveParametersIntegral)
         self.SecondParameterIntegral.editingFinished.connect(self.updateCurveParametersIntegral)
@@ -155,11 +160,14 @@ class CalculusWindow(QMainWindow):
         """Creates an Image for the Integral Result"""
         self.IntegralSumImage = MplCanvas(self, width=6, height=6, dpi=75)
         self.generalLayoutIntegral.addWidget(self.IntegralSumImage,self.current_lineIntegral,1)
+
+        self.updateBoxImageIntegral()
     def _createCurveOtherIntegral(self):
         """Creates another Image"""
         self.IntegralOtherImage = MplCanvas(self, width=6, height=6, dpi=75)
         self.generalLayoutIntegral.addWidget(self.IntegralOtherImage,self.current_lineIntegral,2)
         self.current_lineIntegral += 1
+        self.updateBoundedImageIntegral()
 
 
 
@@ -217,23 +225,27 @@ class CalculusWindow(QMainWindow):
             self.parameters.IntegralShowBoxes = False
 
         self.updateCurveIntegral()
+        self.updateBoxImageIntegral()
+        self.updateBoundedImageIntegral()
 
     def updateCureBoundsIntegral(self):
         """Updates the Bounds of the Integration"""
         try:
-            self.parameters.IntegralMinBox = float(self.IntegralMin.text())
+            self.parameters.IntegralBoundsBox[0] = float(self.IntegralMin.text())
         except:
-            self.parameters.IntegralMinBox = 0.0
+            self.parameters.IntegralBoundsBox[0] = 0.0
         try:
-            self.parameters.IntegralMaxBox = float(self.IntegralMax.text())
+            self.parameters.IntegralBoundsBox[1] = float(self.IntegralMax.text())
         except:
-            self.parameters.IntegralMaxBox = 1.0
+            self.parameters.IntegralBoundsBox[1] = 1.0
         self.updateCurveIntegral()
+        self.updateBoxImageIntegral()
+        self.updateBoundedImageIntegral()
 
 
     def updateCurveIntegral(self):
         """Updates the Base Curve"""
-        self.parameters.IntegralXAxis = self.IntegralXAxis = np.linspace(self.parameters.IntegralMinBox - 1,self.parameters.IntegralMaxBox + 1,1000)
+        self.parameters.IntegralXAxis = self.IntegralXAxis = np.linspace(self.parameters.IntegralBoundsBox[0] - 1,self.parameters.IntegralBoundsBox[1] + 1,1000)
         if self.parameters.IntegralCurveName == "Constant":
             self.parameters.IntegralCurve = Curves.FlatCurve
         elif self.parameters.IntegralCurveName == "Line":
@@ -249,7 +261,7 @@ class CalculusWindow(QMainWindow):
         elif self.parameters.IntegralCurveName == "Cos":
             self.parameters.IntegralCurve = Curves.CosCurve
         elif self.parameters.IntegralCurveName == "Tan":
-            self.parameters.IntegralXAxis = self.IntegralXAxis = np.linspace(self.parameters.IntegralMinBox,self.parameters.IntegralMaxBox,1000)
+            self.parameters.IntegralXAxis = self.IntegralXAxis = np.linspace(self.parameters.IntegralBoundsBox[0],self.parameters.IntegralBoundsBox[1],1000)
             self.parameters.IntegralCurve = Curves.TanCurve
         elif self.parameters.IntegralCurveName == "ArcSin":
             self.parameters.IntegralCurve = Curves.ArcSinCurve
@@ -260,6 +272,8 @@ class CalculusWindow(QMainWindow):
         self.parameters.IntegralYAxis = self.parameters.IntegralCurve(self.parameters.IntegralXAxis,self.parameters.IntegralParameters)
 
         self.updateBaseImageIntegral()
+        self.updateBoxImageIntegral()
+        self.updateBoundedImageIntegral()
 
     def updateBaseImageIntegral(self):
         """Updates the Base Curve"""
@@ -271,31 +285,117 @@ class CalculusWindow(QMainWindow):
         self.IntegralBasicImage.axes.plot(self.parameters.IntegralXAxis,self.parameters.IntegralYAxis)
 
         if self.parameters.IntegralShowBoxes:
-            dx = (self.parameters.IntegralMaxBox - self.parameters.IntegralMinBox)/self.parameters.IntegralBoxNumber
+            dx = (self.parameters.IntegralBoundsBox[1] - self.parameters.IntegralBoundsBox[0])/self.parameters.IntegralBoxNumber
             for i in range(self.parameters.IntegralBoxNumber):
                 if self.parameters.IntegralBoxType == "Left Box":
-                    self.IntegralBasicImage.axes.add_patch(Rectangle((self.parameters.IntegralMinBox + i * dx,0),
+                    self.IntegralBasicImage.axes.add_patch(Rectangle((self.parameters.IntegralBoundsBox[0] + i * dx,0),
                                                                         dx,
-                                                                        self.parameters.IntegralCurve(self.parameters.IntegralMinBox + i * dx,
+                                                                        self.parameters.IntegralCurve(self.parameters.IntegralBoundsBox[0] + i * dx,
                                                                         self.parameters.IntegralParameters),
                                                                         alpha=0.3))
                 elif self.parameters.IntegralBoxType == "Right Box":
-                    self.IntegralBasicImage.axes.add_patch(Rectangle((self.parameters.IntegralMinBox + i * dx,0),
+                    self.IntegralBasicImage.axes.add_patch(Rectangle((self.parameters.IntegralBoundsBox[0] + i * dx,0),
                                                                         dx,
-                                                                        self.parameters.IntegralCurve(self.parameters.IntegralMinBox + (i + 1) * dx,
+                                                                        self.parameters.IntegralCurve(self.parameters.IntegralBoundsBox[0] + (i + 1) * dx,
                                                                         self.parameters.IntegralParameters),
                                                                         alpha=0.3))
                 elif self.parameters.IntegralBoxType == "Center Box":
-                    self.IntegralBasicImage.axes.add_patch(Rectangle((self.parameters.IntegralMinBox + i * dx,0),
+                    self.IntegralBasicImage.axes.add_patch(Rectangle((self.parameters.IntegralBoundsBox[0] + i * dx,0),
                                                                         dx,
-                                                                        self.parameters.IntegralCurve(self.parameters.IntegralMinBox + (i + 0.5) * dx,
+                                                                        self.parameters.IntegralCurve(self.parameters.IntegralBoundsBox[0] + (i + 0.5) * dx,
                                                                         self.parameters.IntegralParameters),
-                                                                        alpha=0.3))                                                                        
+                                                                        alpha=0.3))      
+                elif self.parameters.IntegralBoxType == "Trapezoid":
+                    x = [[self.parameters.IntegralBoundsBox[0] + i * dx,0],
+                            [self.parameters.IntegralBoundsBox[0] + (i + 1) * dx,0],
+                            [self.parameters.IntegralBoundsBox[0] + (i + 1) * dx,self.parameters.IntegralCurve(self.parameters.IntegralBoundsBox[0] + (i + 1) * dx, self.parameters.IntegralParameters)],
+                            [self.parameters.IntegralBoundsBox[0] + i * dx,self.parameters.IntegralCurve(self.parameters.IntegralBoundsBox[0] + i * dx, self.parameters.IntegralParameters)]]
+                    self.IntegralBasicImage.axes.add_patch(Polygon(x, alpha=0.3))                                                                     
         self.IntegralBasicImage.axes.axhline(y = 0, color = 'grey')
+        if self.parameters.IntegralShowBoxes:
+            self.IntegralBasicImage.axes.axvline(self.parameters.IntegralBoundsBox[0],color='g')
+            self.IntegralBasicImage.axes.axvline(self.parameters.IntegralBoundsBox[1],color='g')
         self.IntegralBasicImage.axes.grid()
+        self.IntegralBasicImage.axes.set_xlabel("x")
+        self.IntegralBasicImage.axes.set_ylabel("f(x)")
         self.IntegralBasicImage.axes.set_title(f"{self.parameters.IntegralCurveName}")
 
         self.IntegralBasicImage.draw()
+
+    def updateBoxImageIntegral(self):
+        """Updates the Box Image of the Integral"""
+        try:
+            self.IntegralSumImage.axes.cla()
+        except:
+            pass
+
+        if self.parameters.IntegralShowBoxes:
+            self.IntegralSumImage.axes.axvline(self.parameters.IntegralBoxNumber)
+
+        boxRange = np.arange(1,100)
+        self.IntegralSumImage.axes.plot(boxRange,
+                            Integration.BoxedAreaRange(
+                                boxRange, BoxType = "Left Box", Curve= self.parameters.IntegralCurve,
+                                CurveParameters= self.parameters.IntegralParameters,
+                                Boundaries= self.parameters.IntegralBoundsBox
+                            ), label = 'Left Box'
+        )
+        self.IntegralSumImage.axes.plot(boxRange,
+                            Integration.BoxedAreaRange(
+                                boxRange, BoxType = "Right Box", Curve= self.parameters.IntegralCurve,
+                                CurveParameters= self.parameters.IntegralParameters,
+                                Boundaries= self.parameters.IntegralBoundsBox
+                            ), label = 'Right Box'
+        )
+        self.IntegralSumImage.axes.plot(boxRange,
+                            Integration.BoxedAreaRange(
+                                boxRange, BoxType = "Center Box", Curve= self.parameters.IntegralCurve,
+                                CurveParameters= self.parameters.IntegralParameters,
+                                Boundaries= self.parameters.IntegralBoundsBox
+                            ), label = 'Center Box'
+        )
+        self.IntegralSumImage.axes.plot(boxRange,
+                            Integration.BoxedAreaRange(
+                                boxRange, BoxType = "Trapezoid", Curve= self.parameters.IntegralCurve,
+                                CurveParameters= self.parameters.IntegralParameters,
+                                Boundaries= self.parameters.IntegralBoundsBox
+                            ), label = 'Trapezoid'
+        )
+        self.IntegralSumImage.axes.axhline(
+                                self.parameters.IntegralCurve(self.parameters.IntegralBoundsBox[1],self.parameters.IntegralParameters,typeCurve= 'Integral') -
+                                self.parameters.IntegralCurve(self.parameters.IntegralBoundsBox[0],self.parameters.IntegralParameters,typeCurve= 'Integral'),
+                                color = 'g', label='Exact Value')
+        self.IntegralSumImage.axes.grid()
+        self.IntegralSumImage.axes.legend()
+        self.IntegralSumImage.axes.set_xlabel("Box Number")
+        self.IntegralSumImage.axes.set_ylabel("Total Area")
+        self.IntegralSumImage.axes.set_title("Measured Area by Method of Integration and Number of Boxes")
+        self.IntegralSumImage.axes.set_xscale("log")
+
+        self.IntegralSumImage.draw()
+
+    def updateBoundedImageIntegral(self):
+        """Updates the Integral Curve"""
+        try:
+            self.IntegralOtherImage.axes.cla()
+        except:
+            pass
+
+        self.IntegralOtherImage.axes.plot(self.parameters.IntegralXAxis,
+                                        self.parameters.IntegralCurve(self.parameters.IntegralXAxis,
+                                            self.parameters.IntegralParameters,typeCurve= 'Integral'))
+
+        if self.parameters.IntegralShowBoxes:
+            self.IntegralOtherImage.axes.axvline(self.parameters.IntegralBoundsBox[0],color='g')
+            self.IntegralOtherImage.axes.axvline(self.parameters.IntegralBoundsBox[1],color='g')
+
+        self.IntegralOtherImage.axes.axhline(y = 0, color = 'grey')
+
+        self.IntegralOtherImage.axes.grid()
+        self.IntegralOtherImage.axes.set_xlabel("x")
+        self.IntegralOtherImage.axes.set_ylabel("F(x)")
+        self.IntegralOtherImage.axes.set_title(f"Integral Functions of {self.parameters.IntegralCurveName}")        
+        self.IntegralOtherImage.draw()
 ###
 class MplCanvas(FigureCanvasQTAgg):
     """Class for the images and the graphs as a widget"""

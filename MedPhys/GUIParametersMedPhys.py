@@ -61,3 +61,6 @@ class GUIParameters(object):
         self.AngleStepTomo = 1
         self.FlatImageAngleTomo = np.sum(self.ImageRotatedTomo,axis=1)
         self.SinogramTomo = Tomography.Sinogram(self.ImageTomo, angles_step = self.AngleStepTomo)
+        self.ReconstructedTomo = Tomography.Reconstruction(self.SinogramTomo, angles_step = self.AngleStepTomo)
+        self.ReconstructedRotatedTomo = np.copy(self.ReconstructedTomo)
+        self.ReconstructionFilterName = "ramp"

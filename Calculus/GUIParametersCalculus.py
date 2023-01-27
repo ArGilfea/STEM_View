@@ -9,13 +9,12 @@ class GUIParameters(object):
     def __init__(self):
         self.IntegralCurveName = "Constant"
 
-        self.IntegralParameters = [0.0, 0.0, 0.0, 0.0]
+        self.IntegralParameters = [1.0, 0.0, 0.0, 0.0]
 
         self.IntegralBoxNumber = 2
         self.IntegralShowBoxes = False
         self.IntegralBoxType = "Left Box"
-        self.IntegralMinBox = -1.0
-        self.IntegralMaxBox = 1.0
+        self.IntegralBoundsBox = np.array([-1.0,1.0])
 
         self.IntegralXAxis = np.linspace(-5,5,1000)
 

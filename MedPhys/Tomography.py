@@ -1,19 +1,16 @@
 import numpy as np
-from skimage.transform import radon, rescale
+from skimage.transform import radon, rescale, iradon
 
 def Sinogram(Image:np.ndarray,angles_step:np.ndarray = 1):
     """Creates the sinogram from an image"""
-    """    angles = np.arange(0,360,angles_step)
-    sinogram = np.zeros((Image.shape[0],int(360/angles_step)))
-
-    for i in range(sinogram.shape[1]):
-        rotated = Rotate(Image,angle = angles[i])
-        sinogram[:,i] = np.sum(rotated,axis=1)
-
-    return sinogram"""
     angles = np.arange(0,360,angles_step)
     return radon(Image, theta=angles)
 
+def Reconstruction(Sinogram: np.ndarray,angles_step:np.ndarray = 1, filter: str = 'ramp'):
+    """Reconstructs an Image from a Sinogram"""
+    angles = np.arange(0,360,angles_step)
+    return iradon(Sinogram, angles, filter_name=filter)
+    
 def Rotate(array:np.ndarray,angle:float):
     """Rotate a slice of an array around a point"""
     center = np.array([int(array.shape[0]/2),int(array.shape[1]/2)])

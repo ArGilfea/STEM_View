@@ -45,23 +45,28 @@ class MedPhysWindow(QMainWindow):
         self.BUTTON_SIZE = 40
         self.DISPLAY_HEIGHT = 35
         self.current_linePBA = 1
+        self.current_lineFilter = 1
         self.current_lineTomo = 1
         super().__init__(parent=parent)
         self.setMinimumSize(800, 600)
         self.setWindowTitle("Medical Physics")
         self.generalLayoutPBA = QGridLayout()
         self.generalLayoutTomo = QGridLayout()
+        self.generalLayoutFilter = QGridLayout()
         self.generalLayoutTBA1 = QGridLayout()
         self.generalLayoutReadMe = QGridLayout()
         centralWidgetPBA = QWidget(self)
         centralWidgetTomo = QWidget(self)
+        centralWidgetFilter = QWidget(self)
         centralWidgetTBA1 = QWidget(self)
         centralWidgetReadMe = QWidget(self)
         centralWidgetPBA.setLayout(self.generalLayoutPBA)
+        centralWidgetFilter.setLayout(self.generalLayoutFilter)
         centralWidgetTomo.setLayout(self.generalLayoutTomo)
         centralWidgetTBA1.setLayout(self.generalLayoutTBA1)
         centralWidgetReadMe.setLayout(self.generalLayoutReadMe)
         self.tabs.addTab(centralWidgetPBA,"Photon Beam Attenuation")
+        self.tabs.addTab(centralWidgetFilter,"Filters & Fourier")
         self.tabs.addTab(centralWidgetTomo,"Tomography")
         self.tabs.addTab(centralWidgetTBA1,"TBA")
         self.tabs.addTab(centralWidgetReadMe,"Read Me")
@@ -128,6 +133,7 @@ class MedPhysWindow(QMainWindow):
         self.current_lineTomo += 1
 
         self.updateImageTomoBase()
+        self.updateImageReconstructed()
 
     def _addAngleSliderTomo(self):
         """Adds the slider for the angle of the tomography"""
@@ -315,14 +321,19 @@ class MedPhysWindow(QMainWindow):
     def _createExitButton(self):
         """Create an exit button"""
         self.exitPBA = QPushButton("Exit")
+        self.exitFilter = QPushButton("Exit")
         self.exitTomo = QPushButton("Exit")
         self.exitPBA.setToolTip("Closes the GUI and its dependencies")
+        self.exitFilter.setToolTip("Closes the GUI and its dependencies")
         self.exitTomo.setToolTip("Closes the GUI and its dependencies")
         self.exitPBA.clicked.connect(self.closing_button)
+        self.exitFilter.clicked.connect(self.closing_button)
         self.exitTomo.clicked.connect(self.closing_button)
         self.generalLayoutPBA.addWidget(self.exitPBA,self.current_linePBA+1,3)  
+        self.generalLayoutFilter.addWidget(self.exitFilter,self.current_lineFilter+1,3)  
         self.generalLayoutTomo.addWidget(self.exitTomo,self.current_lineTomo+1,3)  
         self.current_linePBA += 1
+        self.current_lineFilter += 1
         self.current_lineTomo += 1
     
     def _addOptionsTomo(self):
@@ -335,16 +346,27 @@ class MedPhysWindow(QMainWindow):
         self.ImageChoiceTomo = QComboBox()
         self.ImageChoiceTomo.addItem("Lenna")
         self.ImageChoiceTomo.addItem("Phantom")
+        self.ImageChoiceTomo.setCurrentText(self.parameters.ImageTomoName)
+
+        self.ImageFilterTomo = QComboBox()
+        self.ImageFilterTomo.addItem("ramp")
+        self.ImageFilterTomo.addItem("shepp-logan")
+        self.ImageFilterTomo.addItem("cosine")
+        self.ImageFilterTomo.addItem("hamming")
+        self.ImageFilterTomo.addItem("hann")
+        self.ImageFilterTomo.setCurrentText(self.parameters.ReconstructionFilterName)
 
         self.StepAngleTomoLineEdit = QLineEdit()
         self.StepAngleTomoLineEdit.setText(f"{self.parameters.AngleStepTomo}")
         self.StepAngleTomoLineEdit.setFixedWidth(sizeText)
 
         self.ImageChoiceTomo.activated[str].connect(self.update_Combo_ImageTomo)
+        self.ImageFilterTomo.activated[str].connect(self.update_Combo_FilterTomo)
         self.StepAngleTomoLineEdit.editingFinished.connect(self.update_Step_AngleTomo)
 
 
         layout.addWidget(self.ImageChoiceTomo,0,0)
+        layout.addWidget(self.ImageFilterTomo,0,1)
         layout.addWidget(QLabel("Step"),1,0)
         layout.addWidget(self.StepAngleTomoLineEdit,1,1)
 
@@ -513,6 +535,19 @@ class MedPhysWindow(QMainWindow):
         self.TomoImage.axes.set_title(f"{self.parameters.ImageTomoName}, angle = {self.parameters.angleTomo}")
         self.TomoImage.draw()
 
+    def updateImageReconstructed(self):
+        """Updates the reconstructed Image for the Tomography"""
+        try:
+            self.TomoReconstructed.axes.cla()
+        except:
+            pass
+
+        self.TomoReconstructed.axes.pcolormesh(self.parameters.ReconstructedRotatedTomo,cmap = 'Greys_r')
+        self.TomoReconstructed.axes.invert_yaxis()
+
+        self.TomoReconstructed.axes.set_title(f"Reconstructed {self.parameters.ImageTomoName}, {self.parameters.ReconstructionFilterName} filter")
+        self.TomoReconstructed.draw()
+
     def updateImageTomoSlice(self):
         """Updates the Slice Image for the Tomography"""
         try:
@@ -579,28 +614,47 @@ class MedPhysWindow(QMainWindow):
         """Updates the Combo of the Image of the Tomo"""
         self.parameters.ImageTomoName = self.ImageChoiceTomo.currentText()
 
-        if self.parameters.ImageTomoName == "Phantom":
+        if self.parameters.ImageTomoName in ["Phantom"]:
             self.parameters.ImageTomo = shepp_logan_phantom()
             self.parameters.ImageTomo = rescale(self.parameters.ImageTomo,0.5)
         else:
-            mpimg.imread(f'TomoImage/{self.parameters.ImageTomoName}.pgm')     
+            self.parameters.ImageTomo = mpimg.imread(f'TomoImage/{self.parameters.ImageTomoName}.pgm')     
 
         self.parameters.ImageRotatedTomo = Tomography.Rotate(self.parameters.ImageTomo,angle = self.parameters.angleTomo*2*np.pi/360)
 
         self.parameters.FlatImageAngleTomo = np.sum(self.parameters.ImageRotatedTomo,axis=1)
         self.parameters.SinogramTomo = Tomography.Sinogram(self.parameters.ImageTomo, angles_step = self.parameters.AngleStepTomo)
+        self.parameters.ReconstructedTomo = Tomography.Reconstruction(self.parameters.SinogramTomo, 
+                                                                angles_step = self.parameters.AngleStepTomo,
+                                                                filter=self.parameters.ReconstructionFilterName)
+        self.parameters.ReconstructedRotatedTomo = Tomography.Rotate(self.parameters.ReconstructedTomo,angle = self.parameters.angleTomo*2*np.pi/360)
 
         self.updateImageTomoSlice()
         self.updateImageTomoBase()
         self.updateImageTomoSino()
+        self.updateImageReconstructed()
+
+    def update_Combo_FilterTomo(self):
+        self.parameters.ReconstructionFilterName = self.ImageFilterTomo.currentText()
+        self.parameters.ReconstructedTomo = Tomography.Reconstruction(self.parameters.SinogramTomo, 
+                                                                angles_step = self.parameters.AngleStepTomo,
+                                                                filter=self.parameters.ReconstructionFilterName)
+        self.parameters.ReconstructedRotatedTomo = Tomography.Rotate(self.parameters.ReconstructedTomo,angle = self.parameters.angleTomo*2*np.pi/360)
+
+        self.updateImageReconstructed()
 
     def update_Step_AngleTomo(self):
         """Updates the Step in Angles"""
         self.parameters.AngleStepTomo = float(self.StepAngleTomoLineEdit.text())
 
         self.parameters.SinogramTomo = Tomography.Sinogram(self.parameters.ImageTomo, angles_step = self.parameters.AngleStepTomo)
+        self.parameters.ReconstructedTomo = Tomography.Reconstruction(self.parameters.SinogramTomo, 
+                                                        angles_step = self.parameters.AngleStepTomo,
+                                                        filter=self.parameters.ReconstructionFilterName)
+        self.parameters.ReconstructedRotatedTomo = Tomography.Rotate(self.parameters.ReconstructedTomo,angle = self.parameters.angleTomo*2*np.pi/360)
 
         self.updateImageTomoSino()
+        self.updateImageReconstructed()
 
     def update_Combo_SpecterPBA(self):
         """Updates the Combo of the Spectrum of the PBA"""
@@ -769,22 +823,30 @@ class MedPhysWindow(QMainWindow):
     def updateRotatedImageTomo(self):
         """Rotate the stored image around an axis"""
         self.parameters.ImageRotatedTomo = Tomography.Rotate(self.parameters.ImageTomo,angle = self.parameters.angleTomo*2*np.pi/360)
+        self.parameters.ReconstructedRotatedTomo = Tomography.Rotate(self.parameters.ReconstructedTomo,angle = self.parameters.angleTomo*2*np.pi/360)
         self.updateImageTomoSlice()
         self.updateImageTomoBase()
         self.updateImageTomoSino()
+        self.updateImageReconstructed()
 
     def updateSinogramImageTomo(self):
         """Updates the Sinogram"""
-        self.parameters.SinogramTomo = Tomography.Sinogram(self.ImageTomo, angles_step = 1)
+        self.parameters.SinogramTomo = Tomography.Sinogram(self.ImageTomo, angles_step = self.parameters.angleTomo)
+        self.parameters.ReconstructedTomo = Tomography.Reconstruction(self.parameters.SinogramTomo, 
+                                                                angles_step = self.parameters.AngleStepTomo,
+                                                                filter=self.parameters.ReconstructionFilterName)
+        self.parameters.ReconstructedRotatedTomo = Tomography.Rotate(self.parameters.ReconstructedTomo,angle = self.parameters.angleTomo*2*np.pi/360)
         self.updateImageTomoSlice()
         self.updateImageTomoBase()
         self.updateImageTomoSino()
+        self.updateImageReconstructed()
 
     def updateImageSliceTomo(self):
         self.parameters.FlatImageAngleTomo = np.sum(self.parameters.ImageRotatedTomo,axis=1)
         self.updateImageTomoSlice()
         self.updateImageTomoBase()
         self.updateImageTomoSino()
+        self.updateImageReconstructed()
 
 
 class MplCanvas(FigureCanvasQTAgg):
