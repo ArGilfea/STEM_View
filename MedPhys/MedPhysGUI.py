@@ -436,9 +436,9 @@ class MedPhysWindow(QMainWindow):
                 valueTVL = np.interp(1/10,np.flip(self.parameters.attenuatedEnergy)/self.parameters.attenuatedEnergy[0],np.flip(self.parameters.depthRangePBA))
 
                 self.PBAAttenuation.axes.axhline(0.5,xmin = 0,xmax = valueHVL/self.parameters.maxDepthPBA,
-                                                color = 'y',linestyle = 'dashed',label=f"HVL = {valueHVL:.3f} cm")
+                                                color = 'y',linestyle = 'dashed',label=f"HVL = {valueHVL:.3g} cm")
                 self.PBAAttenuation.axes.axhline(0.1,xmin = 0,xmax = valueTVL/self.parameters.maxDepthPBA,
-                                                color = 'g',linestyle = 'dashed',label=f"TVL = {valueTVL:.3f} cm")
+                                                color = 'g',linestyle = 'dashed',label=f"TVL = {valueTVL:.3g} cm")
                 self.PBAAttenuation.axes.axvline(valueHVL,
                                                 ymin = 0, ymax = 0.5,
                                                 color = 'y',linestyle = 'dashed')
@@ -450,12 +450,12 @@ class MedPhysWindow(QMainWindow):
                 valueTVL = np.interp(self.parameters.attenuatedEnergy[0]/10,np.flip(self.parameters.attenuatedEnergy),np.flip(self.parameters.depthRangePBA))
 
                 self.PBAAttenuation.axes.axhline(self.parameters.attenuatedEnergy[0]/2,xmin = 0,xmax = valueHVL/self.parameters.maxDepthPBA,
-                                                color = 'y',linestyle = 'dashed',label=f"HVL = {valueHVL:.3f} cm")
+                                                color = 'y',linestyle = 'dashed',label=f"HVL = {valueHVL:.3g} cm")
                 self.PBAAttenuation.axes.axvline(valueHVL,
                                                 ymin = 0, ymax = 1/2,
                                                 color = 'y',linestyle = 'dashed')
                 self.PBAAttenuation.axes.axhline(self.parameters.attenuatedEnergy[0]/10,xmin = 0,xmax = valueTVL/self.parameters.maxDepthPBA,
-                                                color = 'g',linestyle = 'dashed',label=f"TVL = {valueTVL:.3f} cm")
+                                                color = 'g',linestyle = 'dashed',label=f"TVL = {valueTVL:.3g} cm")
                 self.PBAAttenuation.axes.axvline(valueTVL,
                                                 ymin = 0, ymax = 1/10,
                                                 color = 'g',linestyle = 'dashed')
@@ -508,7 +508,7 @@ class MedPhysWindow(QMainWindow):
         if self.parameters.ShowBaseSpecterPBA:
             if self.parameters.MeanEPBA:
                 self.PBASpecter.axes.axvline(PhotonBeams.AverageE(self.parameters.Specter),color = 'b')
-                self.PBASpecter.axes.plot(self.parameters.SpecterEValues,basic,label=f"Base, μ = {PhotonBeams.AverageE(self.parameters.Specter):.3f}MeV",color = 'b')
+                self.PBASpecter.axes.plot(self.parameters.SpecterEValues,basic,label=f"Base, μ = {PhotonBeams.AverageE(self.parameters.Specter):.3g}MeV",color = 'b')
             else:
                 self.PBASpecter.axes.plot(self.parameters.SpecterEValues,basic,label="Base",color = 'b')
         if self.parameters.MeanEPBA:
@@ -516,7 +516,7 @@ class MedPhysWindow(QMainWindow):
             Specter_tmp[:,0] = self.parameters.SpecterEValues
             Specter_tmp[:,1] = through
             self.PBASpecter.axes.axvline(PhotonBeams.AverageE(Specter_tmp),color = 'r')
-            self.PBASpecter.axes.plot(self.parameters.SpecterEValues,through,label = f"Attenuated, μ = {PhotonBeams.AverageE(Specter_tmp):.3f}MeV",color = 'r')
+            self.PBASpecter.axes.plot(self.parameters.SpecterEValues,through,label = f"Attenuated, μ = {PhotonBeams.AverageE(Specter_tmp):.3g}MeV",color = 'r')
         else:
             self.PBASpecter.axes.plot(self.parameters.SpecterEValues,through,label = "Attenuated",color = 'r')
         self.baseImagePBA()
