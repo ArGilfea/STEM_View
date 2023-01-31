@@ -66,7 +66,7 @@ class MedPhysWindow(QMainWindow):
         centralWidgetTBA1.setLayout(self.generalLayoutTBA1)
         centralWidgetReadMe.setLayout(self.generalLayoutReadMe)
         self.tabs.addTab(centralWidgetPBA,"Photon Beam Attenuation")
-        self.tabs.addTab(centralWidgetFilter,"Filters & Fourier")
+        #self.tabs.addTab(centralWidgetFilter,"Filters & Fourier")
         self.tabs.addTab(centralWidgetTomo,"Tomography")
         self.tabs.addTab(centralWidgetTBA1,"TBA")
         self.tabs.addTab(centralWidgetReadMe,"Read Me")
@@ -345,6 +345,11 @@ class MedPhysWindow(QMainWindow):
 
         self.ImageChoiceTomo = QComboBox()
         self.ImageChoiceTomo.addItem("Lenna")
+        self.ImageChoiceTomo.addItem("Mona")
+        self.ImageChoiceTomo.addItem("Photograph")
+        self.ImageChoiceTomo.addItem("Coeur")
+        self.ImageChoiceTomo.addItem("SatelliteIles")
+        self.ImageChoiceTomo.addItem("SatelliteVille (slow)")
         self.ImageChoiceTomo.addItem("Phantom")
         self.ImageChoiceTomo.setCurrentText(self.parameters.ImageTomoName)
 

@@ -15,10 +15,12 @@ try:
     import GUIParametersCalculus
     import Curves
     import Integration
+    import CalculusStrings
 except:
     import Calculus.GUIParametersCalculus as GUIParametersCalculus
     import Calculus.Curves as Curves
     import Calculus.Integration as Integration
+    import Calculus.CalculusStrings as CalculusStrings
 ###
 import matplotlib
 import matplotlib.pyplot as plt
@@ -318,7 +320,7 @@ class CalculusWindow(QMainWindow):
         self.IntegralBasicImage.axes.grid()
         self.IntegralBasicImage.axes.set_xlabel("x")
         self.IntegralBasicImage.axes.set_ylabel("f(x)")
-        self.IntegralBasicImage.axes.set_title(f"{self.parameters.IntegralCurveName}")
+        self.IntegralBasicImage.axes.set_title(f"{self.parameters.IntegralCurveName}: y = {CalculusStrings.CurveEquation(self.parameters.IntegralCurveName,self.parameters.IntegralParameters)}")
 
         self.IntegralBasicImage.draw()
 

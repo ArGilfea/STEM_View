@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import *
 from MedPhys.MedPhysGUI import MedPhysWindow
 from Calculus.CalculusGUI import CalculusWindow
 from WavesAndOptics.WaveAndOpticsGUI import WavesAndOpticsWindow
+from Analysis.AnalysisGUI import AnalysisWindow
 
 class MetaGUI(QMainWindow):
     def __init__(self,parent=None):
@@ -36,10 +37,22 @@ class MetaGUI(QMainWindow):
         }
         self.setWindowTitle(titles[f"{self.language}"])
 
+        self._createAnalysisButton()
         self._createCalculusButton()
-        self._createWavesAndOpticsButton()
         self._createPhysMedButton()
+        self._createWavesAndOpticsButton()
         self._createExitButton()
+
+    def _createAnalysisButton(self):
+        """Creates the button for the Analysis GUI"""
+        titles = {
+            "En" : "Analysis",
+            "Fr" : "Analyse"
+        }
+        self.Analysis = QPushButton(titles[f"{self.language}"])
+        self.Analysis.setToolTip("Opens the Analysis Section")
+        self.Analysis.clicked.connect(self.openAnalysis)
+        self.generalLayout.addWidget(self.Analysis) 
 
     def _createCalculusButton(self):
         """Creates the button for the Calculus GUI"""
@@ -95,6 +108,11 @@ class MetaGUI(QMainWindow):
         layout.addWidget(self.exit)
 
         self.generalLayout.addWidget(subWidget)  
+
+    def openAnalysis(self):
+        "Opens a the Analysis GUI"
+        window = AnalysisWindow(self,language= self.language)
+        window.show()
 
     def openCalc(self):
         "Opens a the Calculus GUI"
