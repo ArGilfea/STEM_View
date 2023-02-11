@@ -10,17 +10,18 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 from PyQt5 import QtGui
 from functools import partial
-from skimage.data import shepp_logan_phantom
 from skimage.transform import radon, rescale
 ###
 try:
     import GUIParametersMedPhys
     import PhotonBeams
     import Tomography
+    import MedPhysStrings
 except:
     import MedPhys.GUIParametersMedPhys as GUIParametersMedPhys
     import MedPhys.PhotonBeams as PhotonBeams
     import MedPhys.Tomography as Tomography
+    import MedPhys.MedPhysStrings as MedPhysStrings
 ###
 import matplotlib
 import matplotlib.pyplot as plt
@@ -32,12 +33,13 @@ import matplotlib.image as mpimg
 import markdown
 
 size_Image = 200
+basedir = os.path.dirname(__file__)
 
 class MedPhysWindow(QMainWindow):
     """
     Main window of the GUI.
     """    
-    def __init__(self,parent=None,language= "En"):
+    def __init__(self,parent=None,language= "Fr"):
         """Initializes the GUI Window"""
         self.parameters = GUIParametersMedPhys.GUIParameters()
         self.language = language
@@ -48,8 +50,8 @@ class MedPhysWindow(QMainWindow):
         self.current_lineFilter = 1
         self.current_lineTomo = 1
         super().__init__(parent=parent)
-        self.setMinimumSize(800, 600)
-        self.setWindowTitle("Medical Physics")
+        self.setMinimumSize(1200, 700)
+        self.setWindowTitle(MedPhysStrings.WindowName[f"{self.language}"])
         self.generalLayoutPBA = QGridLayout()
         self.generalLayoutTomo = QGridLayout()
         self.generalLayoutFilter = QGridLayout()
@@ -65,11 +67,11 @@ class MedPhysWindow(QMainWindow):
         centralWidgetTomo.setLayout(self.generalLayoutTomo)
         centralWidgetTBA1.setLayout(self.generalLayoutTBA1)
         centralWidgetReadMe.setLayout(self.generalLayoutReadMe)
-        self.tabs.addTab(centralWidgetPBA,"Photon Beam Attenuation")
+        self.tabs.addTab(centralWidgetPBA,MedPhysStrings.PhotonBeamTabName[f"{self.language}"])
         #self.tabs.addTab(centralWidgetFilter,"Filters & Fourier")
-        self.tabs.addTab(centralWidgetTomo,"Tomography")
+        self.tabs.addTab(centralWidgetTomo,MedPhysStrings.TomographyTabName[f"{self.language}"])
         self.tabs.addTab(centralWidgetTBA1,"TBA")
-        self.tabs.addTab(centralWidgetReadMe,"Read Me")
+        self.tabs.addTab(centralWidgetReadMe,MedPhysStrings.ReadMeName[f"{self.language}"])
 
         self.setCentralWidget(self.tabs)
 
@@ -92,9 +94,7 @@ class MedPhysWindow(QMainWindow):
         self._createReadMe()
 
         self.generalLayoutPBA.setColumnStretch(1,5)
-        #self.generalLayoutPBA.setRowStretch(1,50)
-        self.generalLayoutPBA.setColumnStretch(2,1)
-        self.generalLayoutPBA.setColumnStretch(3,1)
+        self.generalLayoutPBA.setColumnStretch(2,5)
     
     def _addSpecterImagePBA(self):
         """Adds the central image socket for Photon Beam Attenuation showing the Specter"""
@@ -157,6 +157,7 @@ class MedPhysWindow(QMainWindow):
         self.lineEditAngleTomo.editingFinished.connect(self.updateLineEditAngleTomo)
         self.sliderAngleTomo.valueChanged.connect(self.updateSliderAngleTomo)
 
+        layout.addWidget(QLabel(MedPhysStrings.AngleTomoLabel[f"{self.language}"]))
         layout.addWidget(self.sliderAngleTomo)
         layout.addWidget(self.lineEditAngleTomo)
 
@@ -185,26 +186,17 @@ class MedPhysWindow(QMainWindow):
         subWidget.setLayout(layout)
 
         self.PBAMaterialType = QComboBox()
-        self.PBAMaterialType.addItem("None")
-        self.PBAMaterialType.addItem("Al")
-        self.PBAMaterialType.addItem("C")
-        self.PBAMaterialType.addItem("Ca")
-        self.PBAMaterialType.addItem("Cu")
-        self.PBAMaterialType.addItem("H")
-        self.PBAMaterialType.addItem("H2O")
-        self.PBAMaterialType.addItem("I")
-        self.PBAMaterialType.addItem("N")
-        self.PBAMaterialType.addItem("O")
-        self.PBAMaterialType.addItem("P")
-        self.PBAMaterialType.addItem("Pb")
-        self.PBAMaterialType.addItem("Skull")
-        self.PBAMaterialType.addItem("Zn")
+        for _, names in MedPhysStrings.ElementsNamePBA.items():
+            self.PBAMaterialType.addItem(names[f"{self.language}"])
+        self.PBAMaterialType.setCurrentText(MedPhysStrings.ElementsNamePBA[f"{self.parameters.MaterialTypePBA}"][f"{self.language}"])
 
         self.PBASpecterType = QComboBox()
-        self.PBASpecterType.addItem("Bump")
-        self.PBASpecterType.addItem("Peak")
-        self.PBASpecterType.addItem("Flat")
-        self.PBASpecterType.addItem("Exponential")
+        for _, names in MedPhysStrings.SpecterPBAName.items():
+            self.PBASpecterType.addItem(names[f"{self.language}"])
+        self.PBASpecterType.setCurrentText(MedPhysStrings.SpecterPBAName[f"{self.parameters.SpecterTypePBA}"][f"{self.language}"])
+
+        self.PBAMaterialType.activated[str].connect(self.update_Combo_MaterialPBA)
+        self.PBASpecterType.activated[str].connect(self.update_Combo_SpecterPBA)
 
         self.PBAMinLineEdit = QLineEdit()
         self.PBAMaxLineEdit = QLineEdit()
@@ -228,12 +220,13 @@ class MedPhysWindow(QMainWindow):
 
         self.PBAAvgBox = QCheckBox()
 
-        self.PBASaveButton = QPushButton("Save")
-        self.PBAClearButton = QPushButton("Clear")
+        self.PBASaveButton = QPushButton(MedPhysStrings.SaveLabel[self.language])
+        self.PBAClearButton = QPushButton(MedPhysStrings.ClearLabel[self.language])
+        self.PBASavedNumber = QLineEdit()
+        self.PBASavedNumber.setFixedWidth(30)
+        self.PBASavedNumber.setText(f"{self.parameters.SavedCounterPBA}")
+        self.PBASavedNumber.setReadOnly(True)
         self.PBAShowBox = QCheckBox()
-
-        self.PBAMaterialType.activated[str].connect(self.update_Combo_MaterialPBA)
-        self.PBASpecterType.activated[str].connect(self.update_Combo_SpecterPBA)
 
         self.PBAMinLineEdit.editingFinished.connect(self.updateMinMaxSpecter)
         self.PBAMaxLineEdit.editingFinished.connect(self.updateMinMaxSpecter)
@@ -253,33 +246,34 @@ class MedPhysWindow(QMainWindow):
         self.PBAShowBox.stateChanged.connect(self.updateShowSavedSpecterPBA)
 
         layout.addWidget(self.PBAMaterialType,0,0)
-        layout.addWidget(self.PBASpecterType,0,2)
+        layout.addWidget(self.PBASpecterType,0,1)
 
-        layout.addWidget(QLabel("Min."),1,0)
+        layout.addWidget(QLabel(MedPhysStrings.MinLabel[self.language]),1,0)
         layout.addWidget(self.PBAMinLineEdit,1,1)
-        layout.addWidget(QLabel("Max."),1,2)
+        layout.addWidget(QLabel(MedPhysStrings.MaxLabel[self.language]),1,2)
         layout.addWidget(self.PBAMaxLineEdit,1,3)
 
-        layout.addWidget(QLabel("In. Value"),2,0)
+        layout.addWidget(QLabel(MedPhysStrings.InitValueLabel[self.language]),2,0)
         layout.addWidget(self.PBAInitValue,2,1)
-        layout.addWidget(QLabel("Factor"),2,2)
+        layout.addWidget(QLabel(MedPhysStrings.FactorLabel[self.language]),2,2)
         layout.addWidget(self.PBAKFactor,2,3)
 
-        layout.addWidget(QLabel("Max Depth"),3,0)
+        layout.addWidget(QLabel(MedPhysStrings.MaxDepthLabel[self.language]),3,0)
         layout.addWidget(self.PBAMaxDepthValue,3,1)
 
-        layout.addWidget(QLabel("Norm."),4,0)
+        layout.addWidget(QLabel(MedPhysStrings.NormalizeLabel[self.language]),4,0)
         layout.addWidget(self.PBANormalizeBox,4,1)
-        layout.addWidget(QLabel("Sup."),4,2)
+        layout.addWidget(QLabel(MedPhysStrings.SuperposeLabel[self.language]),4,2)
         layout.addWidget(self.PBASuperposeBox,4,3)
 
-        layout.addWidget(QLabel("Avg."),5,0)
+        layout.addWidget(QLabel(MedPhysStrings.AverageLabel[self.language]),5,0)
         layout.addWidget(self.PBAAvgBox,5,1)
 
         layout.addWidget(self.PBASaveButton,6,0)
         layout.addWidget(self.PBAClearButton,6,1)
-        layout.addWidget(QLabel("Show"),6,2)
-        layout.addWidget(self.PBAShowBox,6,3)
+        layout.addWidget(self.PBASavedNumber,6,2)
+        layout.addWidget(QLabel(MedPhysStrings.ShowLabel[self.language]),7,0)
+        layout.addWidget(self.PBAShowBox,7,1)
 
         layout.setColumnStretch(0,1)
         layout.setColumnStretch(1,1)
@@ -320,17 +314,17 @@ class MedPhysWindow(QMainWindow):
 
     def _createExitButton(self):
         """Create an exit button"""
-        self.exitPBA = QPushButton("Exit")
-        self.exitFilter = QPushButton("Exit")
-        self.exitTomo = QPushButton("Exit")
-        self.exitPBA.setToolTip("Closes the GUI and its dependencies")
-        self.exitFilter.setToolTip("Closes the GUI and its dependencies")
-        self.exitTomo.setToolTip("Closes the GUI and its dependencies")
+        self.exitPBA = QPushButton(MedPhysStrings.ExitButton[f"{self.language}"])
+        self.exitFilter = QPushButton(MedPhysStrings.ExitButton[f"{self.language}"])
+        self.exitTomo = QPushButton(MedPhysStrings.ExitButton[f"{self.language}"])
+        self.exitPBA.setToolTip(MedPhysStrings.ExitButtonTooltip[f"{self.language}"])
+        self.exitFilter.setToolTip(MedPhysStrings.ExitButtonTooltip[f"{self.language}"])
+        self.exitTomo.setToolTip(MedPhysStrings.ExitButtonTooltip[f"{self.language}"])
         self.exitPBA.clicked.connect(self.closing_button)
         self.exitFilter.clicked.connect(self.closing_button)
         self.exitTomo.clicked.connect(self.closing_button)
         self.generalLayoutPBA.addWidget(self.exitPBA,self.current_linePBA+1,3)  
-        self.generalLayoutFilter.addWidget(self.exitFilter,self.current_lineFilter+1,3)  
+        #self.generalLayoutFilter.addWidget(self.exitFilter,self.current_lineFilter+1,3)  
         self.generalLayoutTomo.addWidget(self.exitTomo,self.current_lineTomo+1,3)  
         self.current_linePBA += 1
         self.current_lineFilter += 1
@@ -344,22 +338,14 @@ class MedPhysWindow(QMainWindow):
         sizeText = 30
 
         self.ImageChoiceTomo = QComboBox()
-        self.ImageChoiceTomo.addItem("Lenna")
-        self.ImageChoiceTomo.addItem("Mona")
-        self.ImageChoiceTomo.addItem("Photograph")
-        self.ImageChoiceTomo.addItem("Coeur")
-        self.ImageChoiceTomo.addItem("SatelliteIles")
-        self.ImageChoiceTomo.addItem("SatelliteVille (slow)")
-        self.ImageChoiceTomo.addItem("Phantom")
-        self.ImageChoiceTomo.setCurrentText(self.parameters.ImageTomoName)
+        for _, names in MedPhysStrings.ImageTomoName.items():
+            self.ImageChoiceTomo.addItem(names[f"{self.language}"])
+        self.ImageChoiceTomo.setCurrentText(MedPhysStrings.ImageTomoName[f"{self.parameters.ImageTomoName}"][f"{self.language}"])
 
         self.ImageFilterTomo = QComboBox()
-        self.ImageFilterTomo.addItem("ramp")
-        self.ImageFilterTomo.addItem("shepp-logan")
-        self.ImageFilterTomo.addItem("cosine")
-        self.ImageFilterTomo.addItem("hamming")
-        self.ImageFilterTomo.addItem("hann")
-        self.ImageFilterTomo.setCurrentText(self.parameters.ReconstructionFilterName)
+        for _, names in MedPhysStrings.FilterTomoName.items():
+            self.ImageFilterTomo.addItem(names[f"{self.language}"])
+        self.ImageFilterTomo.setCurrentText(MedPhysStrings.FilterTomoName[f"{self.parameters.ReconstructionFilterName}"][f"{self.language}"])
 
         self.StepAngleTomoLineEdit = QLineEdit()
         self.StepAngleTomoLineEdit.setText(f"{self.parameters.AngleStepTomo}")
@@ -370,10 +356,12 @@ class MedPhysWindow(QMainWindow):
         self.StepAngleTomoLineEdit.editingFinished.connect(self.update_Step_AngleTomo)
 
 
-        layout.addWidget(self.ImageChoiceTomo,0,0)
-        layout.addWidget(self.ImageFilterTomo,0,1)
-        layout.addWidget(QLabel("Step"),1,0)
-        layout.addWidget(self.StepAngleTomoLineEdit,1,1)
+        layout.addWidget(QLabel(MedPhysStrings.ImageTomoLabel[f"{self.language}"]),0,0)
+        layout.addWidget(self.ImageChoiceTomo,0,1)
+        layout.addWidget(QLabel(MedPhysStrings.FilterTomoLabel[f"{self.language}"]),1,0)
+        layout.addWidget(self.ImageFilterTomo,1,1)
+        layout.addWidget(QLabel(MedPhysStrings.StepTomoLabel[f"{self.language}"]),2,0)
+        layout.addWidget(self.StepAngleTomoLineEdit,2,1)
 
         self.generalLayoutTomo.addWidget(subWidget,self.current_lineTomo,2)
         self.current_lineTomo += 1
@@ -382,7 +370,7 @@ class MedPhysWindow(QMainWindow):
         """Creates a ReadMe tab with the ReadMe file infos"""
         self.ReadMeText = QTextEdit()
         self.ReadMeText.setReadOnly(True)
-        f = open('MedPhys/ReadMePhysMed.md', 'r')
+        f = open(f'{basedir}/ReadMePhysMed.md', 'r')
         htmlmarkdown = markdown.markdown( f.read() )
         self.ReadMeText.setText(htmlmarkdown)
         self.generalLayoutReadMe.addWidget(self.ReadMeText)
@@ -404,18 +392,19 @@ class MedPhysWindow(QMainWindow):
         except:
             pass
         if self.parameters.MaterialTypePBA != "None":
-            self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,6],label="Total")
+            self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,6],label=MedPhysStrings.TotalLabel[self.language])
             self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,1],label="Rayleigh")
             self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,2],label="Compton")
             self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,3],label="P-E")
-            self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,4],label="Pair")
-            self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,5],label="Triple")
+            self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,4],label=MedPhysStrings.PairLabel[self.language])
+            self.PBAXCOMData.axes.loglog(self.parameters.XCOMData[:,0],self.parameters.XCOMData[:,5],label=MedPhysStrings.TripleLabel[self.language])
 
-            self.PBAXCOMData.axes.set_title(f"μ/ρ of {self.parameters.MaterialTypePBA}")
-            self.PBAXCOMData.axes.set_ylabel(r'μ/ρ (cm$^2$/g)')
+            self.PBAXCOMData.axes.set_title(MedPhysStrings.OfLabel[self.language] +
+                                               MedPhysStrings.ElementsNamePBA[self.parameters.MaterialTypePBA][self.language])
+            self.PBAXCOMData.axes.set_ylabel(MedPhysStrings.XCOMDataYLabel[self.language])
             self.PBAXCOMData.axes.set_ylim(1e-5)
-            self.PBAXCOMData.axes.set_xlabel("Energy (MeV)")
-            self.PBAXCOMData.axes.legend()
+            self.PBAXCOMData.axes.set_xlabel(MedPhysStrings.EnergyLabel[self.language])
+            self.PBAXCOMData.axes.legend(loc = 'upper right')
             self.PBAXCOMData.axes.grid()
 
             self.PBAXCOMData.axes.axvline(self.parameters.SpecterMin,color='y',linestyle='dashed')
@@ -470,12 +459,13 @@ class MedPhysWindow(QMainWindow):
                 self.PBAAttenuation.axes.set_ylim([0,self.parameters.attenuatedEnergy[0]])
             else:
                 self.PBAAttenuation.axes.set_ylim([0,1])
-            self.PBAAttenuation.axes.set_xlabel("Depth (cm)")
-            self.PBAAttenuation.axes.set_ylabel("Remaining Spectrum")
-            self.PBAAttenuation.axes.set_title(f"Total attenuated spectrum for {self.parameters.MaterialTypePBA}")
+            self.PBAAttenuation.axes.set_xlabel(MedPhysStrings.DepthCmLabel[self.language])
+            self.PBAAttenuation.axes.set_ylabel(MedPhysStrings.RemainingSpectrumLabel[self.language])
+            self.PBAAttenuation.axes.set_title(MedPhysStrings.TitleRemainingSpectrumLabel[self.language] +
+                                                MedPhysStrings.ElementsNamePBA[self.parameters.MaterialTypePBA][self.language])
             self.PBAAttenuation.axes.grid()
             self.PBAAttenuation.axes.axvline(self.parameters.depthPBA,color='r')
-            self.PBAAttenuation.axes.legend()
+            self.PBAAttenuation.axes.legend(loc = 'upper right')
         self.PBAAttenuation.draw() 
 
     def updateImagePBASaved(self):
@@ -513,17 +503,17 @@ class MedPhysWindow(QMainWindow):
         if self.parameters.ShowBaseSpecterPBA:
             if self.parameters.MeanEPBA:
                 self.PBASpecter.axes.axvline(PhotonBeams.AverageE(self.parameters.Specter),color = 'b')
-                self.PBASpecter.axes.plot(self.parameters.SpecterEValues,basic,label=f"Base, μ = {PhotonBeams.AverageE(self.parameters.Specter):.3g}MeV",color = 'b')
+                self.PBASpecter.axes.plot(self.parameters.SpecterEValues,basic,label= MedPhysStrings.BaseLabel[self.language] + f", μ = {PhotonBeams.AverageE(self.parameters.Specter):.3g}MeV",color = 'b')
             else:
-                self.PBASpecter.axes.plot(self.parameters.SpecterEValues,basic,label="Base",color = 'b')
+                self.PBASpecter.axes.plot(self.parameters.SpecterEValues,basic,label=MedPhysStrings.BaseLabel[self.language],color = 'b')
         if self.parameters.MeanEPBA:
             Specter_tmp = np.zeros((self.parameters.SpecterfValues.shape[0],2))
             Specter_tmp[:,0] = self.parameters.SpecterEValues
             Specter_tmp[:,1] = through
             self.PBASpecter.axes.axvline(PhotonBeams.AverageE(Specter_tmp),color = 'r')
-            self.PBASpecter.axes.plot(self.parameters.SpecterEValues,through,label = f"Attenuated, μ = {PhotonBeams.AverageE(Specter_tmp):.3g}MeV",color = 'r')
+            self.PBASpecter.axes.plot(self.parameters.SpecterEValues,through,label = MedPhysStrings.AttenuatedLabel[self.language] + f", μ = {PhotonBeams.AverageE(Specter_tmp):.3g}MeV",color = 'r')
         else:
-            self.PBASpecter.axes.plot(self.parameters.SpecterEValues,through,label = "Attenuated",color = 'r')
+            self.PBASpecter.axes.plot(self.parameters.SpecterEValues,through,label = MedPhysStrings.AttenuatedLabel[self.language],color = 'r')
         self.baseImagePBA()
         self.PBASpecter.draw() 
 
@@ -537,7 +527,11 @@ class MedPhysWindow(QMainWindow):
         self.TomoImage.axes.pcolormesh(self.parameters.ImageRotatedTomo,cmap = 'Greys_r')
         self.TomoImage.axes.invert_yaxis()
 
-        self.TomoImage.axes.set_title(f"{self.parameters.ImageTomoName}, angle = {self.parameters.angleTomo}")
+        self.TomoImage.axes.set_title(MedPhysStrings.ImageTomoName[self.parameters.ImageTomoName][self.language] +
+                                        ", " +
+                                        MedPhysStrings.AngleTomoLabel[self.language] +  
+                                        " = " + 
+                                        str(self.parameters.angleTomo))
         self.TomoImage.draw()
 
     def updateImageReconstructed(self):
@@ -550,7 +544,24 @@ class MedPhysWindow(QMainWindow):
         self.TomoReconstructed.axes.pcolormesh(self.parameters.ReconstructedRotatedTomo,cmap = 'Greys_r')
         self.TomoReconstructed.axes.invert_yaxis()
 
-        self.TomoReconstructed.axes.set_title(f"Reconstructed {self.parameters.ImageTomoName}, {self.parameters.ReconstructionFilterName} filter")
+        if self.language in ["En"]:
+            self.TomoReconstructed.axes.set_title(MedPhysStrings.ReconstructedLabel[self.language] + 
+                                                    " " +
+                                                    MedPhysStrings.ImageTomoName[self.parameters.ImageTomoName][self.language] + 
+                                                    ", " + 
+                                                    MedPhysStrings.FilterTomoName[self.parameters.ReconstructionFilterName][self.language] +
+                                                    " " + 
+                                                    MedPhysStrings.Reconstructed2Label[self.language])
+        elif self.language in ["Fr"]:
+            self.TomoReconstructed.axes.set_title(MedPhysStrings.ReconstructedLabel[self.language] + 
+                                                    " " +
+                                                    MedPhysStrings.ImageTomoName[self.parameters.ImageTomoName][self.language] + 
+                                                    " " +
+                                                    MedPhysStrings.Reconstructed2Label[self.language]+ 
+                                                    ", " + 
+                                                    MedPhysStrings.Reconstructed3Label[self.language] + 
+                                                    " " +
+                                                    MedPhysStrings.FilterTomoName[self.parameters.ReconstructionFilterName][self.language])
         self.TomoReconstructed.draw()
 
     def updateImageTomoSlice(self):
@@ -561,10 +572,14 @@ class MedPhysWindow(QMainWindow):
             pass
 
         self.FlatImage.axes.plot(self.parameters.FlatImageAngleTomo)
-        self.FlatImage.axes.set_title(f"Line Intensity of {self.parameters.ImageTomoName} at angle {self.parameters.angleTomo}")
+        self.FlatImage.axes.set_title(MedPhysStrings.LineIntensityLabel[self.language] +
+                                        self.parameters.ImageTomoName +
+                                        MedPhysStrings.LineIntensity2Label[self.language] +
+                                        str(self.parameters.angleTomo) +
+                                        MedPhysStrings.LineIntensity3Label[self.language])
         self.FlatImage.axes.grid()
-        self.FlatImage.axes.set_xlabel("Position")
-        self.FlatImage.axes.set_ylabel("Summed Intensity")
+        self.FlatImage.axes.set_xlabel(MedPhysStrings.PositionLabel[self.language])
+        self.FlatImage.axes.set_ylabel(MedPhysStrings.SummedIntensityLabel[self.language])
 
         self.FlatImage.draw()
 
@@ -576,38 +591,70 @@ class MedPhysWindow(QMainWindow):
             pass
         self.SinoImage.axes.pcolormesh(self.parameters.SinogramTomo,cmap = 'Greys_r')
         self.SinoImage.axes.axvline(self.parameters.angleTomo/self.parameters.AngleStepTomo,color = 'r',alpha=0.3)
-
-        self.SinoImage.axes.set_title(f"Sinogram of {self.parameters.ImageTomoName} with steps of {self.parameters.AngleStepTomo}")
+        self.SinoImage.axes.set_title(MedPhysStrings.SinogramTitleLabel[self.language] +
+                                        MedPhysStrings.ImageTomoName[self.parameters.ImageTomoName][self.language] +
+                                        MedPhysStrings.SinogramTitle2Label[self.language] +
+                                        str(self.parameters.AngleStepTomo) +
+                                        MedPhysStrings.LineIntensity3Label[self.language])
 
         self.SinoImage.draw()
 
     def baseImagePBA(self):
         self.PBASpecter.axes.grid()
         if self.parameters.ShowBaseSpecterPBA or self.parameters.ShowSavedPBA:
-            self.PBASpecter.axes.legend()
-        self.PBASpecter.axes.set_xlabel("Energy (MeV)")
+            self.PBASpecter.axes.legend(loc = 'upper right')
+        self.PBASpecter.axes.set_xlabel(MedPhysStrings.EnergyLabel[self.language])
         if self.parameters.NormalizePBA and not self.parameters.ShowSavedPBA:
-            self.PBASpecter.axes.set_ylabel("Frequency")
+            self.PBASpecter.axes.set_ylabel(MedPhysStrings.FrequencyLabel[self.language])
         else:
-            self.PBASpecter.axes.set_ylabel("Distribution")
+            self.PBASpecter.axes.set_ylabel(MedPhysStrings.DistributionLabel[self.language])
         if self.parameters.MaterialTypePBA == "None":
             if self.parameters.NormalizePBA:
-                self.PBASpecter.axes.set_title(f"Normalized {self.parameters.SpecterTypePBA} spectrum")
+                if self.language in ["En"]:
+                    self.PBASpecter.axes.set_title(MedPhysStrings.NormalizedTitleLabel[self.language] + 
+                                                    " " + 
+                                                    MedPhysStrings.SpecterPBAName[self.parameters.SpecterTypePBA][self.language] + 
+                                                    " " + 
+                                                    MedPhysStrings.SpectrumTitleLabel[self.language])
+                elif self.language in ["Fr"]:
+                    self.PBASpecter.axes.set_title(MedPhysStrings.SpectrumTitleLabel[self.language] + 
+                                                    " " + 
+                                                    MedPhysStrings.NormalizedTitleLabel[self.language] +
+                                                    " " +
+                                                    MedPhysStrings.SpecterPBAName[self.parameters.SpecterTypePBA][self.language])
             else:
-                self.PBASpecter.axes.set_title(f"{self.parameters.SpecterTypePBA} spectrum")
+                if self.language in ["En"]:
+                    self.PBASpecter.axes.set_title(MedPhysStrings.SpecterPBAName[self.parameters.SpecterTypePBA][self.language] + " " + MedPhysStrings.SpectrumTitleLabel[self.language])
+                elif self.language in ["Fr"]:
+                    self.PBASpecter.axes.set_title(MedPhysStrings.SpectrumTitleLabel[self.language] + 
+                                                    " " + 
+                                                    MedPhysStrings.SpecterPBAName[self.parameters.SpecterTypePBA][self.language])
         else:
             if self.parameters.NormalizePBA:
-                self.PBASpecter.axes.set_title(f"Normalized attenuation of the {self.parameters.SpecterTypePBA} spectrum\n through {self.parameters.depthPBA} cm of {self.parameters.MaterialTypePBA}")
+                self.PBASpecter.axes.set_title(MedPhysStrings.AttenuatedTitle0Label[self.language] + 
+                                                MedPhysStrings.SpecterPBAName[self.parameters.SpecterTypePBA][self.language]+
+                                                MedPhysStrings.AttenuatedTitle2Label[self.language] + 
+                                                str(self.parameters.depthPBA) +
+                                                MedPhysStrings.AttenuatedTitle3Label[self.language] +
+                                                MedPhysStrings.ElementsNamePBA[self.parameters.MaterialTypePBA][self.language])
             else:
-                self.PBASpecter.axes.set_title(f"Attenuation of the {self.parameters.SpecterTypePBA} spectrum\n through {self.parameters.depthPBA} cm of {self.parameters.MaterialTypePBA}")
+                self.PBASpecter.axes.set_title(MedPhysStrings.AttenuatedTitle1Label[self.language] + 
+                                                MedPhysStrings.SpecterPBAName[self.parameters.SpecterTypePBA][self.language]+
+                                                MedPhysStrings.AttenuatedTitle2Label[self.language] + 
+                                                str(self.parameters.depthPBA) +
+                                                MedPhysStrings.AttenuatedTitle3Label[self.language] +
+                                                MedPhysStrings.ElementsNamePBA[self.parameters.MaterialTypePBA][self.language])
         if self.parameters.ShowSavedPBA:
-            self.PBASpecter.axes.set_title(f"Attenuated Spectrum")
+            self.PBASpecter.axes.set_title(MedPhysStrings.AttenuatedSpectrumTitleLabel[self.language])
     def update_Combo_MaterialPBA(self):
         """Updates the Combo of the Material of the PBA"""
-        self.parameters.MaterialTypePBA = self.PBAMaterialType.currentText()
+        name_tmp = self.PBAMaterialType.currentText()
+        for dict, names in MedPhysStrings.ElementsNamePBA.items():
+            if name_tmp in names.values():
+                self.parameters.MaterialTypePBA = dict
 
         if self.parameters.MaterialTypePBA != "None":
-            self.parameters.XCOMData = np.loadtxt(f"MedPhys/XCOM_Data/XCOM_{self.parameters.MaterialTypePBA}.pl")
+            self.parameters.XCOMData = np.loadtxt(f"{basedir}/XCOM_Data/XCOM_{self.parameters.MaterialTypePBA}.pl")
 
         self.updateAttenuatedPBA()
 
@@ -617,13 +664,12 @@ class MedPhysWindow(QMainWindow):
 
     def update_Combo_ImageTomo(self):
         """Updates the Combo of the Image of the Tomo"""
-        self.parameters.ImageTomoName = self.ImageChoiceTomo.currentText()
-
-        if self.parameters.ImageTomoName in ["Phantom"]:
-            self.parameters.ImageTomo = shepp_logan_phantom()
-            self.parameters.ImageTomo = rescale(self.parameters.ImageTomo,0.5)
-        else:
-            self.parameters.ImageTomo = mpimg.imread(f'TomoImage/{self.parameters.ImageTomoName}.pgm')     
+        name_tmp = self.ImageChoiceTomo.currentText()
+        for dict, names in MedPhysStrings.ImageTomoName.items():
+            if name_tmp in names.values():
+                self.parameters.ImageTomoName = dict
+        self.parameters.ImageTomo = mpimg.imread(f'{basedir}/TomoImage/{self.parameters.ImageTomoName}.pgm')
+        self.parameters.ImageTomo = rescale(self.parameters.ImageTomo, scale = 0.5)
 
         self.parameters.ImageRotatedTomo = Tomography.Rotate(self.parameters.ImageTomo,angle = self.parameters.angleTomo*2*np.pi/360)
 
@@ -641,6 +687,10 @@ class MedPhysWindow(QMainWindow):
 
     def update_Combo_FilterTomo(self):
         self.parameters.ReconstructionFilterName = self.ImageFilterTomo.currentText()
+        name_tmp = self.ImageFilterTomo.currentText()
+        for dict, names in MedPhysStrings.FilterTomoName.items():
+            if name_tmp in names.values():
+                self.parameters.ReconstructionFilterName = dict
         self.parameters.ReconstructedTomo = Tomography.Reconstruction(self.parameters.SinogramTomo, 
                                                                 angles_step = self.parameters.AngleStepTomo,
                                                                 filter=self.parameters.ReconstructionFilterName)
@@ -663,9 +713,13 @@ class MedPhysWindow(QMainWindow):
 
     def update_Combo_SpecterPBA(self):
         """Updates the Combo of the Spectrum of the PBA"""
-        self.parameters.SpecterTypePBA = self.PBASpecterType.currentText()
+        name_tmp = self.PBASpecterType.currentText()
+        for dict, names in MedPhysStrings.SpecterPBAName.items():
+            if name_tmp in names.values():
+                self.parameters.SpecterTypePBA = dict
+
         if self.parameters.SpecterTypePBA in ["Bump"]:
-            self.parameters.Specter = np.loadtxt("MedPhys/Specters/"+self.parameters.SpecterTypePBA+".txt")
+            self.parameters.Specter = np.loadtxt(f"{basedir}/Specters/"+self.parameters.SpecterTypePBA+".txt")
             self.parameters.SpecterEValues = self.parameters.Specter[:,0]
             self.parameters.SpecterfValues = self.parameters.Specter[:,1]
         elif self.parameters.SpecterTypePBA == "Peak":
@@ -782,12 +836,16 @@ class MedPhysWindow(QMainWindow):
         self.parameters.SavedSpectersE = []
         self.parameters.SavedSpectersF = []
         self.parameters.SavedSpectersLabel = []
+        self.parameters.SavedCounterPBA = 0
+        self.PBASavedNumber.setText(f"{self.parameters.SavedCounterPBA}")
 
     def saveSavedSpecterPBA(self):
         """Saves the current Specter"""
         self.parameters.SavedSpectersE.append(self.parameters.SpecterEValues)
         self.parameters.SavedSpectersF.append(self.throughPBA)
-        self.parameters.SavedSpectersLabel.append(f"{self.parameters.MaterialTypePBA}: {self.parameters.depthPBA} cm")
+        self.parameters.SavedSpectersLabel.append(f"{MedPhysStrings.ElementsNamePBA[self.parameters.MaterialTypePBA][self.language]}: {self.parameters.depthPBA} cm")
+        self.parameters.SavedCounterPBA += 1
+        self.PBASavedNumber.setText(f"{self.parameters.SavedCounterPBA}")
 
     def updateShowSavedSpecterPBA(self):
         """Toggles the view to see the Saved Specters"""
@@ -858,7 +916,7 @@ class MplCanvas(FigureCanvasQTAgg):
     """Class for the images and the graphs as a widget"""
     def __init__(self, parent=None, width:float=5, height:float=4, dpi:int=75):
         """Creates an empty figure with axes and fig as parameters"""
-        fig = Figure(figsize=(width, height), dpi=dpi)
+        fig = Figure(figsize=(width, height), dpi=dpi, tight_layout= True)
         self.axes = fig.add_subplot(111)
         self.fig = fig
         super(MplCanvas, self).__init__(fig)

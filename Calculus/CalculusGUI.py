@@ -46,7 +46,7 @@ class CalculusWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.current_lineIntegral = 1
         super().__init__(parent=parent)
-        self.setMinimumSize(800, 600)
+        self.setMinimumSize(1200, 700)
         self.setWindowTitle("Calculus")
         self.language = language
 
@@ -70,6 +70,8 @@ class CalculusWindow(QMainWindow):
         self._createCurveOtherIntegral()
 
         self._createExitButton() 
+        self.generalLayoutIntegral.setColumnStretch(1,5)
+        self.generalLayoutIntegral.setColumnStretch(2,5)
 
     def _createCurveBaseIntegral(self):
         """Creates an Image for a basic curve for the Integrals"""
@@ -90,6 +92,7 @@ class CalculusWindow(QMainWindow):
         self.IntegralCurveType.addItem("Quadratic")
         self.IntegralCurveType.addItem("Cubic")
         self.IntegralCurveType.addItem("Exponential")
+        self.IntegralCurveType.addItem("Exp. Power")
         self.IntegralCurveType.addItem("Sin")
         self.IntegralCurveType.addItem("Cos")
         self.IntegralCurveType.addItem("Tan")
@@ -258,6 +261,8 @@ class CalculusWindow(QMainWindow):
             self.parameters.IntegralCurve = Curves.CubicCurve
         elif self.parameters.IntegralCurveName == "Exponential":
             self.parameters.IntegralCurve = Curves.ExponentialCurve
+        elif self.parameters.IntegralCurveName == "Exp. Power":
+            self.parameters.IntegralCurve = Curves.ExponentialPowerCurve
         elif self.parameters.IntegralCurveName == "Sin":
             self.parameters.IntegralCurve = Curves.SinCurve
         elif self.parameters.IntegralCurveName == "Cos":
@@ -368,7 +373,7 @@ class CalculusWindow(QMainWindow):
                                 self.parameters.IntegralCurve(self.parameters.IntegralBoundsBox[0],self.parameters.IntegralParameters,typeCurve= 'Integral'),
                                 color = 'g', label='Exact Value')
         self.IntegralSumImage.axes.grid()
-        self.IntegralSumImage.axes.legend()
+        self.IntegralSumImage.axes.legend(loc = 'upper right')
         self.IntegralSumImage.axes.set_xlabel("Box Number")
         self.IntegralSumImage.axes.set_ylabel("Total Area")
         self.IntegralSumImage.axes.set_title("Measured Area by Method of Integration and Number of Boxes")
@@ -403,7 +408,7 @@ class MplCanvas(FigureCanvasQTAgg):
     """Class for the images and the graphs as a widget"""
     def __init__(self, parent=None, width:float=5, height:float=4, dpi:int=75):
         """Creates an empty figure with axes and fig as parameters"""
-        fig = Figure(figsize=(width, height), dpi=dpi)
+        fig = Figure(figsize=(width, height), dpi=dpi, tight_layout= True)
         self.axes = fig.add_subplot(111)
         self.fig = fig
         super(MplCanvas, self).__init__(fig)

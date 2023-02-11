@@ -1,11 +1,17 @@
 import numpy as np
-import Fourier1D
-import Filters
-from skimage.data import shepp_logan_phantom
+import matplotlib.image as mpimg
+import os
+try:
+    import Fourier1D
+    import Filters
+except:
+    import Analysis.Fourier1D as Fourier1D
+    import Analysis.Filters as Filters
 
 class GUIParametersAnalysis(object):
     """Class where the parameters of the GUI are stored"""
     def __init__(self):
+        basedir = os.path.dirname(__file__)
         self.CurveTypeFourier1D = "Hamming"
         self.CurveParametersFourier1D = np.array([1.0,1.0, 0.25, 0.3, 0.1, 0.7, 1.0, 0.1])
         self.dxFourier1D = 0.01
@@ -20,7 +26,8 @@ class GUIParametersAnalysis(object):
 
 
         self.ImageFiltersName = "Phantom"
-        self.ImageFilters = shepp_logan_phantom()
+        self.ImageFilters = mpimg.imread(f'{basedir}/AnalysisImage/{self.ImageFiltersName}.pgm')
+
         self.FilterFiltersName = "Hamming"
         self.ParametersFilters = np.array([30,0.5435])
         self.fullRangeFilters = False

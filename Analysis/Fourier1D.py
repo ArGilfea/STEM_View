@@ -6,7 +6,6 @@ import math                       #Pour pi
 import scipy.fft                      #Pour la transformée de Fourier
 from scipy.io import loadmat      #Pour lire un fichier matlab
 
-from skimage.data import shepp_logan_phantom
 from skimage.transform import radon, rescale
 
 def create1DFunctions(CurveRange:np.ndarray,CurveParameters:np.ndarray,CurveType: str = "Hamming", fullRange: bool = True) -> np.ndarray:
@@ -37,10 +36,10 @@ def create1DFunctions(CurveRange:np.ndarray,CurveParameters:np.ndarray,CurveType
         filter[i] = CurveParameters[1]
   elif CurveType == "Triangular":
     for i in range(RangeValue[0],RangeValue[1]):
-      filter[i] = (RangeValue[1] - RangeValue[0] - np.abs((i - filter.shape[0]/2)/(CurveParameters[0]/2)))
+      filter[i] = (RangeValue[1] - RangeValue[0] - np.abs((i - filter.shape[0]/2)/(CurveParameters[0]/2)))*(CurveRange[1]-CurveRange[0])
   elif CurveType == "Ramp":
     for i in range(RangeValue[0],RangeValue[1]):
-      filter[i] = np.abs((i - filter.shape[0]/2)/(CurveParameters[0]/2))
+      filter[i] = np.abs((i - filter.shape[0]/2)/(CurveParameters[0]/2))*(CurveRange[1]-CurveRange[0])
   elif CurveType == "Welch":
     for i in range(RangeValue[0],RangeValue[1]):
       filter[i] = (RangeValue[1] - RangeValue[0] -((i - filter.shape[0]/2)/(CurveParameters[0]/2))**2)

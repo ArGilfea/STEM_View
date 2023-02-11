@@ -13,7 +13,6 @@ from functools import partial
 ###
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-from skimage.data import shepp_logan_phantom
 import matplotlib.image as mpimg
 import scipy.fft                      #Pour la transformée de Fourier
 
@@ -32,6 +31,7 @@ except:
 
 
 size_Image = 200
+basedir = os.path.dirname(__file__)
 
 class AnalysisWindow(QMainWindow):
     """
@@ -45,7 +45,7 @@ class AnalysisWindow(QMainWindow):
         self.currentLineFourier1D = 1
         self.currentLineFilters = 1
         super().__init__(parent=parent)
-        self.setMinimumSize(800, 600)
+        self.setMinimumSize(1200, 700)
         self.setWindowTitle(AnalysisStrings.WindowName[f"{self.language}"])
 
         self.generalLayoutFourier1D = QGridLayout()
@@ -80,6 +80,11 @@ class AnalysisWindow(QMainWindow):
         self._createParametersButtonsFilters()
         #Exit Button
         self._createExitButton()
+
+        self.generalLayoutFourier1D.setColumnStretch(1,5)
+        self.generalLayoutFourier1D.setColumnStretch(2,5)
+        self.generalLayoutFilters.setColumnStretch(1,5)
+        self.generalLayoutFilters.setColumnStretch(2,5)
     ###Create Interface###
     def _createBaseFunctionImageFourier1D(self):
         """Creates an Image for the Base function of Fourier 1D"""
@@ -381,13 +386,7 @@ class AnalysisWindow(QMainWindow):
         for dict, names in AnalysisStrings.ImageNameFilters.items():
             if name_tmp in names.values():
                 self.parameters.ImageFiltersName = dict
-        if self.parameters.ImageFiltersName == "Phantom":
-            self.parameters.ImageFilters = shepp_logan_phantom()
-        else:
-            try:
-                self.parameters.ImageFilters = mpimg.imread(f'AnalysisImage/{self.parameters.ImageFiltersName}.pgm')
-            except:
-                self.parameters.ImageFilters = mpimg.imread(f'Analysis/AnalysisImage/{self.parameters.ImageFiltersName}.pgm')
+        self.parameters.ImageFilters = mpimg.imread(f'{basedir}/AnalysisImage/{self.parameters.ImageFiltersName}.pgm')
         self.updateImagesFilters()
 
     def update_Combo_CurveFilters(self):
@@ -441,8 +440,8 @@ class AnalysisWindow(QMainWindow):
                                                     self.parameters.FilterFiltersName,self.parameters.fullRangeFilters)
         if self.parameters.FilterFiltersName in ["Low Pass Flat", "High Pass Flat"]:
             self.parameters.FilterFourierAbsFilters = np.copy(self.parameters.FilterFilters)
-            self.parameters.FilterFourierFilters = (np.copy(self.parameters.FilterFilters))
-            self.parameters.FilterFilters, _ = Filters.InverseFourierTransform(self.parameters.FilterFilters) 
+            self.parameters.FilterFourierFilters = scipy.fft.fftshift(np.copy(self.parameters.FilterFilters))
+            self.parameters.FilterFilters, _ = Filters.InverseFourierTransform(self.parameters.FilterFourierFilters) 
         else:
             self.parameters.FilterFourierAbsFilters, self.parameters.FilterFourierFilters = Filters.FourierTransform(self.parameters.FilterFilters)
         self.parameters.ImageFourierAbsFilters, self.parameters.ImageFourierFilters = Filters.FourierTransform(self.parameters.ImageFilters)
@@ -508,7 +507,7 @@ class MplCanvas(FigureCanvasQTAgg):
     """Class for the images and the graphs as a widget"""
     def __init__(self, parent=None, width:float=5, height:float=4, dpi:int=75):
         """Creates an empty figure with axes and fig as parameters"""
-        fig = Figure(figsize=(width, height), dpi=dpi)
+        fig = Figure(figsize=(width, height), dpi=dpi, tight_layout= True)
         self.axes = fig.add_subplot(111)
         self.fig = fig
         super(MplCanvas, self).__init__(fig)

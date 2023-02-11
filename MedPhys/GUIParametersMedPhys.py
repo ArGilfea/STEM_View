@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.image as mpimg
+import os
 try:
     import Tomography
 except:
@@ -8,10 +9,12 @@ except:
 class GUIParameters(object):
     """Class where the parameters of the GUI are stored"""
     def __init__(self):
+        basedir = os.path.dirname(__file__)
+
         self.SpecterTypePBA = "Bump"
         self.MaterialTypePBA = "None"
 
-        self.Specter = np.loadtxt("MedPhys/Specters/"+self.SpecterTypePBA+".txt")
+        self.Specter = np.loadtxt(f"{basedir}/Specters/"+self.SpecterTypePBA+".txt")
 
         self.SpecterEValues = self.Specter[:,0]
         self.SpecterfValues = self.Specter[:,1]
@@ -24,6 +27,7 @@ class GUIParameters(object):
         self.SavedSpectersE = []
         self.SavedSpectersF = []
         self.SavedSpectersLabel = []
+        self.SavedCounterPBA = 0
 
         self.rho = {
             "Al" : 2.6989,
@@ -55,7 +59,7 @@ class GUIParameters(object):
 
         self.angleTomo = 0
         self.ImageTomoName = "Lenna"
-        self.ImageTomo = mpimg.imread(f'TomoImage/{self.ImageTomoName}.pgm')        
+        self.ImageTomo = mpimg.imread(f'{basedir}/TomoImage/{self.ImageTomoName}.pgm')        
         self.ImageRotatedTomo =  np.copy(self.ImageTomo)
 
         self.AngleStepTomo = 1

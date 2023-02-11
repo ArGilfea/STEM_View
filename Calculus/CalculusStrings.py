@@ -15,6 +15,8 @@ def CurveEquation(curveType:str, parameters:np.ndarray):
         return f'{parameters[0]}$x^3$ + {parameters[1]}$x^2$ + {parameters[2]}$x$ + {parameters[3]}'
     elif curveType == "Exponential":
         return f'{parameters[0]}$e^{{{parameters[1]}x}}$ + {parameters[2]}'
+    elif curveType == "Exp. Power":
+        return f'{parameters[0]}$e^{{{parameters[1]}x ^{{{parameters[2]}}}}}$ + {parameters[3]}'
     elif curveType == "Sin":
         return f'{parameters[0]}sin({parameters[1]}$x$+{parameters[2]}) + {parameters[3]}'
     elif curveType == "Cos":

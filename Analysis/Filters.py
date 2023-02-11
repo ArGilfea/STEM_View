@@ -6,7 +6,6 @@ import math                       #Pour pi
 import scipy.fft                      #Pour la transformée de Fourier
 from scipy.io import loadmat      #Pour lire un fichier matlab
 
-from skimage.data import shepp_logan_phantom
 from skimage.transform import radon, rescale
 
 

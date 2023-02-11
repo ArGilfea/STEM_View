@@ -41,6 +41,14 @@ def ExponentialCurve(x,param:np.ndarray, typeCurve = 'Normal'):
         try: return param[0] / param[1] * np.exp(param[1] * x) + param[2] * x
         except: return param[0] / (param[1] + 1e-10) * np.exp(param[1] * x) + param[2] * x
 
+def ExponentialPowerCurve(x,param:np.ndarray, typeCurve = 'Normal'):
+    if typeCurve == 'Normal':
+        return param[0] * np.exp(param[1] * x ** param[2]) + param[3]
+    elif typeCurve == 'Derivative':
+        return param[0] * param[1] * param[2] * x ** (param[2] - 1) * np.exp(param[1] * x ** param[2])
+    elif typeCurve == 'Integral':
+        return np.zeros_like(x)
+
 def CosCurve(x,param:np.ndarray, typeCurve = 'Normal'):
     if typeCurve == 'Normal':
         return param[0] * np.cos(x * param[1] + param[2]) + param[3]
