@@ -40,38 +40,133 @@ class CalculusWindow(QMainWindow):
     """
     Main window of the GUI.
     """    
-    def __init__(self,parent=None,language = "En"):
+    def __init__(self,parent=None,language = "Fr"):
         """Initializes the GUI Window"""
         self.parameters = GUIParametersCalculus.GUIParameters()
         self.tabs = QTabWidget()
+        self.current_lineDerivatives = 1
         self.current_lineIntegral = 1
         super().__init__(parent=parent)
         self.setMinimumSize(1200, 700)
-        self.setWindowTitle("Calculus")
         self.language = language
+        self.setWindowTitle(CalculusStrings.WindowName[f"{self.language}"])
 
+        self.generalLayoutDerivatives = QGridLayout()
         self.generalLayoutIntegral = QGridLayout()
         self.generalLayoutReadMe = QGridLayout()
 
+        centralWidgetDerivatives = QWidget(self)
         centralWidgetIntegral = QWidget(self)
         centralWidgetReadMe = QWidget(self)
 
+        centralWidgetDerivatives.setLayout(self.generalLayoutDerivatives)
         centralWidgetIntegral.setLayout(self.generalLayoutIntegral)
         centralWidgetReadMe.setLayout(self.generalLayoutReadMe)
 
-        self.tabs.addTab(centralWidgetIntegral,"Integral")
-        self.tabs.addTab(centralWidgetReadMe,"ReadMe")
+        self.tabs.addTab(centralWidgetDerivatives,CalculusStrings.DerivativeTab[f"{self.language}"])
+        self.tabs.addTab(centralWidgetIntegral,CalculusStrings.IntegralTab[f"{self.language}"])
+        self.tabs.addTab(centralWidgetReadMe,CalculusStrings.ReadMeName[f"{self.language}"])
 
         self.setCentralWidget(self.tabs)
-
+        ### Derivatives
+        self._createCurveBaseDerivatives()
+        self._createOptionsDerivatives()
+        self._createCurveLimitDerivatives()
+        self._createCurveDerivedDerivatives()
+        ### Integrals
         self._createCurveBaseIntegral()
         self._createOptionsIntegral()
         self._createCurveSumIntegral()
         self._createCurveOtherIntegral()
 
         self._createExitButton() 
+        self.generalLayoutDerivatives.setColumnStretch(1,5)
+        self.generalLayoutDerivatives.setColumnStretch(2,5)
         self.generalLayoutIntegral.setColumnStretch(1,5)
         self.generalLayoutIntegral.setColumnStretch(2,5)
+
+    def _createCurveBaseDerivatives(self):
+        """Creates an Image for a basic curve for the Derivatives"""
+        self.DerivativesBasicImage = MplCanvas(self, width=6, height=6, dpi=75)
+        self.generalLayoutDerivatives.addWidget(self.DerivativesBasicImage,self.current_lineDerivatives,1)
+
+        self.updateBaseImageDerivatives()
+
+    def _createOptionsDerivatives(self):
+        """Creates the docks for the options of the Derivatives"""
+        subWidget = QWidget()
+        layout = QGridLayout()
+        subWidget.setLayout(layout)
+
+        self.TypeCurveDerivativesBox = QComboBox()
+        for _, names in CalculusStrings.ButtonChoiceFunction.items():
+            self.TypeCurveDerivativesBox.addItem(names[f"{self.language}"])
+        self.TypeCurveDerivativesBox.setCurrentText(CalculusStrings.ButtonChoiceFunction[self.parameters.DerivativesCurveName][self.language])
+        self.TypeCurveDerivativesBox.activated[str].connect(self.updateComboTypeCurveDerivatives)
+        self.TypeDerivativeDerivativesBox = QComboBox()
+        for _, names in CalculusStrings.SideDerivativesFunction.items():
+            self.TypeDerivativeDerivativesBox.addItem(names[f"{self.language}"])
+        self.TypeDerivativeDerivativesBox.setCurrentText(CalculusStrings.SideDerivativesFunction[self.parameters.DerivativesTypeName][self.language])
+        self.TypeDerivativeDerivativesBox.activated[str].connect(self.updateComboTypeApproachDerivatives)
+
+        self.FirstParameterDerivatives = QLineEdit()
+        self.SecondParameterDerivatives = QLineEdit()
+        self.ThirdParameterDerivatives = QLineEdit()
+        self.FourthParameterDerivatives = QLineEdit()
+        self.DerivativesH = QLineEdit()
+        self.DerivativesMin = QLineEdit()
+        self.DerivativesMax = QLineEdit()
+
+        self.FirstParameterDerivatives.setFixedWidth(90)
+        self.SecondParameterDerivatives.setFixedWidth(90)
+        self.ThirdParameterDerivatives.setFixedWidth(90)
+        self.FourthParameterDerivatives.setFixedWidth(90)
+        self.DerivativesH.setFixedWidth(90)
+        self.DerivativesMin.setFixedWidth(90)
+        self.DerivativesMax.setFixedWidth(90)
+
+        self.FirstParameterDerivatives.setText(str(self.parameters.DerivativesParameters[0]))
+        self.SecondParameterDerivatives.setText(str(self.parameters.DerivativesParameters[1]))
+        self.ThirdParameterDerivatives.setText(str(self.parameters.DerivativesParameters[2]))
+        self.FourthParameterDerivatives.setText(str(self.parameters.DerivativesParameters[3]))
+        self.DerivativesH.setText(str(self.parameters.DerivativesHValue))
+        self.DerivativesMin.setText(str(self.parameters.DerivativesXAxisBounds[0]))
+        self.DerivativesMax.setText(str(self.parameters.DerivativesXAxisBounds[1]))
+
+        self.FirstParameterDerivatives.editingFinished.connect(self.updateCurveParametersDerivatives)
+        self.SecondParameterDerivatives.editingFinished.connect(self.updateCurveParametersDerivatives)
+        self.ThirdParameterDerivatives.editingFinished.connect(self.updateCurveParametersDerivatives)
+        self.FourthParameterDerivatives.editingFinished.connect(self.updateCurveParametersDerivatives)
+        self.DerivativesH.editingFinished.connect(self.updateHValueDerivatives)
+        self.DerivativesMin.editingFinished.connect(self.updateCurveBoundsDerivatives)
+        self.DerivativesMax.editingFinished.connect(self.updateCurveBoundsDerivatives)
+
+        layout.addWidget(self.TypeCurveDerivativesBox,0,1)
+        layout.addWidget(self.TypeDerivativeDerivativesBox,0,2)
+        layout.addWidget(QLabel(CalculusStrings.ParametersLabel[f"{self.language}"]),1,0)
+        layout.addWidget(self.FirstParameterDerivatives,1,1)
+        layout.addWidget(self.SecondParameterDerivatives,1,2)
+        layout.addWidget(self.ThirdParameterDerivatives,2,1)
+        layout.addWidget(self.FourthParameterDerivatives,2,2)
+        layout.addWidget(QLabel(CalculusStrings.hDerivatives[f"{self.language}"]),3,0)
+        layout.addWidget(self.DerivativesH,3,1)
+        layout.addWidget(QLabel(CalculusStrings.BoundsLabel[f"{self.language}"]),4,0)
+        layout.addWidget(self.DerivativesMin,4,1)
+        layout.addWidget(self.DerivativesMax,4,2)
+
+        self.generalLayoutDerivatives.addWidget(subWidget,self.current_lineDerivatives,2)
+        self.current_lineDerivatives += 1
+    def _createCurveLimitDerivatives(self):
+        """Creates an Image for the limit in derivatives"""
+        self.LimitDerivativesImage = MplCanvas(self, width=6, height=6, dpi=75)
+        self.generalLayoutDerivatives.addWidget(self.LimitDerivativesImage,self.current_lineDerivatives,1)
+        self.updateLimitImageDerivatives()
+    def _createCurveDerivedDerivatives(self):
+        """Creates the derivative of the function Image"""
+        self.DerivativesDerivedImage = MplCanvas(self, width=6, height=6, dpi=75)
+        self.generalLayoutDerivatives.addWidget(self.DerivativesDerivedImage,self.current_lineDerivatives,2)
+        self.current_lineDerivatives += 1
+        self.updateDerivedImageDerivatives()
 
     def _createCurveBaseIntegral(self):
         """Creates an Image for a basic curve for the Integrals"""
@@ -146,15 +241,15 @@ class CalculusWindow(QMainWindow):
 
         layout.addWidget(self.IntegralCurveType,0,0)
         layout.addWidget(self.IntegralBoxTypeCombo,0,1)
-        layout.addWidget(QLabel("Parameters"),1,0)
+        layout.addWidget(QLabel(CalculusStrings.ParametersLabel[f"{self.language}"]),1,0)
         layout.addWidget(self.FirstParameterIntegral,1,1)
         layout.addWidget(self.SecondParameterIntegral,1,2)
         layout.addWidget(self.ThirdParameterIntegral,2,1)
         layout.addWidget(self.FourthParameterIntegral,2,2)
-        layout.addWidget(QLabel("Boxes"),3,0)
+        layout.addWidget(QLabel(CalculusStrings.BoxesLabel[f"{self.language}"]),3,0)
         layout.addWidget(self.ShowBoxIntegral,3,1)        
         layout.addWidget(self.NumberBoxIntegral,3,2)
-        layout.addWidget(QLabel("Bounds"),4,0)
+        layout.addWidget(QLabel(CalculusStrings.BoundsLabel[f"{self.language}"]),4,0)
         layout.addWidget(self.IntegralMin,4,1)
         layout.addWidget(self.IntegralMax,4,2)
 
@@ -178,12 +273,203 @@ class CalculusWindow(QMainWindow):
 
     def _createExitButton(self):
         """Creates an exit button"""
-        self.exitIntegral = QPushButton("Exit")
-        self.exitIntegral.setToolTip("Closes the GUI and its dependencies")
-        self.exitIntegral.setToolTip("Closes the GUI and its dependencies")
+        self.exitDerivatives = QPushButton(CalculusStrings.ExitLabel[f"{self.language}"])
+        self.exitIntegral = QPushButton(CalculusStrings.ExitLabel[f"{self.language}"])
+        self.exitDerivatives.setToolTip(CalculusStrings.ExitButtonTooltip[f"{self.language}"])
+        self.exitIntegral.setToolTip(CalculusStrings.ExitButtonTooltip[f"{self.language}"])
+        self.exitDerivatives.clicked.connect(self.close)
         self.exitIntegral.clicked.connect(self.close)
+        self.generalLayoutDerivatives.addWidget(self.exitDerivatives,self.current_lineDerivatives+1,3)  
         self.generalLayoutIntegral.addWidget(self.exitIntegral,self.current_lineIntegral+1,3)  
         self.current_lineIntegral += 1
+        self.current_lineDerivatives += 1
+################################
+    def updateComboTypeCurveDerivatives(self):
+        """Updates the Type of Curve for the Derivatives"""
+        name_tmp = self.TypeCurveDerivativesBox.currentText()
+        for dict, names in CalculusStrings.ButtonChoiceFunction.items():
+            if name_tmp in names.values():
+                self.parameters.DerivativesCurveName = dict
+        self.updateAllDerivatives()
+
+    def updateComboTypeApproachDerivatives(self):
+        """Updates the Type of Tangent Line for the Derivatives"""
+        name_tmp = self.TypeDerivativeDerivativesBox.currentText()
+        for dict, names in CalculusStrings.SideDerivativesFunction.items():
+            if name_tmp in names.values():
+                self.parameters.DerivativesTypeName = dict
+        self.updateAllDerivatives()
+
+    def updateCurveBoundsDerivatives(self):
+        """Updates the Bounds of the Derivatives"""
+        try:
+            self.parameters.DerivativesXAxisBounds[0] = float(self.DerivativesMin.text())
+        except:
+            self.parameters.DerivativesXAxisBounds[0] = 0.0
+        try:
+            self.parameters.DerivativesXAxisBounds[1] = float(self.DerivativesMax.text())
+        except:
+            self.parameters.DerivativesXAxisBounds[1] = 1.0
+        self.updateAllDerivatives()
+    def updateHValueDerivatives(self):
+        """Updates the h Value of the Derivatives"""
+        try:
+            self.parameters.DerivativesHValue = float(self.DerivativesH.text())
+        except:
+            self.parameters.DerivativesHValue = 1.0
+        self.updateAllDerivatives()
+    def updateCurveParametersDerivatives(self):
+        """Updates the Parameters of the Derivatives Curve"""
+        try:
+            self.parameters.DerivativesParameters[0] = float(self.FirstParameterDerivatives.text())
+        except:
+            self.parameters.DerivativesParameters[0] = 1.0
+        try:
+            self.parameters.DerivativesParameters[1] = float(self.SecondParameterDerivatives.text())
+        except:
+            self.parameters.DerivativesParameters[1] = 1.0
+        try:
+            self.parameters.DerivativesParameters[2] = float(self.ThirdParameterDerivatives.text())
+        except:
+            self.parameters.DerivativesParameters[2] = 1.0
+        try:
+            self.parameters.DerivativesParameters[3] = float(self.FourthParameterDerivatives.text())
+        except:
+            self.parameters.DerivativesParameters[4] = 1.0
+
+        self.updateAllDerivatives()
+
+    def updateAllDerivatives(self):
+        """Updates all aspect of the Derivatives Tab"""
+        self.updateDerivativeCurves()
+        self.updateBaseImageDerivatives()
+        self.updateLimitImageDerivatives()
+        self.updateDerivedImageDerivatives()
+    
+    def updateDerivativeCurves(self):
+        """Updates the Derivatives Curves"""
+        self.parameters.DerivativesXAxis = np.linspace(self.parameters.DerivativesXAxisBounds[0],self.parameters.DerivativesXAxisBounds[1],1000)
+        if self.parameters.DerivativesCurveName == "Constant":
+            self.parameters.DerivativesCurve = Curves.FlatCurve
+        elif self.parameters.DerivativesCurveName == "Line":
+            self.parameters.DerivativesCurve = Curves.LinearCurve
+        elif self.parameters.DerivativesCurveName == "Quadratic":
+            self.parameters.DerivativesCurve = Curves.QuadraticCurve
+        elif self.parameters.DerivativesCurveName == "Cubic":
+            self.parameters.DerivativesCurve = Curves.CubicCurve
+        elif self.parameters.DerivativesCurveName == "Exponential":
+            self.parameters.DerivativesCurve = Curves.ExponentialCurve
+        elif self.parameters.DerivativesCurveName == "Exp. Power":
+            self.parameters.DerivativesCurve = Curves.ExponentialPowerCurve
+        elif self.parameters.DerivativesCurveName == "Sin":
+            self.parameters.DerivativesCurve = Curves.SinCurve
+        elif self.parameters.DerivativesCurveName == "Cos":
+            self.parameters.DerivativesCurve = Curves.CosCurve
+        elif self.parameters.DerivativesCurveName == "Tan":
+            self.parameters.IntegralXAxis = self.IntegralXAxis = np.linspace(self.parameters.IntegralBoundsBox[0],self.parameters.IntegralBoundsBox[1],1000)
+            self.parameters.DerivativesCurve = Curves.TanCurve
+        elif self.parameters.DerivativesCurveName == "ArcSin":
+            self.parameters.DerivativesCurve = Curves.ArcSinCurve
+        elif self.parameters.DerivativesCurveName == "ArcCos":
+            self.parameters.DerivativesCurve = Curves.ArcCosCurve
+        elif self.parameters.DerivativesCurveName == "ArcTan":
+            self.parameters.DerivativesCurve = Curves.ArcTanCurve        
+        self.parameters.DerivativesYAxis = self.parameters.DerivativesCurve(self.parameters.DerivativesXAxis,self.parameters.DerivativesParameters)
+        self.parameters.DerivativesDerivedYAxis = self.parameters.DerivativesCurve(self.parameters.DerivativesXAxis,self.parameters.DerivativesParameters,typeCurve = 'Derivative')
+        self.parameters.DerivativesLeft = Curves.discreteDerivative(self.parameters.DerivativesCursorValue,
+                                                            h = self.parameters.DerivativesHValue,
+                                                            curve = self.parameters.DerivativesCurve,
+                                                            parameters= self.parameters.DerivativesParameters,
+                                                            side = "left")
+        self.parameters.DerivativesBoth = Curves.discreteDerivative(self.parameters.DerivativesCursorValue,
+                                                            h = self.parameters.DerivativesHValue,
+                                                            curve = self.parameters.DerivativesCurve,
+                                                            parameters= self.parameters.DerivativesParameters,
+                                                            side = "both")
+        self.parameters.DerivativesRight = Curves.discreteDerivative(self.parameters.DerivativesCursorValue,
+                                                            h = self.parameters.DerivativesHValue,
+                                                            curve = self.parameters.DerivativesCurve,
+                                                            parameters= self.parameters.DerivativesParameters,
+                                                            side = "right")
+
+        self.parameters.DerivativesLeftRange = np.zeros(self.parameters.HValueRange.shape[0])
+        self.parameters.DerivativesRightRange = np.zeros(self.parameters.HValueRange.shape[0])
+        self.parameters.DerivativesBothRange = np.zeros(self.parameters.HValueRange.shape[0])
+        for i in range(self.parameters.HValueRange.shape[0]):
+            self.parameters.DerivativesLeftRange[i] = Curves.discreteDerivative(self.parameters.DerivativesCursorValue,
+                                                            h = self.parameters.HValueRange[i],
+                                                            curve = self.parameters.DerivativesCurve,
+                                                            parameters= self.parameters.DerivativesParameters,
+                                                            side = "left")[6]
+            self.parameters.DerivativesRightRange[i] = Curves.discreteDerivative(self.parameters.DerivativesCursorValue,
+                                                            h = self.parameters.HValueRange[i],
+                                                            curve = self.parameters.DerivativesCurve,
+                                                            parameters= self.parameters.DerivativesParameters,
+                                                            side = "right")[6]
+            self.parameters.DerivativesBothRange[i] = Curves.discreteDerivative(self.parameters.DerivativesCursorValue,
+                                                            h = self.parameters.HValueRange[i],
+                                                            curve = self.parameters.DerivativesCurve,
+                                                            parameters= self.parameters.DerivativesParameters,
+                                                            side = "both")[6]                                                            
+    def updateBaseImageDerivatives(self):
+        """Updates the Base Derivatives Curve"""
+        try:
+            self.DerivativesBasicImage.axes.cla()
+        except:
+            pass
+
+        self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesXAxis,self.parameters.DerivativesYAxis)
+        self.DerivativesBasicImage.axes.set_title(CalculusStrings.FunctionLabel[f"{self.language}"] + " " +
+                                                    CalculusStrings.ButtonChoiceFunction[f"{self.parameters.DerivativesCurveName}"][f"{self.language}"] +  
+                                                    f" : y = {CalculusStrings.CurveEquation(self.parameters.DerivativesCurveName,self.parameters.DerivativesParameters)}")
+        
+        if self.parameters.DerivativesTypeName in ["Left","All"]:
+            self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesLeft[0],self.parameters.DerivativesLeft[1],color = 'orange')
+            self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesLeft[2],self.parameters.DerivativesLeft[4],'o',color = 'orange')
+            self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesLeft[3],self.parameters.DerivativesLeft[5],'o',color = 'orange')
+        if self.parameters.DerivativesTypeName in ["Right","All"]:
+            self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesRight[0],self.parameters.DerivativesRight[1],color = 'red')
+            self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesRight[2],self.parameters.DerivativesRight[4],'o',color = 'red')
+            self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesRight[3],self.parameters.DerivativesRight[5],'o',color = 'red')
+        if self.parameters.DerivativesTypeName in ["Middle","All"]:
+            self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesBoth[0],self.parameters.DerivativesBoth[1],color = 'green')
+            self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesBoth[2],self.parameters.DerivativesBoth[4],'o',color = 'green')
+            self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesBoth[3],self.parameters.DerivativesBoth[5],'o',color = 'green')
+        self.DerivativesBasicImage.axes.grid()
+        self.DerivativesBasicImage.draw()
+    def updateLimitImageDerivatives(self):
+        """Updates the Limit Derivatives Curve"""
+        try:
+            self.LimitDerivativesImage.axes.cla()
+        except:
+            pass
+        self.LimitDerivativesImage.axes.axvline(self.parameters.DerivativesHValue)
+        self.LimitDerivativesImage.axes.axhline(self.parameters.DerivativesCurve(self.parameters.DerivativesCursorValue,self.parameters.DerivativesParameters,typeCurve = 'Derivative'),label=CalculusStrings.SideDerivativesFunction["Exact"][self.language])
+        self.LimitDerivativesImage.axes.plot(self.parameters.HValueRange,self.parameters.DerivativesRightRange,label = CalculusStrings.SideDerivativesFunction["Right"][self.language])
+        self.LimitDerivativesImage.axes.plot(self.parameters.HValueRange,self.parameters.DerivativesLeftRange,label = CalculusStrings.SideDerivativesFunction["Left"][self.language])
+        self.LimitDerivativesImage.axes.plot(self.parameters.HValueRange,self.parameters.DerivativesBothRange,label = CalculusStrings.SideDerivativesFunction["Middle"][self.language])
+
+        self.LimitDerivativesImage.axes.set_xlabel(CalculusStrings.hDerivatives[f"{self.language}"])
+        self.LimitDerivativesImage.axes.set_ylabel(CalculusStrings.SlopeDerivatives[f"{self.language}"])
+        self.LimitDerivativesImage.axes.set_title(CalculusStrings.SlopeTitleDerivatives[f"{self.language}"])
+        self.LimitDerivativesImage.axes.legend()
+        self.LimitDerivativesImage.axes.grid()
+        self.LimitDerivativesImage.draw()
+
+    def updateDerivedImageDerivatives(self):
+        """Updates the Derived Derivatives Curve"""
+        try:
+            self.DerivativesDerivedImage.axes.cla()
+        except:
+            pass
+
+        self.DerivativesDerivedImage.axes.axvline(self.parameters.DerivativesCursorValue)
+        self.DerivativesDerivedImage.axes.plot(self.parameters.DerivativesXAxis,self.parameters.DerivativesDerivedYAxis)
+        self.DerivativesDerivedImage.axes.set_title(CalculusStrings.DerivativeLabel[f"{self.language}"] + 
+                                                    f" : y' = {CalculusStrings.CurveEquation(self.parameters.DerivativesCurveName,self.parameters.DerivativesParameters,operator= 'Derivative')}")
+
+        self.DerivativesDerivedImage.axes.grid()
+        self.DerivativesDerivedImage.draw()
 
     def update_Combo_CurveIntegral(self):
         """Updates the Curve Type"""
@@ -401,7 +687,7 @@ class CalculusWindow(QMainWindow):
         self.IntegralOtherImage.axes.grid()
         self.IntegralOtherImage.axes.set_xlabel("x")
         self.IntegralOtherImage.axes.set_ylabel("F(x)")
-        self.IntegralOtherImage.axes.set_title(f"Integral Functions of {self.parameters.IntegralCurveName}")        
+        self.IntegralOtherImage.axes.set_title(f"Integral Function of {self.parameters.IntegralCurveName}")        
         self.IntegralOtherImage.draw()
 ###
 class MplCanvas(FigureCanvasQTAgg):

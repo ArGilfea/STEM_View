@@ -80,14 +80,14 @@ def ArcSinCurve(x,param:np.ndarray, typeCurve = 'Normal'):
     if typeCurve == 'Normal':
         return param[0] * np.arcsin(x * param[1] + param[2]) + param[3]
     elif typeCurve == 'Derivative':
-        pass
+        return np.zeros_like(x)
     elif typeCurve == 'Integral':
         return np.zeros_like(x)
 def ArcCosCurve(x,param:np.ndarray, typeCurve = 'Normal'):
     if typeCurve == 'Normal':
         return param[0] * np.arccos(x * param[1] + param[2]) + param[3]
     elif typeCurve == 'Derivative':
-        pass
+        return np.zeros_like(x)
     elif typeCurve == 'Integral':
         return np.zeros_like(x)
 
@@ -95,6 +95,28 @@ def ArcTanCurve(x,param:np.ndarray, typeCurve = 'Normal'):
     if typeCurve == 'Normal':
         return param[0] * np.arctan(x * param[1] + param[2]) + param[3]
     elif typeCurve == 'Derivative':
-        pass
+        return param[0] * param[1]/(1 + (x * param[1] + param[2])**2)
     elif typeCurve == 'Integral':
         return np.zeros_like(x)
+
+def discreteDerivative(x_0,h, curve,parameters: np.ndarray, side:str = 'both'):
+  y_0 = curve(x_0,parameters)
+  if side == 'both':
+    x_2 = x_0 + h/2
+    x_1 = x_0 - h/2
+    y_2 = curve(x_2,parameters)
+    y_1 = curve(x_1,parameters)
+  elif side == 'left':
+    x_2 = x_0
+    x_1 = x_0 - h
+    y_2 = curve(x_2,parameters)
+    y_1 = curve(x_1,parameters)
+  elif side == 'right':
+    x_2 = x_0 + h
+    x_1 = x_0
+    y_2 = curve(x_2,parameters)
+    y_1 = curve(x_1,parameters)
+  slope = (y_2-y_1)/h
+  b = y_2 - slope * x_2
+  new_x = np.linspace(-1.1*np.abs(x_1) - h/2,1.1*np.abs(x_2) + h/2,100)
+  return [new_x, new_x * slope + b, x_1, x_2, y_1, y_2, slope]
