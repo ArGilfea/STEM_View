@@ -71,6 +71,7 @@ class CalculusWindow(QMainWindow):
         ### Derivatives
         self._createCurveBaseDerivatives()
         self._createOptionsDerivatives()
+        self._createCursonButton()
         self._createCurveLimitDerivatives()
         self._createCurveDerivedDerivatives()
         ### Integrals
@@ -91,7 +92,35 @@ class CalculusWindow(QMainWindow):
         self.generalLayoutDerivatives.addWidget(self.DerivativesBasicImage,self.current_lineDerivatives,1)
 
         self.updateBaseImageDerivatives()
+    def _createCursonButton(self):
+        """Creates the cursor button for the position of the derivative"""
+        subWidget = QWidget()
+        layout = QHBoxLayout()
+        subWidget.setLayout(layout)
 
+        sizeText = 45
+
+        self.sliderPositionCursorDerivatives = QSlider(Qt.Horizontal)
+        self.lineEditPositionCursorDerivatives = QLineEdit()
+
+        self.lineEditPositionCursorDerivatives.setFixedWidth(sizeText)
+        self.lineEditPositionCursorDerivatives.setText(str(self.parameters.DerivativesCursorValue))
+
+        self.sliderPositionCursorDerivatives.setMinimum(0)
+        self.sliderPositionCursorDerivatives.setMaximum(int((self.parameters.DerivativesXAxisBounds[1] - self.parameters.DerivativesXAxisBounds[0]) * 100))
+        self.sliderPositionCursorDerivatives.setSliderPosition(int(self.parameters.DerivativesCursorValue * (self.parameters.DerivativesXAxisBounds[1] - self.parameters.DerivativesXAxisBounds[0]) + (self.parameters.DerivativesXAxisBounds[1] - self.parameters.DerivativesXAxisBounds[0]) * 100/2))
+        self.sliderPositionCursorDerivatives.setTickPosition(QSlider.TicksBothSides)
+        self.sliderPositionCursorDerivatives.setSingleStep(1000)
+        self.sliderPositionCursorDerivatives.setTickInterval(1000)
+
+        self.lineEditPositionCursorDerivatives.editingFinished.connect(self.updateLineEditCursorDerivative)
+        self.sliderPositionCursorDerivatives.valueChanged.connect(self.updateSliderCursorDerivative)
+
+        layout.addWidget(self.lineEditPositionCursorDerivatives)
+        layout.addWidget(self.sliderPositionCursorDerivatives)
+
+        self.generalLayoutDerivatives.addWidget(subWidget,self.current_lineDerivatives,1)
+        self.current_lineDerivatives += 1
     def _createOptionsDerivatives(self):
         """Creates the docks for the options of the Derivatives"""
         subWidget = QWidget()
@@ -256,6 +285,7 @@ class CalculusWindow(QMainWindow):
         self.generalLayoutIntegral.addWidget(subWidget,self.current_lineIntegral,2)
         self.current_lineIntegral += 1
 
+
     def _createCurveSumIntegral(self):
         """Creates an Image for the Integral Result"""
         self.IntegralSumImage = MplCanvas(self, width=6, height=6, dpi=75)
@@ -284,6 +314,24 @@ class CalculusWindow(QMainWindow):
         self.current_lineIntegral += 1
         self.current_lineDerivatives += 1
 ################################
+    def updateLineEditCursorDerivative(self):
+        """Updates the value of the cursor with the cursor"""
+        try:
+            self.parameters.DerivativesCursorValue = float(self.lineEditPositionCursorDerivatives.text())
+        except:
+            self.parameters.DerivativesCursorValue = 0.0
+        self.updateAllDerivatives()
+
+    def updateSliderCursorDerivative(self):
+        """Updates the value of the cursor with the slider"""
+        try:
+            self.parameters.DerivativesCursorValue = self.sliderPositionCursorDerivatives.value()/100 + self.parameters.DerivativesXAxisBounds[0]
+        except:
+            self.parameters.DerivativesCursorValue = 0.0
+        self.lineEditPositionCursorDerivatives.setText(f"{(self.sliderPositionCursorDerivatives.value()/100 + self.parameters.DerivativesXAxisBounds[0]):.2g}")
+
+        self.updateAllDerivatives()
+
     def updateComboTypeCurveDerivatives(self):
         """Updates the Type of Curve for the Derivatives"""
         name_tmp = self.TypeCurveDerivativesBox.currentText()
@@ -310,6 +358,7 @@ class CalculusWindow(QMainWindow):
             self.parameters.DerivativesXAxisBounds[1] = float(self.DerivativesMax.text())
         except:
             self.parameters.DerivativesXAxisBounds[1] = 1.0
+        self.sliderPositionCursorDerivatives.setMaximum(int((self.parameters.DerivativesXAxisBounds[1] - self.parameters.DerivativesXAxisBounds[0]) * 100))
         self.updateAllDerivatives()
     def updateHValueDerivatives(self):
         """Updates the h Value of the Derivatives"""
@@ -436,6 +485,9 @@ class CalculusWindow(QMainWindow):
             self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesBoth[2],self.parameters.DerivativesBoth[4],'o',color = 'green')
             self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesBoth[3],self.parameters.DerivativesBoth[5],'o',color = 'green')
         self.DerivativesBasicImage.axes.grid()
+        try:
+            self.DerivativesBasicImage.axes.set_ylim(np.min(self.parameters.DerivativesYAxis)-1,np.max(self.parameters.DerivativesYAxis)+1)
+        except: pass
         self.DerivativesBasicImage.draw()
     def updateLimitImageDerivatives(self):
         """Updates the Limit Derivatives Curve"""
@@ -454,6 +506,10 @@ class CalculusWindow(QMainWindow):
         self.LimitDerivativesImage.axes.set_title(CalculusStrings.SlopeTitleDerivatives[f"{self.language}"])
         self.LimitDerivativesImage.axes.legend()
         self.LimitDerivativesImage.axes.grid()
+        self.LimitDerivativesImage.axes.invert_xaxis()
+        try:
+            self.LimitDerivativesImage.axes.set_ylim(np.min([self.parameters.DerivativesRightRange,self.parameters.DerivativesLeftRange,self.parameters.DerivativesBothRange])-1,np.max([self.parameters.DerivativesRightRange,self.parameters.DerivativesLeftRange,self.parameters.DerivativesBothRange])+1)
+        except: pass
         self.LimitDerivativesImage.draw()
 
     def updateDerivedImageDerivatives(self):
@@ -469,6 +525,7 @@ class CalculusWindow(QMainWindow):
                                                     f" : y' = {CalculusStrings.CurveEquation(self.parameters.DerivativesCurveName,self.parameters.DerivativesParameters,operator= 'Derivative')}")
 
         self.DerivativesDerivedImage.axes.grid()
+        self.DerivativesDerivedImage.axes.set_ylim(np.min(self.parameters.DerivativesDerivedYAxis)-1,np.max(self.parameters.DerivativesDerivedYAxis)+1)
         self.DerivativesDerivedImage.draw()
 
     def update_Combo_CurveIntegral(self):
