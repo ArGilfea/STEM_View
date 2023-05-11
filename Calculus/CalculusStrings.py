@@ -62,6 +62,10 @@ ButtonChoiceFunction = {
         "En" : "Exp. Power",
         "Fr" : "Puissance Exp."
     },
+    "Logarithmic" : {
+        "En" : "Logarithmic",
+        "Fr" : "Logarithmique"
+    },
     "Sin" : {
         "En" : "Sin",
         "Fr" : "Sin"
@@ -171,6 +175,11 @@ def CurveEquation(curveType:str, parameters:np.ndarray,operator : str = "None"):
             return f'{parameters[0]}$e^{{{parameters[1]}x ^{{{parameters[2]}}}}}$ + {parameters[3]}'
         elif operator == "Derivative":
             return "0"
+    elif curveType == "Logarithmic":
+        if operator == "None":
+            return f'{parameters[0]}ln({parameters[1]}x + {parameters[2]}) + {parameters[3]}'
+        elif operator == "Derivative":
+            return f"({parameters[0] * parameters[1]})/({parameters[1]}x + {parameters[2]})"
     elif curveType == "Sin":
         if operator == "None":
             return f'{parameters[0]}sin({parameters[1]}$x$+{parameters[2]}) + {parameters[3]}'

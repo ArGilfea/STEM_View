@@ -50,6 +50,17 @@ def ExponentialPowerCurve(x,param:np.ndarray, typeCurve = 'Normal'):
     elif typeCurve == 'Integral':
         return np.zeros_like(x)
 
+def LogarithmicCurve(x,param:np.ndarray, typeCurve = 'Normal'):
+    if typeCurve == 'Normal':
+        return param[0] * np.log(param[1] * x + param[2]) + param[3]
+    elif typeCurve == 'Derivative':
+        try: return param[0] * param[1]/(param[1] * x + param[2]) 
+        except: return np.zeros_like(x)
+    elif typeCurve == 'Integral':
+        try: return param[0]/param[1] * (param[1] * x + param[2]) * np.log(param[1] * x + param[2]) - x + param[3] * x
+        except: return np.zeros_like(x)
+
+
 def CosCurve(x,param:np.ndarray, typeCurve = 'Normal'):
     if typeCurve == 'Normal':
         return param[0] * np.cos(x * param[1] + param[2]) + param[3]

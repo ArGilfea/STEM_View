@@ -211,18 +211,8 @@ class CalculusWindow(QMainWindow):
         subWidget.setLayout(layout)
 
         self.IntegralCurveType = QComboBox()
-        self.IntegralCurveType.addItem("Constant")
-        self.IntegralCurveType.addItem("Line")
-        self.IntegralCurveType.addItem("Quadratic")
-        self.IntegralCurveType.addItem("Cubic")
-        self.IntegralCurveType.addItem("Exponential")
-        self.IntegralCurveType.addItem("Exp. Power")
-        self.IntegralCurveType.addItem("Sin")
-        self.IntegralCurveType.addItem("Cos")
-        self.IntegralCurveType.addItem("Tan")
-        self.IntegralCurveType.addItem("ArcSin")
-        self.IntegralCurveType.addItem("ArcCos")
-        self.IntegralCurveType.addItem("ArcTan")
+        for _, names in CalculusStrings.ButtonChoiceFunction.items():
+            self.IntegralCurveType.addItem(names[f"{self.language}"])
         self.IntegralCurveType.setCurrentText(self.parameters.IntegralCurveName)
         self.IntegralCurveType.activated[str].connect(self.update_Combo_CurveIntegral)
 
@@ -353,7 +343,7 @@ class CalculusWindow(QMainWindow):
         try:
             self.parameters.DerivativesXAxisBounds[0] = float(self.DerivativesMin.text())
         except:
-            self.parameters.DerivativesXAxisBounds[0] = 0.0
+            self.parameters.DerivativesXAxisBounds[0] = 0.001
         try:
             self.parameters.DerivativesXAxisBounds[1] = float(self.DerivativesMax.text())
         except:
@@ -410,12 +400,13 @@ class CalculusWindow(QMainWindow):
             self.parameters.DerivativesCurve = Curves.ExponentialCurve
         elif self.parameters.DerivativesCurveName == "Exp. Power":
             self.parameters.DerivativesCurve = Curves.ExponentialPowerCurve
+        elif self.parameters.DerivativesCurveName == "Logarithmic":
+            self.parameters.DerivativesCurve = Curves.LogarithmicCurve
         elif self.parameters.DerivativesCurveName == "Sin":
             self.parameters.DerivativesCurve = Curves.SinCurve
         elif self.parameters.DerivativesCurveName == "Cos":
             self.parameters.DerivativesCurve = Curves.CosCurve
         elif self.parameters.DerivativesCurveName == "Tan":
-            self.parameters.IntegralXAxis = self.IntegralXAxis = np.linspace(self.parameters.IntegralBoundsBox[0],self.parameters.IntegralBoundsBox[1],1000)
             self.parameters.DerivativesCurve = Curves.TanCurve
         elif self.parameters.DerivativesCurveName == "ArcSin":
             self.parameters.DerivativesCurve = Curves.ArcSinCurve
@@ -525,12 +516,16 @@ class CalculusWindow(QMainWindow):
                                                     f" : y' = {CalculusStrings.CurveEquation(self.parameters.DerivativesCurveName,self.parameters.DerivativesParameters,operator= 'Derivative')}")
 
         self.DerivativesDerivedImage.axes.grid()
-        self.DerivativesDerivedImage.axes.set_ylim(np.min(self.parameters.DerivativesDerivedYAxis)-1,np.max(self.parameters.DerivativesDerivedYAxis)+1)
+        try: self.DerivativesDerivedImage.axes.set_ylim(np.min(self.parameters.DerivativesDerivedYAxis)-1,np.max(self.parameters.DerivativesDerivedYAxis)+1)
+        except: pass
         self.DerivativesDerivedImage.draw()
 
     def update_Combo_CurveIntegral(self):
         """Updates the Curve Type"""
-        self.parameters.IntegralCurveName = self.IntegralCurveType.currentText()
+        name_tmp = self.IntegralCurveType.currentText()
+        for dict, names in CalculusStrings.ButtonChoiceFunction.items():
+            if name_tmp in names.values():
+                self.parameters.IntegralCurveName = dict
 
         self.updateCurveIntegral()
 
@@ -606,6 +601,8 @@ class CalculusWindow(QMainWindow):
             self.parameters.IntegralCurve = Curves.ExponentialCurve
         elif self.parameters.IntegralCurveName == "Exp. Power":
             self.parameters.IntegralCurve = Curves.ExponentialPowerCurve
+        elif self.parameters.IntegralCurveName == "Logarithmic":
+            self.parameters.IntegralCurve = Curves.LogarithmicCurve
         elif self.parameters.IntegralCurveName == "Sin":
             self.parameters.IntegralCurve = Curves.SinCurve
         elif self.parameters.IntegralCurveName == "Cos":
