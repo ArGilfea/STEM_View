@@ -93,26 +93,40 @@ class WavesAndOpticsWindow(QMainWindow):
     def _createPositionImageSHM(self):
         """Creates the Position Image for SHM"""
         self.PositionImageSHM = MplCanvas(self, width=6, height=6, dpi=75)
+        self.PositionImageSHM_cid = self.PositionImageSHM.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.PositionImageSHM))
+        self.PositionImageSHM_cod = self.PositionImageSHM.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.PositionImageSHM))
+
         self.generalLayoutSHM.addWidget(self.PositionImageSHM,self.currentLineSHM,1)
     def _createSpeedImageSHM(self):
         """Creates the Speed Image for SHM"""
         self.SpeedImageSHM = MplCanvas(self, width=6, height=6, dpi=75)
+        self.SpeedImageSHM_cid = self.SpeedImageSHM.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.SpeedImageSHM))
+        self.SpeedImageSHM_cod = self.SpeedImageSHM.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.SpeedImageSHM))
+
         self.generalLayoutSHM.addWidget(self.SpeedImageSHM,self.currentLineSHM,2)
         self.generalLayoutSHM.setRowStretch(self.currentLineSHM,5)
         self.currentLineSHM += 1
     def _createAccelerationImageSHM(self):
         """Creates the Position Image for SHM"""
         self.AccelerationImageSHM = MplCanvas(self, width=6, height=6, dpi=75)
+        self.AccelerationImageSHM_cid = self.AccelerationImageSHM.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.AccelerationImageSHM))
+        self.AccelerationImageSHM_cod = self.AccelerationImageSHM.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.AccelerationImageSHM))
+
         self.generalLayoutSHM.addWidget(self.AccelerationImageSHM,self.currentLineSHM,1)
     def _createCircleImageSHM(self):
         """Creates the Position Image for SHM"""
         self.CircleImageSHM = MplCanvas(self, width=6, height=6, dpi=75)
+        self.CircleImageSHM_cid = self.CircleImageSHM.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.CircleImageSHM))
+        self.CircleImageSHM_cod = self.CircleImageSHM.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.CircleImageSHM))
+
         self.generalLayoutSHM.addWidget(self.CircleImageSHM,self.currentLineSHM,2)
         self.generalLayoutSHM.setRowStretch(self.currentLineSHM,5)
         self.currentLineSHM += 1
     def _createEnergyImageSHM(self):
         """Creates the Position Image for SHM"""
         self.EnergyImageSHM = MplCanvas(self, width=6, height=6, dpi=75)
+        self.EnergyImageSHM_cid = self.EnergyImageSHM.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.EnergyImageSHM))
+        self.EnergyImageSHM_cod = self.EnergyImageSHM.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.EnergyImageSHM))
         self.generalLayoutSHM.addWidget(self.EnergyImageSHM,self.currentLineSHM,1)
 
     def _createParametersButtonsSHM(self):
@@ -224,15 +238,24 @@ class WavesAndOpticsWindow(QMainWindow):
     def _createFullImage2DWaves(self):
         """Creates the Complete View Image for 2D Waves"""
         self.FullImage2DWaves = MplCanvas(self, width=6, height=6, dpi=75)
+        self.FullImage2DWaves_cid = self.FullImage2DWaves.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.FullImage2DWaves))
+        self.FullImage2DWaves_cod = self.FullImage2DWaves.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.FullImage2DWaves))
+
         self.generalLayout2DWaves.addWidget(self.FullImage2DWaves,self.currentLine2DWaves,1)
     def _createTimeSliceImage2DWaves(self):
         """Creates the Complete View Image for 2D Waves"""
         self.TimeSliceImage2DWaves = MplCanvas(self, width=6, height=6, dpi=75)
+        self.TimeSliceImage2DWaves_cid = self.TimeSliceImage2DWaves.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.TimeSliceImage2DWaves))
+        self.TimeSliceImage2DWaves_cod = self.TimeSliceImage2DWaves.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.TimeSliceImage2DWaves))
+
         self.generalLayout2DWaves.addWidget(self.TimeSliceImage2DWaves,self.currentLine2DWaves,2)
         self.currentLine2DWaves += 1
     def _createPositionSliceImage2DWaves(self):
         """Creates the Complete View Image for 2D Waves"""
         self.PositionSliceImage2DWaves = MplCanvas(self, width=6, height=6, dpi=75)
+        self.PositionSliceImage2DWaves_cid = self.PositionSliceImage2DWaves.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.PositionSliceImage2DWaves))
+        self.PositionSliceImage2DWaves_cod = self.PositionSliceImage2DWaves.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.PositionSliceImage2DWaves))
+
         self.generalLayout2DWaves.addWidget(self.PositionSliceImage2DWaves,self.currentLine2DWaves,1)
     def _createParametersButtons2DWaves(self):
         """Creates the Parameters Buttons for 2D Waves"""
@@ -334,9 +357,14 @@ class WavesAndOpticsWindow(QMainWindow):
         self.exitSHM = QPushButton(WavesAndOpticsStrings.ExitButton[f"{self.language}"])
         self.exitDamped = QPushButton(WavesAndOpticsStrings.ExitButton[f"{self.language}"])
         self.exit2DWaves = QPushButton(WavesAndOpticsStrings.ExitButton[f"{self.language}"])
-        self.exitSHM.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"])
-        self.exitDamped.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"])
-        self.exit2DWaves.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"])
+        self.exitSHM.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
+        self.exitDamped.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
+        self.exit2DWaves.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
+
+        self.exitSHM.setShortcut("Ctrl+Shift+E")
+        self.exitDamped.setShortcut("Ctrl+Shift+E")
+        self.exit2DWaves.setShortcut("Ctrl+Shift+E")
+
 
         self.exitSHM.clicked.connect(self.close)
         self.exitDamped.clicked.connect(self.close)
@@ -729,6 +757,58 @@ class WavesAndOpticsWindow(QMainWindow):
             self.PositionSliceImage2DWaves.axes.set_ylim(-2.1*self.parameters.Parameters2DWaves[0],2.1*self.parameters.Parameters2DWaves[0])  
         self.PositionSliceImage2DWaves.axes.grid()   
         self.PositionSliceImage2DWaves.draw()
+
+    def onClick(self,event,which):
+        """Allows to click on an image and update the interface"""
+        ix, iy = event.xdata, event.ydata
+        which.coords = []
+        which.coords.append((ix, iy))
+        if len(which.coords) == 2:
+            which.fig.canvas.mpl_disconnect(self.cid)
+        if which in [self.PositionImageSHM, 
+                     self.SpeedImageSHM, 
+                     self.AccelerationImageSHM,
+                     self.EnergyImageSHM]:
+            self.parameters.CursorSHM = ix
+            self.CursorSHM.setText(str(f"{ix:.2f}"))
+            self.updateAllSHM()
+        elif which == self.CircleImageSHM:
+            angle = np.arctan(iy/ix)
+            if self.parameters.TypeMotionSHM == "sin":
+                pass
+            elif self.parameters.TypeMotionSHM == "cos":
+                pass
+            self.updateAllSHM()
+        elif which == self.FullImage2DWaves:
+            self.parameters.CursorT2DWaves = ix
+            self.parameters.CursorX2DWaves = iy
+            self.CursorT2DWave.setText(str(f"{ix:.2f}"))
+            self.CursorX2DWave.setText(str(f"{iy:.2f}"))
+            self.updateAll2DWave()
+        elif which == self.TimeSliceImage2DWaves:
+            self.parameters.CursorX2DWaves = iy
+            self.CursorX2DWave.setText(str(f"{iy:.2f}"))
+            self.updateAll2DWave()
+        elif which == self.PositionSliceImage2DWaves:
+            self.parameters.CursorT2DWaves = ix
+            self.CursorT2DWave.setText(str(f"{ix:.2f}"))
+            self.updateAll2DWave()
+
+    def onRoll(self,event,which):
+        """Allows to scroll on an image and update the interface"""
+        if event.button == 'up':
+            # deal with zoom in
+            scale_factor = 1
+            #print("+")
+        elif event.button == 'down':
+            # deal with zoom out
+            scale_factor = -1
+            #print("-")
+        if which in [self.PositionImageSHM, 
+                     self.SpeedImageSHM, 
+                     self.AccelerationImageSHM,
+                     self.EnergyImageSHM]:
+            self.updateAllSHM()
 ################################################################################################
 ################################################################################################
 ################################################################################################

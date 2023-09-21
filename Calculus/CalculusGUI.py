@@ -89,6 +89,9 @@ class CalculusWindow(QMainWindow):
     def _createCurveBaseDerivatives(self):
         """Creates an Image for a basic curve for the Derivatives"""
         self.DerivativesBasicImage = MplCanvas(self, width=6, height=6, dpi=75)
+        self.DerivativesBasicImage_cid = self.DerivativesBasicImage.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.DerivativesBasicImage))
+        self.DerivativesBasicImage_cod = self.DerivativesBasicImage.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.DerivativesBasicImage))
+
         self.generalLayoutDerivatives.addWidget(self.DerivativesBasicImage,self.current_lineDerivatives,1)
 
         self.updateBaseImageDerivatives()
@@ -188,11 +191,15 @@ class CalculusWindow(QMainWindow):
     def _createCurveLimitDerivatives(self):
         """Creates an Image for the limit in derivatives"""
         self.LimitDerivativesImage = MplCanvas(self, width=6, height=6, dpi=75)
+        self.LimitDerivativesImage_cid = self.LimitDerivativesImage.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.LimitDerivativesImage))
+        self.LimitDerivativesImage_cod = self.LimitDerivativesImage.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.LimitDerivativesImage))
         self.generalLayoutDerivatives.addWidget(self.LimitDerivativesImage,self.current_lineDerivatives,1)
         self.updateLimitImageDerivatives()
     def _createCurveDerivedDerivatives(self):
         """Creates the derivative of the function Image"""
         self.DerivativesDerivedImage = MplCanvas(self, width=6, height=6, dpi=75)
+        self.DerivativesDerivedImage_cid = self.DerivativesDerivedImage.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.DerivativesDerivedImage))
+        self.DerivativesDerivedImage_cod = self.DerivativesDerivedImage.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.DerivativesDerivedImage))
         self.generalLayoutDerivatives.addWidget(self.DerivativesDerivedImage,self.current_lineDerivatives,2)
         self.current_lineDerivatives += 1
         self.updateDerivedImageDerivatives()
@@ -255,8 +262,8 @@ class CalculusWindow(QMainWindow):
         self.FourthParameterIntegral.editingFinished.connect(self.updateCurveParametersIntegral)
         self.NumberBoxIntegral.editingFinished.connect(self.updateCurveNumberBoxesIntegral)
         self.ShowBoxIntegral.stateChanged.connect(self.updateCurveNumberBoxesIntegral)
-        self.IntegralMin.editingFinished.connect(self.updateCureBoundsIntegral)
-        self.IntegralMax.editingFinished.connect(self.updateCureBoundsIntegral)
+        self.IntegralMin.editingFinished.connect(self.updateCurveBoundsIntegral)
+        self.IntegralMax.editingFinished.connect(self.updateCurveBoundsIntegral)
 
         layout.addWidget(self.IntegralCurveType,0,0)
         layout.addWidget(self.IntegralBoxTypeCombo,0,1)
@@ -279,6 +286,10 @@ class CalculusWindow(QMainWindow):
     def _createCurveSumIntegral(self):
         """Creates an Image for the Integral Result"""
         self.IntegralSumImage = MplCanvas(self, width=6, height=6, dpi=75)
+        self.IntegralSumImage_cid = self.IntegralSumImage.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.IntegralSumImage))
+        self.IntegralSumImage_cod = self.IntegralSumImage.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.IntegralSumImage))
+
+
         self.generalLayoutIntegral.addWidget(self.IntegralSumImage,self.current_lineIntegral,1)
 
         self.updateBoxImageIntegral()
@@ -295,8 +306,10 @@ class CalculusWindow(QMainWindow):
         """Creates an exit button"""
         self.exitDerivatives = QPushButton(CalculusStrings.ExitLabel[f"{self.language}"])
         self.exitIntegral = QPushButton(CalculusStrings.ExitLabel[f"{self.language}"])
-        self.exitDerivatives.setToolTip(CalculusStrings.ExitButtonTooltip[f"{self.language}"])
-        self.exitIntegral.setToolTip(CalculusStrings.ExitButtonTooltip[f"{self.language}"])
+        self.exitDerivatives.setToolTip(CalculusStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
+        self.exitIntegral.setToolTip(CalculusStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
+        self.exitDerivatives.setShortcut("Ctrl+Shift+E")
+        self.exitIntegral.setShortcut("Ctrl+Shift+E")
         self.exitDerivatives.clicked.connect(self.close)
         self.exitIntegral.clicked.connect(self.close)
         self.generalLayoutDerivatives.addWidget(self.exitDerivatives,self.current_lineDerivatives+1,3)  
@@ -348,6 +361,7 @@ class CalculusWindow(QMainWindow):
             self.parameters.DerivativesXAxisBounds[1] = float(self.DerivativesMax.text())
         except:
             self.parameters.DerivativesXAxisBounds[1] = 1.0
+        self.parameters.HValueRange = np.linspace(1e-5,np.abs(self.parameters.DerivativesXAxisBounds[1] - self.parameters.DerivativesXAxisBounds[0])/4,100)
         self.sliderPositionCursorDerivatives.setMaximum(int((self.parameters.DerivativesXAxisBounds[1] - self.parameters.DerivativesXAxisBounds[0]) * 100))
         self.updateAllDerivatives()
     def updateHValueDerivatives(self):
@@ -571,7 +585,7 @@ class CalculusWindow(QMainWindow):
         self.updateBoxImageIntegral()
         self.updateBoundedImageIntegral()
 
-    def updateCureBoundsIntegral(self):
+    def updateCurveBoundsIntegral(self):
         """Updates the Bounds of the Integration"""
         try:
             self.parameters.IntegralBoundsBox[0] = float(self.IntegralMin.text())
@@ -743,6 +757,60 @@ class CalculusWindow(QMainWindow):
         self.IntegralOtherImage.axes.set_ylabel("F(x)")
         self.IntegralOtherImage.axes.set_title(f"Integral Function of {self.parameters.IntegralCurveName}")        
         self.IntegralOtherImage.draw()
+
+    def onClick(self,event,which):
+        """Allows to click on an image and update the interface"""
+        ix, iy = event.xdata, event.ydata
+        which.coords = []
+        which.coords.append((ix, iy))
+        if len(which.coords) == 2:
+            which.fig.canvas.mpl_disconnect(self.cid)
+        if which == self.DerivativesBasicImage or which == self.DerivativesDerivedImage:
+            self.parameters.DerivativesCursorValue = ix
+            self.lineEditPositionCursorDerivatives.setText(f"{float(ix):.2f}")
+            self.updateAllDerivatives()
+        elif which == self.LimitDerivativesImage:
+            self.parameters.DerivativesHValue = ix
+            self.DerivativesH.setText(f"{float(ix):.2f}")
+            self.updateAllDerivatives()
+        elif which == self.IntegralSumImage:
+            if int(ix) > 0:
+                self.parameters.IntegralBoxNumber = int(ix)
+                self.NumberBoxIntegral.setText(f"{int(ix)}")
+            self.updateCurveBoundsIntegral()
+            self.updateCurveNumberBoxesIntegral()
+
+    def onRoll(self,event,which):
+        """Allows to scroll on an image and update the interface"""
+        if event.button == 'up':
+            # deal with zoom in
+            scale_factor = 1
+            #print("+")
+        elif event.button == 'down':
+            # deal with zoom out
+            scale_factor = -1
+            #print("-")
+        if which == self.DerivativesBasicImage or which == self.DerivativesDerivedImage:
+            actual = float(self.lineEditPositionCursorDerivatives.text())
+            scale_factor = scale_factor*self.parameters.DerivativesXAxisBounds[-1]/100
+            self.parameters.DerivativesCursorValue += scale_factor
+            self.lineEditPositionCursorDerivatives.setText(f"{(float(actual) + scale_factor):.2f}")
+            self.updateAllDerivatives()
+        elif which == self.LimitDerivativesImage:
+            actual = float(self.DerivativesH.text())
+            scale_factor = - scale_factor*self.parameters.HValueRange[-1]/100
+            self.parameters.DerivativesHValue += scale_factor
+            self.DerivativesH.setText(f"{(float(actual)+scale_factor):.2f}")
+            self.updateAllDerivatives()
+        elif which == self.IntegralSumImage:
+            if self.parameters.IntegralBoxNumber + scale_factor > 0:
+                actual = int(self.NumberBoxIntegral.text())
+                self.parameters.IntegralBoxNumber += scale_factor
+                self.NumberBoxIntegral.setText(f"{actual + int(scale_factor)}")
+            self.updateCurveBoundsIntegral()
+            self.updateCurveNumberBoxesIntegral()
+        
+
 ###
 class MplCanvas(FigureCanvasQTAgg):
     """Class for the images and the graphs as a widget"""

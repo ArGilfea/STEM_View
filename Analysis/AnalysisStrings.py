@@ -10,6 +10,10 @@ FiltersName = {
     "En" : "Filters",
     "Fr" : "Filtres"
 }
+ComplexNumbersName = {
+    "En" : "Complex Numbers",
+    "Fr" : "Nombres Complexes"
+}
 ReadMeName = {
     "En" : "ReadMe",
     "Fr" : "Lisez-Moi"

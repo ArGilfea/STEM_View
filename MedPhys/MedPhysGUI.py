@@ -114,6 +114,9 @@ class MedPhysWindow(QMainWindow):
     def _addDataImageAttenuationPBA(self):
         """Adds the image of the total attenuation"""
         self.PBAAttenuation = MplCanvas(self, width=6, height=6, dpi=75)
+        self.PBAAttenuation_cid = self.PBAAttenuation.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.PBAAttenuation))
+        self.PBAAttenuation_cod = self.PBAAttenuation.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.PBAAttenuation))
+
         self.generalLayoutPBA.addWidget(self.PBAAttenuation,self.current_linePBA,2)
         self.current_linePBA += 1
 
@@ -141,7 +144,7 @@ class MedPhysWindow(QMainWindow):
         layout = QHBoxLayout()
         subWidget.setLayout(layout)
 
-        sizeText = 30
+        sizeText = 45
 
         self.sliderAngleTomo = QSlider(Qt.Horizontal)
         self.lineEditAngleTomo = QLineEdit()
@@ -174,6 +177,9 @@ class MedPhysWindow(QMainWindow):
     def _addSinoImageTomo(self):
         """Adds the sinogram of the image for tomography"""
         self.SinoImage = MplCanvas(self, width=6, height=6, dpi=75)
+        self.SinoImage_cid = self.SinoImage.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.SinoImage))
+        self.SinoImage_cod = self.SinoImage.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.SinoImage))
+
         self.generalLayoutTomo.addWidget(self.SinoImage,self.current_lineTomo,2)
         self.current_lineTomo += 1
 
@@ -317,9 +323,13 @@ class MedPhysWindow(QMainWindow):
         self.exitPBA = QPushButton(MedPhysStrings.ExitButton[f"{self.language}"])
         self.exitFilter = QPushButton(MedPhysStrings.ExitButton[f"{self.language}"])
         self.exitTomo = QPushButton(MedPhysStrings.ExitButton[f"{self.language}"])
-        self.exitPBA.setToolTip(MedPhysStrings.ExitButtonTooltip[f"{self.language}"])
-        self.exitFilter.setToolTip(MedPhysStrings.ExitButtonTooltip[f"{self.language}"])
-        self.exitTomo.setToolTip(MedPhysStrings.ExitButtonTooltip[f"{self.language}"])
+        self.exitPBA.setToolTip(MedPhysStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
+        self.exitFilter.setToolTip(MedPhysStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
+        self.exitTomo.setToolTip(MedPhysStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
+        self.exitPBA.setShortcut("Ctrl+Shift+E")
+        self.exitFilter.setShortcut("Ctrl+Shift+E")
+        self.exitTomo.setShortcut("Ctrl+Shift+E")
+
         self.exitPBA.clicked.connect(self.closing_button)
         self.exitFilter.clicked.connect(self.closing_button)
         self.exitTomo.clicked.connect(self.closing_button)
@@ -575,7 +585,7 @@ class MedPhysWindow(QMainWindow):
         self.FlatImage.axes.set_title(MedPhysStrings.LineIntensityLabel[self.language] +
                                         self.parameters.ImageTomoName +
                                         MedPhysStrings.LineIntensity2Label[self.language] +
-                                        str(self.parameters.angleTomo) +
+                                        f"{self.parameters.angleTomo:.1f}" +
                                         MedPhysStrings.LineIntensity3Label[self.language])
         self.FlatImage.axes.grid()
         self.FlatImage.axes.set_xlabel(MedPhysStrings.PositionLabel[self.language])
@@ -911,6 +921,44 @@ class MedPhysWindow(QMainWindow):
         self.updateImageTomoSino()
         self.updateImageReconstructed()
 
+    def onClick(self,event,which):
+        """Allows to click on an image and update the interface"""
+        ix, iy = event.xdata, event.ydata
+        which.coords = []
+        which.coords.append((ix, iy))
+        if len(which.coords) == 2:
+            which.fig.canvas.mpl_disconnect(self.cid)
+        if which == self.PBAAttenuation:
+            self.parameters.depthPBA = ix
+            self.lineEditDepthPBA.setText(str(f"{ix:.2f}"))
+            self.update_Combo_SpecterPBA()
+        elif which == self.SinoImage:
+            self.parameters.angleTomo = ix * self.parameters.AngleStepTomo
+            self.lineEditAngleTomo.setText(str(f"{ix:.1f}"))
+            self.updateRotatedImageTomo()
+            self.updateImageSliceTomo()
+    def onRoll(self,event,which):
+        """Allows to scroll on an image and update the interface"""
+        if event.button == 'up':
+            # deal with zoom in
+            scale_factor = 1
+            #print("+")
+        elif event.button == 'down':
+            # deal with zoom out
+            scale_factor = -1
+            #print("-")
+        if which == self.PBAAttenuation:
+            actual = float(self.lineEditDepthPBA.text())
+            scale_factor = scale_factor*self.parameters.depthRangePBA[-1]/100
+            self.parameters.depthPBA = actual + scale_factor
+            self.lineEditDepthPBA.setText(str(f"{(actual + scale_factor):.2f}"))
+            self.update_Combo_SpecterPBA()
+        elif which == self.SinoImage:
+            actual = float(self.lineEditAngleTomo.text())
+            self.parameters.angleTomo = actual + scale_factor * self.parameters.AngleStepTomo
+            self.lineEditAngleTomo.setText(str(f"{(actual + scale_factor * self.parameters.AngleStepTomo):.1f}"))
+            self.updateImageSliceTomo()
+            self.updateRotatedImageTomo()
 
 class MplCanvas(FigureCanvasQTAgg):
     """Class for the images and the graphs as a widget"""

@@ -11,6 +11,7 @@ from MedPhys.MedPhysGUI import MedPhysWindow
 from Calculus.CalculusGUI import CalculusWindow
 from WavesAndOptics.WaveAndOpticsGUI import WavesAndOpticsWindow
 from Analysis.AnalysisGUI import AnalysisWindow
+import MetaGUIStrings
 
 class MetaGUI(QMainWindow):
     def __init__(self,parent=None):
@@ -31,11 +32,8 @@ class MetaGUI(QMainWindow):
         self.initializeGUI()
 
     def initializeGUI(self):
-        titles = {
-            "En" : "Science GUI",
-            "Fr" : "GUI Sciences"
-        }
-        self.setWindowTitle(titles[f"{self.language}"])
+
+        self.setWindowTitle(MetaGUIStrings.GUITitle[f"{self.language}"])
 
         self._createAnalysisButton()
         self._createCalculusButton()
@@ -45,46 +43,47 @@ class MetaGUI(QMainWindow):
 
     def _createAnalysisButton(self):
         """Creates the button for the Analysis GUI"""
-        titles = {
-            "En" : "Analysis",
-            "Fr" : "Analyse"
-        }
-        self.Analysis = QPushButton(titles[f"{self.language}"])
-        self.Analysis.setToolTip("Opens the Analysis Section")
+        self.Analysis = QPushButton(MetaGUIStrings.Analysis[f"{self.language}"])
+        self.Analysis.setToolTip(MetaGUIStrings.OpenWindow1[f"{self.language}"] + 
+                             MetaGUIStrings.Analysis[f"{self.language}"] + 
+                             MetaGUIStrings.OpenWindow2[f"{self.language}"] +
+                             " (Ctrl+A)")
+        self.Analysis.setShortcut("Ctrl+A")
         self.Analysis.clicked.connect(self.openAnalysis)
         self.generalLayout.addWidget(self.Analysis) 
 
     def _createCalculusButton(self):
         """Creates the button for the Calculus GUI"""
-        titles = {
-            "En" : "Calculus",
-            "Fr" : "Calcul"
-        }
-        self.Calc = QPushButton(titles[f"{self.language}"])
-        self.Calc.setToolTip("Opens the Calculus Section")
+        self.Calc = QPushButton(MetaGUIStrings.Calculus[f"{self.language}"])
+        self.Calc.setToolTip(MetaGUIStrings.OpenWindow1[f"{self.language}"] + 
+                             MetaGUIStrings.Calculus[f"{self.language}"] + 
+                             MetaGUIStrings.OpenWindow2[f"{self.language}"] +
+                             " (Ctrl+C)")
+        self.Calc.setShortcut("Ctrl+C")
         self.Calc.clicked.connect(self.openCalc)
         self.generalLayout.addWidget(self.Calc)  
 
     def _createWavesAndOpticsButton(self):
         """Creates the button for the Waves and Optics GUI"""
-        titles = {
-            "En" : "Waves and Optics",
-            "Fr" : "Ondes et Optique"
-        }
-        self.WavesOptics = QPushButton(titles[f"{self.language}"])
-        self.WavesOptics.setToolTip("TBA")
+
+        self.WavesOptics = QPushButton(MetaGUIStrings.WavesAndOptics[f"{self.language}"])
+        self.WavesOptics.setToolTip(MetaGUIStrings.OpenWindow1[f"{self.language}"] + 
+                             MetaGUIStrings.WavesAndOptics[f"{self.language}"] + 
+                             MetaGUIStrings.OpenWindow2[f"{self.language}"] +
+                             " (Ctrl+W)")
+        self.WavesOptics.setShortcut("Ctrl+W")
         self.WavesOptics.clicked.connect(self.openWavesOptics)
         self.generalLayout.addWidget(self.WavesOptics)  
 
     def _createPhysMedButton(self):
         """Creates the button for the Medical Physics GUI"""
-        titles = {
-            "En" : "Medical Physics",
-            "Fr" : "Physique Médicale"
-        }
-        self.PhysMed = QPushButton(titles[f"{self.language}"])
-        self.PhysMed.setToolTip("Opens the Medical Physics Section")
+        self.PhysMed = QPushButton(MetaGUIStrings.MedicalPhysics[f"{self.language}"])
+        self.PhysMed.setToolTip(MetaGUIStrings.OpenWindow1[f"{self.language}"] + 
+                             MetaGUIStrings.MedicalPhysics[f"{self.language}"] + 
+                             MetaGUIStrings.OpenWindow2[f"{self.language}"] +
+                             " (Ctrl+M)")
         self.PhysMed.clicked.connect(self.openPhysMed)
+        self.PhysMed.setShortcut("Ctrl+M")
         self.generalLayout.addWidget(self.PhysMed)  
 
     def _createExitButton(self):
@@ -100,8 +99,9 @@ class MetaGUI(QMainWindow):
 
         self.languageBox.activated[str].connect(self.update_Combo_Language)
 
-        self.exit = QPushButton("Exit")
-        self.exit.setToolTip("Closes the GUI and its dependencies")
+        self.exit = QPushButton(MetaGUIStrings.Exit[f"{self.language}"])
+        self.exit.setToolTip(MetaGUIStrings.ExitTooltip[f"{self.language}"] + " (Ctrl + E)")
+        self.exit.setShortcut("Ctrl+E")
         self.exit.clicked.connect(self.close)
 
         layout.addWidget(self.languageBox)

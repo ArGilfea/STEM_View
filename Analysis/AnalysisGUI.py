@@ -44,24 +44,29 @@ class AnalysisWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.currentLineFourier1D = 1
         self.currentLineFilters = 1
+        self.currentLineComplexNumbers = 1
         super().__init__(parent=parent)
         self.setMinimumSize(1200, 700)
         self.setWindowTitle(AnalysisStrings.WindowName[f"{self.language}"])
 
         self.generalLayoutFourier1D = QGridLayout()
         self.generalLayoutFilters = QGridLayout()
+        self.generalLayoutComplexNumbers = QGridLayout()
         self.generalLayoutReadMe = QGridLayout()
 
         centralWidgetFourier1D = QWidget(self)
         centralWidgetFilters = QWidget(self)
+        centralWidgetComplexNumbers = QWidget(self)
         centralWidgetReadMe = QWidget(self)
 
         centralWidgetFourier1D.setLayout(self.generalLayoutFourier1D)
         centralWidgetFilters.setLayout(self.generalLayoutFilters)
+        centralWidgetComplexNumbers.setLayout(self.generalLayoutComplexNumbers)
         centralWidgetReadMe.setLayout(self.generalLayoutReadMe)
 
         self.tabs.addTab(centralWidgetFourier1D,AnalysisStrings.Fourier1DTabName[f"{self.language}"])
         self.tabs.addTab(centralWidgetFilters,AnalysisStrings.FiltersName[f"{self.language}"])
+        self.tabs.addTab(centralWidgetComplexNumbers,AnalysisStrings.ComplexNumbersName[f"{self.language}"])
         self.tabs.addTab(centralWidgetReadMe,AnalysisStrings.ReadMeName[f"{self.language}"])
 
         self.setCentralWidget(self.tabs)
@@ -258,15 +263,23 @@ class AnalysisWindow(QMainWindow):
         """Creates exit buttons"""
         self.exitFourier1D = QPushButton(AnalysisStrings.ExitButton[f"{self.language}"])
         self.exitFilters = QPushButton(AnalysisStrings.ExitButton[f"{self.language}"])
-        self.exitFourier1D.setToolTip(AnalysisStrings.ExitButtonTooltip[f"{self.language}"])
-        self.exitFilters.setToolTip(AnalysisStrings.ExitButtonTooltip[f"{self.language}"])
+        self.exitComplexNumbers = QPushButton(AnalysisStrings.ExitButton[f"{self.language}"])
+        self.exitFourier1D.setToolTip(AnalysisStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
+        self.exitFilters.setToolTip(AnalysisStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
+        self.exitComplexNumbers.setToolTip(AnalysisStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
+        self.exitFourier1D.setShortcut("Ctrl+Shift+E")
+        self.exitFilters.setShortcut("Ctrl+Shift+E")
+        self.exitComplexNumbers.setShortcut("Ctrl+Shift+E")
 
         self.exitFourier1D.clicked.connect(self.close)
         self.exitFilters.clicked.connect(self.close)
+        self.exitComplexNumbers.clicked.connect(self.close)
         self.generalLayoutFourier1D.addWidget(self.exitFourier1D,self.currentLineFourier1D+1,3)  
         self.generalLayoutFilters.addWidget(self.exitFilters,self.currentLineFilters+1,3)  
+        self.generalLayoutComplexNumbers.addWidget(self.exitComplexNumbers,self.currentLineComplexNumbers+1,3)  
         self.currentLineFourier1D += 1
         self.currentLineFilters += 1
+        self.currentLineComplexNumbers += 1
     ###Update Interface###
     def update_Combo_CurveFourier1D(self):
         """Updates the Curve Type"""

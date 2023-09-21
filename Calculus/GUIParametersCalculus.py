@@ -33,7 +33,7 @@ class GUIParameters(object):
                                                             curve = self.DerivativesCurve,
                                                             parameters= self.DerivativesParameters,
                                                             side = "right")
-        self.HValueRange = np.linspace(1e-5,2,100)
+        self.HValueRange = np.linspace(1e-5,np.abs(self.DerivativesXAxisBounds[1] - self.DerivativesXAxisBounds[0])/4,100)
         self.DerivativesLeftRange = np.zeros(self.HValueRange.shape[0])
         self.DerivativesRightRange = np.zeros(self.HValueRange.shape[0])
         self.DerivativesBothRange = np.zeros(self.HValueRange.shape[0])
