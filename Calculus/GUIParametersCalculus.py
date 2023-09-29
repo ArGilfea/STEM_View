@@ -12,9 +12,10 @@ class GUIParameters(object):
         self.DerivativesParameters = [1.0, 0.0, 0.0, 0.0]
         self.DerivativesHValue = 1.0
         self.DerivativesCursorValue = 0.0
-        self.DerivativesXAxisBounds = np.array([-5,5])
+        self.DerivativesXAxisBounds = np.array([-5.0,5.0])
         self.DerivativesXAxis = np.linspace(self.DerivativesXAxisBounds[0],self.DerivativesXAxisBounds[1],1000)
         self.DerivativesCurve = Curves.FlatCurve
+        self.DerivativesCursorValueY = self.DerivativesCurve(self.DerivativesCursorValue,self.DerivativesParameters,typeCurve = 'Normal')
         self.DerivativesYAxis = self.DerivativesCurve(self.DerivativesXAxis,self.DerivativesParameters)
         self.DerivativesDerivedYAxis = self.DerivativesCurve(self.DerivativesXAxis,self.DerivativesParameters,typeCurve = 'Derivative')
 
@@ -33,6 +34,7 @@ class GUIParameters(object):
                                                             curve = self.DerivativesCurve,
                                                             parameters= self.DerivativesParameters,
                                                             side = "right")
+
         self.HValueRange = np.linspace(1e-5,np.abs(self.DerivativesXAxisBounds[1] - self.DerivativesXAxisBounds[0])/4,100)
         self.DerivativesLeftRange = np.zeros(self.HValueRange.shape[0])
         self.DerivativesRightRange = np.zeros(self.HValueRange.shape[0])

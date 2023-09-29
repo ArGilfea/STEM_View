@@ -111,7 +111,7 @@ def ArcTanCurve(x,param:np.ndarray, typeCurve = 'Normal'):
     elif typeCurve == 'Integral':
         return np.zeros_like(x)
 
-def discreteDerivative(x_0,h, curve,parameters: np.ndarray, side:str = 'both'):
+def discreteDerivative(x_0,h, curve,parameters: np.ndarray, side:str = 'both',imageRange = [0,0]):
     y_0 = curve(x_0,parameters)
     if side == 'both':
         x_2 = x_0 + h/2
@@ -130,13 +130,23 @@ def discreteDerivative(x_0,h, curve,parameters: np.ndarray, side:str = 'both'):
         y_1 = curve(x_1,parameters)
     slope = (y_2-y_1)/h
     b = y_2 - slope * x_2
-    if x_1 < 0: 
-        p1 = 1.1 * x_1
+    if imageRange[0] > imageRange[1]:
+        if x_1 < 0: 
+            p1 = 1.1 * x_1
+        else:
+            p1 = 0.9 * x_1
+        if x_2 < 0: 
+            p2 = 0.9 * x_2
+        else:
+            p2 = 1.1 * x_2
     else:
-        p1 = 0.9 * x_1
-    if x_2 < 0: 
-        p2 = 0.9 * x_2
-    else:
-        p2 = 1.1 * x_2
+        if imageRange[0] < 0: 
+            p1 = 1.1 * imageRange[0]
+        else:
+            p1 = 0.8 * imageRange[0]
+        if imageRange[1] < 0: 
+            p2 = 0.8 * imageRange[1]
+        else:
+            p2 = 1.1 * imageRange[1]        
     new_x = np.linspace(p1,p2,100)
     return [new_x, new_x * slope + b, x_1, x_2, y_1, y_2, slope]

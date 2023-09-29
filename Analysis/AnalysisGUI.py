@@ -83,6 +83,8 @@ class AnalysisWindow(QMainWindow):
         self._createFourierFilterFilters()
         self._createConvolvedImageFilters()
         self._createParametersButtonsFilters()
+        #Complex Number Tab
+        
         #Exit Button
         self._createExitButton()
 

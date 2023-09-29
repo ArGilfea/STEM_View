@@ -427,24 +427,39 @@ class CalculusWindow(QMainWindow):
         elif self.parameters.DerivativesCurveName == "ArcCos":
             self.parameters.DerivativesCurve = Curves.ArcCosCurve
         elif self.parameters.DerivativesCurveName == "ArcTan":
-            self.parameters.DerivativesCurve = Curves.ArcTanCurve        
+            self.parameters.DerivativesCurve = Curves.ArcTanCurve    
         self.parameters.DerivativesYAxis = self.parameters.DerivativesCurve(self.parameters.DerivativesXAxis,self.parameters.DerivativesParameters)
         self.parameters.DerivativesDerivedYAxis = self.parameters.DerivativesCurve(self.parameters.DerivativesXAxis,self.parameters.DerivativesParameters,typeCurve = 'Derivative')
         self.parameters.DerivativesLeft = Curves.discreteDerivative(self.parameters.DerivativesCursorValue,
                                                             h = self.parameters.DerivativesHValue,
                                                             curve = self.parameters.DerivativesCurve,
                                                             parameters= self.parameters.DerivativesParameters,
-                                                            side = "left")
+                                                            side = "left",
+                                                            imageRange= self.parameters.DerivativesXAxisBounds)
         self.parameters.DerivativesBoth = Curves.discreteDerivative(self.parameters.DerivativesCursorValue,
                                                             h = self.parameters.DerivativesHValue,
                                                             curve = self.parameters.DerivativesCurve,
                                                             parameters= self.parameters.DerivativesParameters,
-                                                            side = "both")
+                                                            side = "both",
+                                                            imageRange= self.parameters.DerivativesXAxisBounds)
         self.parameters.DerivativesRight = Curves.discreteDerivative(self.parameters.DerivativesCursorValue,
                                                             h = self.parameters.DerivativesHValue,
                                                             curve = self.parameters.DerivativesCurve,
                                                             parameters= self.parameters.DerivativesParameters,
-                                                            side = "right")
+                                                            side = "right",
+                                                            imageRange= self.parameters.DerivativesXAxisBounds)
+        self.parameters.DerivativesCursorValueY = self.parameters.DerivativesCurve(self.parameters.DerivativesCursorValue,
+                                                                        self.parameters.DerivativesParameters,
+                                                                        typeCurve = 'Normal')
+        derivativeExactValue = self.parameters.DerivativesCurve(self.parameters.DerivativesCursorValue,
+                                                            self.parameters.DerivativesParameters,
+                                                            typeCurve = 'Derivative')
+        bValue = self.parameters.DerivativesCursorValueY - derivativeExactValue * self.parameters.DerivativesCursorValue
+        #xArray = np.linspace(0.8*self.parameters.DerivativesXAxisBounds[0],0.8*self.parameters.DerivativesXAxisBounds[1],100)
+        xArray = self.parameters.DerivativesBoth[0]
+        self.parameters.DerivativeTangentExact = Curves.LinearCurve(x = xArray,
+                                                                    param = np.array([derivativeExactValue,bValue]),
+                                                                    typeCurve= "Normal")
 
         self.parameters.DerivativesLeftRange = np.zeros(self.parameters.HValueRange.shape[0])
         self.parameters.DerivativesRightRange = np.zeros(self.parameters.HValueRange.shape[0])
@@ -489,6 +504,9 @@ class CalculusWindow(QMainWindow):
             self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesBoth[0],self.parameters.DerivativesBoth[1],color = 'green')
             self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesBoth[2],self.parameters.DerivativesBoth[4],'o',color = 'green')
             self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesBoth[3],self.parameters.DerivativesBoth[5],'o',color = 'green')
+        if self.parameters.DerivativesTypeName in ["Exact","All"]:
+            self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesBoth[0],self.parameters.DerivativeTangentExact,color = 'black')
+            self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesCursorValue,self.parameters.DerivativesCursorValueY,'o',color = 'black')
         self.DerivativesBasicImage.axes.grid()
         try:
             self.DerivativesBasicImage.axes.set_ylim(np.min(self.parameters.DerivativesYAxis)-1,np.max(self.parameters.DerivativesYAxis)+1)
@@ -798,9 +816,13 @@ class CalculusWindow(QMainWindow):
             self.updateAllDerivatives()
         elif which == self.LimitDerivativesImage:
             actual = float(self.DerivativesH.text())
-            scale_factor = - scale_factor*self.parameters.HValueRange[-1]/100
-            self.parameters.DerivativesHValue += scale_factor
-            self.DerivativesH.setText(f"{(float(actual)+scale_factor):.2f}")
+            #scale_factor = - scale_factor*self.parameters.HValueRange[-1]/100
+            if scale_factor > 0:
+                scale_factor = 2
+            else:
+                scale_factor = 1/2
+            self.parameters.DerivativesHValue *= scale_factor
+            self.DerivativesH.setText(f"{(float(actual)*scale_factor):.2f}")
             self.updateAllDerivatives()
         elif which == self.IntegralSumImage:
             if self.parameters.IntegralBoxNumber + scale_factor > 0:
