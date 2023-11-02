@@ -1,6 +1,6 @@
 import  numpy as np
 
-def FlatCurve(x,param: np.ndarray, typeCurve = 'Normal'):
+def FlatCurve(x,param: np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
     if typeCurve == 'Normal':
         return np.ones_like(x) * param[0]
     elif typeCurve == 'Derivative':
@@ -8,106 +8,159 @@ def FlatCurve(x,param: np.ndarray, typeCurve = 'Normal'):
     elif typeCurve == 'Integral':
         return param[0] * x
 
-def LinearCurve(x,param:np.ndarray, typeCurve = 'Normal'):
+def LinearCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
     if typeCurve == 'Normal':
         return param[0] * x + param[1]
     elif typeCurve == 'Derivative':
-        return np.ones_like(x) * param[0]
+        if degree == 1:
+            return np.ones_like(x) * param[0]
+        elif degree >= 2: 
+            return np.zeros_like(x)
     elif typeCurve == 'Integral':
         return param[0]/2 * x ** 2 + param[1] * x + param[2]
 
-def QuadraticCurve(x,param:np.ndarray, typeCurve = 'Normal'):
+def QuadraticCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
     if typeCurve == 'Normal':
         return param[0] * x ** 2 + param[1] * x + param[2]
     elif typeCurve == 'Derivative':
-        return 2 * param[0] * x + param[1]
+        if degree == 1:
+            return 2 * param[0] * x + param[1]
+        elif degree == 2:
+            return 2 * np.ones_like(x) * param[0]
+        elif degree >= 3:
+            return np.zeros_like(x)
     elif typeCurve == 'Integral':
         return param[0]/3 * x ** 3 + param[1]/2 * x **2 + param[2] * x + param[3]
 
-def CubicCurve(x,param:np.ndarray, typeCurve = 'Normal'):
+def CubicCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
     if typeCurve == 'Normal':
         return param[0] * x ** 3 + param[1] * x **2 + param[2] * x + param[3]
     elif typeCurve == 'Derivative':
-        return 3 * param[0] * x ** 2 + 2 * param[1] * x + param[2]
+        if degree == 1:
+            return 3 * param[0] * x ** 2 + 2 * param[1] * x + param[2]
+        elif degree == 2:
+            return 6 * param[0] * x + 2 * param[1] * np.ones_like(x)
+        elif degree == 3:
+            return 6 * param[0] * np.ones_like(x)
+        elif degree >= 4:
+            return np.zeros_like(x)     
     elif typeCurve == 'Integral':
         return param[0]/4 * x ** 4 + param[1]/3 * x **3 + param[2]/2 * x ** 2 + param[3] * x
 
-def ExponentialCurve(x,param:np.ndarray, typeCurve = 'Normal'):
+def ExponentialCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
     if typeCurve == 'Normal':
         return param[0] * np.exp(param[1] * x) + param[2]
     elif typeCurve == 'Derivative':
-        return param[0] * param[1] * np.exp(param[1] * x)
+        return param[0] * param[1]**degree * np.exp(param[1] * x)
     elif typeCurve == 'Integral':
         try: return param[0] / param[1] * np.exp(param[1] * x) + param[2] * x
         except: return param[0] / (param[1] + 1e-10) * np.exp(param[1] * x) + param[2] * x
 
-def ExponentialPowerCurve(x,param:np.ndarray, typeCurve = 'Normal'):
+def ExponentialPowerCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
     if typeCurve == 'Normal':
         return param[0] * np.exp(param[1] * x ** param[2]) + param[3]
     elif typeCurve == 'Derivative':
-        try: return param[0] * param[1] * param[2] * x ** (param[2] - 1) * np.exp(param[1] * x ** param[2])
-        except: return param[0] * param[1] * param[2] * (x + 1e-10) ** (param[2] - 1) * np.exp(param[1] * (x+1e-10) ** param[2])
+        if degree == 1:
+            try: return param[0] * param[1] * param[2] * x ** (param[2] - 1) * np.exp(param[1] * x ** param[2])
+            except: return param[0] * param[1] * param[2] * (x + 1e-10) ** (param[2] - 1) * np.exp(param[1] * (x+1e-10) ** param[2])
+        elif degree == 2:
+            return param[0] * param[1] * param[2] * np.exp(param[1] * x ** param[2]) * ((param[2]-1)*x**(param[2]-2)+ param[1] * param[2] * x ** (2*param[2] - 2))
+        else:
+            return np.zeros_like(x)
     elif typeCurve == 'Integral':
         return np.zeros_like(x)
 
-def LogarithmicCurve(x,param:np.ndarray, typeCurve = 'Normal'):
+def LogarithmicCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
     if typeCurve == 'Normal':
         return param[0] * np.log(param[1] * x + param[2]) + param[3]
     elif typeCurve == 'Derivative':
-        try: return param[0] * param[1]/(param[1] * x + param[2]) 
-        except: return np.zeros_like(x)
+        if degree == 1:
+            try: return param[0] * param[1]/(param[1] * x + param[2]) 
+            except: return np.zeros_like(x)
+        elif degree >= 2:
+            try: return (-1)**(degree+1) * param[0] * param[1]**degree * (param[1]*x + param[2])**(-degree)
+            except: return np.zeros_like(x)
     elif typeCurve == 'Integral':
         try: return param[0]/param[1] * (param[1] * x + param[2]) * np.log(param[1] * x + param[2]) - x + param[3] * x
         except: return np.zeros_like(x)
 
 
-def CosCurve(x,param:np.ndarray, typeCurve = 'Normal'):
+def CosCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
     if typeCurve == 'Normal':
         return param[0] * np.cos(x * param[1] + param[2]) + param[3]
     elif typeCurve == 'Derivative':
-        return - param[0] * param[1] * np.sin(x * param[1] + param[2])
+        
+        if degree == 1: 
+            return - param[0] * param[1] * np.sin(x * param[1] + param[2])
+        elif degree % 2 == 0:
+            return (-1)**(degree/2) * param[0] * param[1]**degree * np.cos(param[1]*x + param[2])
+        elif degree % 2 == 1:
+            return (-1)**((degree + 1)/2) * param[0] * param[1]**degree * np.sin(param[1]*x + param[2])
     elif typeCurve == 'Integral':
         try: return param[0] / param[1] * np.sin(x * param[1] + param[2]) + param[3] * x
         except: return param[0] / (param[1] + 1e-10) * np.sin(x * param[1] + param[2]) + param[3] * x
 
-def SinCurve(x,param:np.ndarray, typeCurve = 'Normal'):
+def SinCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
     if typeCurve == 'Normal':
         return param[0] * np.sin(x * param[1] + param[2]) + param[3]
     elif typeCurve == 'Derivative':
-        return param[0] * param[1] * np.cos(x * param[1] + param[2])
+        if degree == 1:
+            return param[0] * param[1] * np.cos(x * param[1] + param[2])
+        elif degree % 2 == 0:
+            return (-1)**(degree/2) * param[0] * param[1]**degree * np.sin(param[1]*x + param[2])
+        elif degree % 2 == 1:
+            return (-1)**((degree - 1)/2) * param[0] * param[1]**degree * np.cos(param[1]*x + param[2])
     elif typeCurve == 'Integral':
         try: return - param[0] / param[1] * np.cos(x * param[1] + param[2]) + param[3] * x
         except: return - param[0] / (param[1] + 1e-10) * np.cos(x * param[1] + param[2]) + param[3] * x
 
-def TanCurve(x,param:np.ndarray, typeCurve = 'Normal'):
+def TanCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
     if typeCurve == 'Normal':
         return param[0] * np.tan(x * param[1] + param[2]) + param[3]
     elif typeCurve == 'Derivative':
-        return param[0] * param[1] * (np.sec(x * param[1] + param[2])) ** 2
+        if degree == 1:
+            return param[0] * param[1] * (np.sec(x * param[1] + param[2])) ** 2
+        else: return np.zeros_like(x)
     elif typeCurve == 'Integral':
         try: return - param[0] * np.log(np.cos(x * param[1] + param[2]))/param[1] + param[3] * x
         except: return - param[0] * np.log(np.cos(x * param[1] + param[2]))/(param[1]+1e-10) + param[3] * x
 
-def ArcSinCurve(x,param:np.ndarray, typeCurve = 'Normal'):
+def ArcSinCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
     if typeCurve == 'Normal':
         return param[0] * np.arcsin(x * param[1] + param[2]) + param[3]
     elif typeCurve == 'Derivative':
-        return np.zeros_like(x)
+        if degree == 1:
+            return np.zeros_like(x)
+        else: return np.zeros_like(x)
     elif typeCurve == 'Integral':
         return np.zeros_like(x)
-def ArcCosCurve(x,param:np.ndarray, typeCurve = 'Normal'):
+def ArcCosCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
     if typeCurve == 'Normal':
         return param[0] * np.arccos(x * param[1] + param[2]) + param[3]
     elif typeCurve == 'Derivative':
-        return np.zeros_like(x)
+        if degree == 1:
+            return np.zeros_like(x)
+        else: return np.zeros_like(x)
     elif typeCurve == 'Integral':
         return np.zeros_like(x)
 
-def ArcTanCurve(x,param:np.ndarray, typeCurve = 'Normal'):
+def ArcTanCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
     if typeCurve == 'Normal':
         return param[0] * np.arctan(x * param[1] + param[2]) + param[3]
     elif typeCurve == 'Derivative':
-        return param[0] * param[1]/(1 + (x * param[1] + param[2])**2)
+        if degree == 1:
+            return param[0] * param[1]/(1 + (x * param[1] + param[2])**2)
+        else: return np.zeros_like(x)
+    elif typeCurve == 'Integral':
+        return np.zeros_like(x)
+    
+def Sinc(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
+    if typeCurve == 'Normal':
+        return param[0] * np.where(x != 0, np.sin(x*param[1])/(param[2]*x),1) + param[3]
+    elif typeCurve == 'Derivative':
+        if degree == 1:
+            return np.zeros_like(x)
+        else: return np.zeros_like(x)
     elif typeCurve == 'Integral':
         return np.zeros_like(x)
 

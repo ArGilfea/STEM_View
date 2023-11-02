@@ -134,6 +134,10 @@ CurvesTypeFilters = {
     "Exponential" : {
         "En" : "Exponential",
         "Fr" : "Exponentielle"
+    },
+    "Bilateral" : {
+        "En" : "Bilateral",
+        "Fr" : "Bilatéral"
     }
 }
 ImageNameFilters = {
@@ -164,6 +168,14 @@ ImageNameFilters = {
     "SatelliteVille" : {
         "En" : "Satellite City",
         "Fr" : "Satellite Ville"
+    },
+    "Bump" : {
+        "En" : "Bump",
+        "Fr" : "Bosse"
+    },
+    "BumpNoise" : {
+        "En" : "Bump with Noise",
+        "Fr" : "Bosse avec Bruit"
     }
 }
 ImageHeaderFilters = {
@@ -185,6 +197,109 @@ FourierTitleFilters = {
 LogViewFilters = {
     "En" : "log.",
     "Fr" : "log."    
+}
+###
+ComplexNumber1Header = {
+    "En" : "Complex Number 1 (red)",
+    "Fr" : "Nombre Complexe 1 (rouge)"
+}
+ComplexNumber2Header = {
+    "En" : "Complex Number 2 (green)",
+    "Fr" : "Nombre Complexe 2 (vert)"
+}
+ComplexNumberResultHeader = {
+    "En" : "Result (blue)",
+    "Fr" : "Résultat (bleu)"
+}
+ComplexNumberCartesianHeader = {
+    "En" : "Cartesian",
+    "Fr" : "Cartésiennes"
+}
+ComplexNumberPolarHeader = {
+    "En" : "Polar",
+    "Fr" : "Polaires"
+}
+ComplexNumberOperationHeader = {
+    "En" : "Operation",
+    "Fr" : "Opération"
+}
+ComplexNumberOperation = {
+    "+" : {
+        "En" : "Addition (+)",
+        "Fr" : "Addition (+)"
+    },
+    "-" : {
+        "En" : "Substraction (-)",
+        "Fr" : "Soustraction (-)"
+    },
+    "*" : {
+        "En" : "Multiplication (*)",
+        "Fr" : "Multiplication (*)"
+    },
+    "/" : {
+        "En" : "Division (/)",
+        "Fr" : "Division (/)"
+    },
+    "^" : {
+        "En" : "Exponent (^)",
+        "Fr" : "Exposant(^)"
+    },
+    "Comp" : {
+        "En" : "Complement",
+        "Fr" : "Complément"
+    },
+    "ln" : {
+        "En" : "ln",
+        "Fr" : "ln"
+    },
+    "log10" : {
+        "En" : "log10",
+        "Fr" : "log10"
+    },
+    "sin" : {
+        "En" : "sin",
+        "Fr" : "sin"
+    },
+    "cos" : {
+        "En" : "cos",
+        "Fr" : "cos"
+    },
+    "tan" : {
+        "En" : "tan",
+        "Fr" : "tan"
+    },
+    "exp" : {
+        "En" : "exp",
+        "Fr" : "exp"
+    },
+    "arcsin" : {
+        "En" : "arcsin",
+        "Fr" : "arcsin"
+    },
+    "arccos" : {
+        "En" : "arccos",
+        "Fr" : "arccos"
+    },
+    "arctan" : {
+        "En" : "arctan",
+        "Fr" : "arctan"
+    }
+}
+ComplexNumberClickerHeader = {
+    "En" : "Clicker",
+    "Fr" : "Cliqueur"
+}
+ComplexNumberImageXAxis = {
+    "En" : "Real Part",
+    "Fr" : "Partie Réelle"
+}
+ComplexNumberImageYAxis = {
+    "En" : "Imaginary Part",
+    "Fr" : "Partie Imaginaire"
+}
+ComplexNumberImageTitle = {
+    "En" : "Operations on Complex Numbers",
+    "Fr" : "Opérations de Nombres Complexes"
 }
 ###
 ExitButton = {

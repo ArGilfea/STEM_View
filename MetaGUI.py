@@ -11,6 +11,7 @@ from MedPhys.MedPhysGUI import MedPhysWindow
 from Calculus.CalculusGUI import CalculusWindow
 from WavesAndOptics.WaveAndOpticsGUI import WavesAndOpticsWindow
 from Analysis.AnalysisGUI import AnalysisWindow
+from QuantumMechanics.QuantumMechanicsGUI import QuantumMechanicsWindow
 import MetaGUIStrings
 
 class MetaGUI(QMainWindow):
@@ -38,6 +39,7 @@ class MetaGUI(QMainWindow):
         self._createAnalysisButton()
         self._createCalculusButton()
         self._createPhysMedButton()
+        self._createQMButton()
         self._createWavesAndOpticsButton()
         self._createExitButton()
 
@@ -86,6 +88,17 @@ class MetaGUI(QMainWindow):
         self.PhysMed.setShortcut("Ctrl+M")
         self.generalLayout.addWidget(self.PhysMed)  
 
+    def _createQMButton(self):
+        """Creates the button for the Quantum Mechanics GUI"""
+        self.QM = QPushButton(MetaGUIStrings.QuantumMechanics[f"{self.language}"])
+        self.QM.setToolTip(MetaGUIStrings.OpenWindow1[f"{self.language}"] + 
+                             MetaGUIStrings.QuantumMechanics[f"{self.language}"] + 
+                             MetaGUIStrings.OpenWindow2[f"{self.language}"] +
+                             " (Ctrl+S)")
+        self.QM.clicked.connect(self.openQM)
+        self.QM.setShortcut("Ctrl+S")
+        self.generalLayout.addWidget(self.QM)  
+
     def _createExitButton(self):
         """Create an exit button"""
         subWidget = QWidget()
@@ -110,23 +123,28 @@ class MetaGUI(QMainWindow):
         self.generalLayout.addWidget(subWidget)  
 
     def openAnalysis(self):
-        "Opens a the Analysis GUI"
+        "Opens the Analysis GUI"
         window = AnalysisWindow(self,language= self.language)
         window.show()
 
     def openCalc(self):
-        "Opens a the Calculus GUI"
+        "Opens the Calculus GUI"
         window = CalculusWindow(self,language= self.language)
         window.show()
 
     def openWavesOptics(self):
-        "Opens a the Waves and Optics GUI"
+        "Opens the Waves and Optics GUI"
         window = WavesAndOpticsWindow(self,language= self.language)
         window.show()
 
     def openPhysMed(self):
-        "Opens a the Medical Physics GUI"
+        "Opens the Medical Physics GUI"
         window = MedPhysWindow(self,language= self.language)
+        window.show()
+
+    def openQM(self):
+        "Opens the Quantum Mechanics GUI"
+        window = QuantumMechanicsWindow(self,language= self.language)
         window.show()
 
     def update_Combo_Language(self):

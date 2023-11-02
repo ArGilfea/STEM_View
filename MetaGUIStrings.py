@@ -27,6 +27,10 @@ Analysis = {
     "En" : "Analysis",
     "Fr" : "Analyse"
 }
+QuantumMechanics = {
+    "En" : "Quantum Mechanics",
+    "Fr" : "Mécanique Quantique"
+}
 Exit = {
     "En" : "Exit",
     "Fr" : "Quitter"

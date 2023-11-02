@@ -7,6 +7,7 @@ try:
 except:
     import Analysis.Fourier1D as Fourier1D
     import Analysis.Filters as Filters
+import cmath
 
 class GUIParametersAnalysis(object):
     """Class where the parameters of the GUI are stored"""
@@ -39,3 +40,11 @@ class GUIParametersAnalysis(object):
         self.ImageFourierFilteredAbsFilters,  self.ImageFourierFilteredFilters= Filters.FourierConvolution(self.FilterFourierFilters,self.ImageFourierFilters)
 
         self.ImageConvolvedAbsFilters, self.ImageConvolvedFilters = Filters.InverseFourierTransform(self.ImageFourierFilteredFilters)
+
+        self.ComplexNumber1 = 0 + 0j
+        self.ComplexNumber2 = 0 + 0j
+        self.ComplexNumberOperation = "+"
+        self.ComplexNumberResult = self.ComplexNumber1 + self.ComplexNumber2
+        self.ComlexAlphaFactor = np.linspace(-5,5,300)
+        self.ComplexNumberLine = self.ComplexNumber1 ** (self.ComlexAlphaFactor*self.ComplexNumber2)
+        self.ComplexNumberClicker = "1"
