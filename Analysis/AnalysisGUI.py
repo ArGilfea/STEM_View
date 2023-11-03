@@ -13,9 +13,11 @@ from functools import partial
 ###
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import scipy.fft                      #Pour la transformée de Fourier
-
+import cmath
 ###
 try:
     import GUIParametersAnalysis
@@ -84,7 +86,8 @@ class AnalysisWindow(QMainWindow):
         self._createConvolvedImageFilters()
         self._createParametersButtonsFilters()
         #Complex Number Tab
-        
+        self._createImageComplexNumbers()
+        self._createParametersButtonsComplexNumbers()
         #Exit Button
         self._createExitButton()
 
@@ -261,6 +264,112 @@ class AnalysisWindow(QMainWindow):
 
         self.generalLayoutFilters.addWidget(subWidget,self.currentLineFilters,2)
         self.currentLineFilters += 1
+    def _createImageComplexNumbers(self):
+        """Creates an Image for the Base Image of Complex Numbers"""
+        self.ImageComplexNumbers = MplCanvas(self, width=6, height=6, dpi=75)
+        self.ImageComplexNumbers_cid = self.ImageComplexNumbers.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.ImageComplexNumbers))
+        self.generalLayoutComplexNumbers.addWidget(self.ImageComplexNumbers,self.currentLineComplexNumbers,1)
+        self.updateImagesComplexNumber()
+    def _createParametersButtonsComplexNumbers(self):
+        subWidget = QWidget()
+        layout = QGridLayout()
+        subWidget.setLayout(layout)
+
+        self.Parameter1ComplexNumber = QLineEdit()
+        self.Parameter1jComplexNumber = QLineEdit()
+        self.Parameter1PolarRComplexNumber = QLineEdit()
+        self.Parameter1PolarThetaComplexNumber = QLineEdit()
+        self.Parameter2ComplexNumber = QLineEdit()
+        self.Parameter2jComplexNumber = QLineEdit()
+        self.Parameter2PolarRComplexNumber = QLineEdit()
+        self.Parameter2PolarThetaComplexNumber = QLineEdit()
+        self.Parameter3ComplexNumber = QLineEdit()
+        self.Parameter3jComplexNumber = QLineEdit()
+        self.Parameter3PolarRComplexNumber = QLineEdit()
+        self.Parameter3PolarThetaComplexNumber = QLineEdit()
+
+        self.Parameter1ComplexNumber.setFixedWidth(90)
+        self.Parameter1jComplexNumber.setFixedWidth(90)
+        self.Parameter1PolarRComplexNumber.setFixedWidth(90)
+        self.Parameter1PolarThetaComplexNumber.setFixedWidth(90)
+        self.Parameter2ComplexNumber.setFixedWidth(90)
+        self.Parameter2jComplexNumber.setFixedWidth(90)
+        self.Parameter2PolarRComplexNumber.setFixedWidth(90)
+        self.Parameter2PolarThetaComplexNumber.setFixedWidth(90)
+        self.Parameter3ComplexNumber.setFixedWidth(90)
+        self.Parameter3jComplexNumber.setFixedWidth(90)
+        self.Parameter3PolarRComplexNumber.setFixedWidth(90)
+        self.Parameter3PolarThetaComplexNumber.setFixedWidth(90)
+
+        self.Parameter1ComplexNumber.setText(f"{str(self.parameters.ComplexNumber1.real)}")
+        self.Parameter1jComplexNumber.setText(f"{str(self.parameters.ComplexNumber1.imag)}")
+        self.Parameter1PolarRComplexNumber.setText(f"{str(abs(self.parameters.ComplexNumber1))}")
+        self.Parameter1PolarThetaComplexNumber.setText(f"{str(cmath.phase(self.parameters.ComplexNumber1))}")
+        self.Parameter2ComplexNumber.setText(f"{str(self.parameters.ComplexNumber2.real)}")
+        self.Parameter2jComplexNumber.setText(f"{str(self.parameters.ComplexNumber2.imag)}")
+        self.Parameter2PolarRComplexNumber.setText(f"{str(abs(self.parameters.ComplexNumber2))}")
+        self.Parameter2PolarThetaComplexNumber.setText(f"{str(cmath.phase(self.parameters.ComplexNumber2))}")
+        self.Parameter3ComplexNumber.setText(f"{str(self.parameters.ComplexNumberResult.real)}")
+        self.Parameter3jComplexNumber.setText(f"{str(self.parameters.ComplexNumberResult.imag)}")
+        self.Parameter3PolarRComplexNumber.setText(f"{str(abs(self.parameters.ComplexNumberResult))}")
+        self.Parameter3PolarThetaComplexNumber.setText(f"{str(cmath.phase(self.parameters.ComplexNumberResult))}")
+
+        self.Parameter1ComplexNumber.editingFinished.connect(self.updateParametersCartesianComplexNumber)
+        self.Parameter1jComplexNumber.editingFinished.connect(self.updateParametersCartesianComplexNumber)
+        self.Parameter2ComplexNumber.editingFinished.connect(self.updateParametersCartesianComplexNumber)
+        self.Parameter2jComplexNumber.editingFinished.connect(self.updateParametersCartesianComplexNumber)
+
+        self.Parameter1PolarRComplexNumber.editingFinished.connect(self.updateParametersPolarComplexNumber)
+        self.Parameter1PolarThetaComplexNumber.editingFinished.connect(self.updateParametersPolarComplexNumber)
+        self.Parameter2PolarRComplexNumber.editingFinished.connect(self.updateParametersPolarComplexNumber)
+        self.Parameter2PolarThetaComplexNumber.editingFinished.connect(self.updateParametersPolarComplexNumber)
+
+
+        self.Parameter3ComplexNumber.setEnabled(False)
+        self.Parameter3jComplexNumber.setEnabled(False)
+        self.Parameter3PolarRComplexNumber.setEnabled(False)
+        self.Parameter3PolarThetaComplexNumber.setEnabled(False)
+
+        self.OperationComboBoxComplexNumber = QComboBox()
+        for _, names in AnalysisStrings.ComplexNumberOperation.items():
+            self.OperationComboBoxComplexNumber.addItem(names[f"{self.language}"])
+        self.OperationComboBoxComplexNumber.setCurrentText(AnalysisStrings.ComplexNumberOperation[f"{self.parameters.ComplexNumberOperation}"][f"{self.language}"])
+        self.OperationComboBoxComplexNumber.activated[str].connect(self.update_Combo_ComplexNumber)        
+
+        self.ClickerComboBoxComplexNumber = QComboBox()
+        self.ClickerComboBoxComplexNumber.addItem("1")
+        self.ClickerComboBoxComplexNumber.addItem("2")
+        self.ClickerComboBoxComplexNumber.setCurrentText(self.parameters.ComplexNumberClicker)
+        self.ClickerComboBoxComplexNumber.activated[str].connect(self.update_ComboClicker_ComplexNumber)        
+
+        layout.addWidget(QLabel(AnalysisStrings.ComplexNumber1Header[f"{self.language}"]),1,1)
+        layout.addWidget(QLabel(AnalysisStrings.ComplexNumberCartesianHeader[f"{self.language}"]),1,2)
+        layout.addWidget(self.Parameter1ComplexNumber,1,3)
+        layout.addWidget(self.Parameter1jComplexNumber,1,4)
+        layout.addWidget(QLabel(AnalysisStrings.ComplexNumberPolarHeader[f"{self.language}"]),2,2)
+        layout.addWidget(self.Parameter1PolarRComplexNumber,2,3)
+        layout.addWidget(self.Parameter1PolarThetaComplexNumber,2,4)
+        layout.addWidget(QLabel(AnalysisStrings.ComplexNumber2Header[f"{self.language}"]),3,1)
+        layout.addWidget(QLabel(AnalysisStrings.ComplexNumberCartesianHeader[f"{self.language}"]),3,2)
+        layout.addWidget(self.Parameter2ComplexNumber,3,3)
+        layout.addWidget(self.Parameter2jComplexNumber,3,4)
+        layout.addWidget(QLabel(AnalysisStrings.ComplexNumberPolarHeader[f"{self.language}"]),4,2)
+        layout.addWidget(self.Parameter2PolarRComplexNumber,4,3)
+        layout.addWidget(self.Parameter2PolarThetaComplexNumber,4,4)
+        layout.addWidget(QLabel(AnalysisStrings.ComplexNumberResultHeader[f"{self.language}"]),5,1)
+        layout.addWidget(QLabel(AnalysisStrings.ComplexNumberCartesianHeader[f"{self.language}"]),5,2)
+        layout.addWidget(self.Parameter3ComplexNumber,5,3)
+        layout.addWidget(self.Parameter3jComplexNumber,5,4)
+        layout.addWidget(QLabel(AnalysisStrings.ComplexNumberPolarHeader[f"{self.language}"]),6,2)
+        layout.addWidget(self.Parameter3PolarRComplexNumber,6,3)
+        layout.addWidget(self.Parameter3PolarThetaComplexNumber,6,4)
+        layout.addWidget(QLabel(AnalysisStrings.ComplexNumberOperationHeader[f"{self.language}"]),7,1)
+        layout.addWidget(self.OperationComboBoxComplexNumber,7,4)
+        layout.addWidget(QLabel(AnalysisStrings.ComplexNumberClickerHeader[f"{self.language}"]),8,1)
+        layout.addWidget(self.ClickerComboBoxComplexNumber,8,4)
+
+        self.generalLayoutComplexNumbers.addWidget(subWidget,self.currentLineComplexNumbers,2)
+        self.currentLineComplexNumbers += 1
     def _createExitButton(self):
         """Creates exit buttons"""
         self.exitFourier1D = QPushButton(AnalysisStrings.ExitButton[f"{self.language}"])
@@ -451,20 +560,46 @@ class AnalysisWindow(QMainWindow):
 
     def updateCurvesFilters(self):
         """Updates the Data of Filters"""
-        self.parameters.FilterFilters = Filters.createFilters(self.parameters.ImageFilters,self.parameters.ParametersFilters,
+        if self.parameters.FilterFiltersName not in ["Bilateral"]:
+            self.parameters.FilterFilters = Filters.createFilters(self.parameters.ImageFilters,self.parameters.ParametersFilters,
                                                     self.parameters.FilterFiltersName,self.parameters.fullRangeFilters)
         if self.parameters.FilterFiltersName in ["Low Pass Flat", "High Pass Flat"]:
             self.parameters.FilterFourierAbsFilters = np.copy(self.parameters.FilterFilters)
             self.parameters.FilterFourierFilters = scipy.fft.fftshift(np.copy(self.parameters.FilterFilters))
             self.parameters.FilterFilters, _ = Filters.InverseFourierTransform(self.parameters.FilterFourierFilters) 
+        elif self.parameters.FilterFiltersName in ["Bilateral"]:
+            pass
         else:
             self.parameters.FilterFourierAbsFilters, self.parameters.FilterFourierFilters = Filters.FourierTransform(self.parameters.FilterFilters)
-        self.parameters.ImageFourierAbsFilters, self.parameters.ImageFourierFilters = Filters.FourierTransform(self.parameters.ImageFilters)
-        self.parameters.ImageFourierFilteredAbsFilters, self.parameters.ImageFourierFilteredFilters = Filters.FourierConvolution(self.parameters.FilterFourierFilters,self.parameters.ImageFourierFilters)
 
-        self.parameters.ImageConvolvedAbsFilters, self.parameters.ImageConvolvedFilters = Filters.InverseFourierTransform(self.parameters.ImageFourierFilteredFilters) 
-        if self.parameters.FilterFiltersName in ["Low Pass Flat", "High Pass Flat"]:
-            self.parameters.ImageConvolvedAbsFilters = scipy.fft.fftshift(self.parameters.ImageConvolvedAbsFilters,axes=[0,1])
+        if self.parameters.FilterFiltersName not in ["Bilateral"]:
+            self.parameters.ImageFourierAbsFilters, self.parameters.ImageFourierFilters = Filters.FourierTransform(self.parameters.ImageFilters)
+            self.parameters.ImageFourierFilteredAbsFilters, self.parameters.ImageFourierFilteredFilters = Filters.FourierConvolution(self.parameters.FilterFourierFilters,self.parameters.ImageFourierFilters)
+
+            self.parameters.ImageConvolvedAbsFilters, self.parameters.ImageConvolvedFilters = Filters.InverseFourierTransform(self.parameters.ImageFourierFilteredFilters) 
+            if self.parameters.FilterFiltersName in ["Low Pass Flat", "High Pass Flat"]:
+                self.parameters.ImageConvolvedAbsFilters = scipy.fft.fftshift(self.parameters.ImageConvolvedAbsFilters,axes=[0,1])
+        elif self.parameters.FilterFiltersName in ["Bilateral"]:
+            self.parameters.ImageConvolvedAbsFilters = np.zeros_like(self.parameters.ImageFilters)
+            self.parameters.FilterFilters = np.zeros_like(self.parameters.ImageFilters)
+            self.parameters.FilterFourierAbsFilters = np.zeros_like(self.parameters.ImageFilters)
+            self.parameters.ImageFourierAbsFilters = np.zeros_like(self.parameters.ImageFilters)
+            self.parameters.FilterFourierFilters = np.zeros_like(self.parameters.ImageFilters)
+            for i in range(self.parameters.ImageFilters.shape[0]):
+                for j in range(self.parameters.ImageFilters.shape[1]):
+                    N = 3
+                    C = 0
+                    numerator = 0
+                    for k in range(-N,N+1):
+                        for l in range(-N,N+1):
+                            if i + k >= 0 and i + k <= self.parameters.ImageFilters.shape[0] - 1:
+                                if j + l >= 0 and j + l <= self.parameters.ImageFilters.shape[1] - 1:
+                                    exp1 = np.exp((k**2 + l**2)**(1)/(2*self.parameters.ParametersFilters[0]))
+                                    exp2 = np.exp((self.parameters.ImageFilters[i, j]-self.parameters.ImageFilters[i + k, j + l])**2/(2*self.parameters.ImageFilters[i, j]*self.parameters.ParametersFilters[1]))
+                                    w = exp1 * exp2
+                                    C += w
+                                    numerator += w * self.parameters.ImageFilters[i + k, j + l]
+                    self.parameters.ImageConvolvedAbsFilters[i,j] = numerator/C
     def updateBaseImageFilters(self):
         try:
             self.BaseImageFilters.axes.cla()
@@ -479,8 +614,12 @@ class AnalysisWindow(QMainWindow):
         try:
             self.FilterImageFilters.axes.cla()
         except : pass
+        if self.parameters.logViewFourier:
+            self.FilterImageFilters.axes.pcolormesh(np.log(self.parameters.FilterFilters + 1e-10),cmap = 'Greys_r')
+        else:
+            self.FilterImageFilters.axes.pcolormesh(self.parameters.FilterFilters,cmap = 'Greys_r')
 
-        self.FilterImageFilters.axes.pcolormesh(self.parameters.FilterFilters,cmap = 'Greys_r')
+        #self.FilterImageFilters.axes.pcolormesh(self.parameters.FilterFilters,cmap = 'Greys_r')
         self.FilterImageFilters.axes.set_title(AnalysisStrings.CurvesTypeFilters[f"{self.parameters.FilterFiltersName}"][f"{self.language}"])
 
         self.FilterImageFilters.draw()
@@ -518,6 +657,190 @@ class AnalysisWindow(QMainWindow):
         self.ConvolutedBaseImageFilters.axes.invert_yaxis()
 
         self.ConvolutedBaseImageFilters.draw()
+    def updateParametersCartesianComplexNumber(self):
+        """Updates the Cartesian Parameters of the Complex Numbers"""
+        try:
+            x = float(self.Parameter1ComplexNumber.text())
+            y = float(self.Parameter1jComplexNumber.text())
+            self.parameters.ComplexNumber1 = complex(x,y)
+        except:
+            self.parameters.ComplexNumber1 = 0+0j
+        try:
+            x = float(self.Parameter2ComplexNumber.text())
+            y = float(self.Parameter2jComplexNumber.text())
+            self.parameters.ComplexNumber2 = complex(x,y)
+        except:
+            self.parameters.ComplexNumber2 = 0+0j
+        self.Parameter1PolarRComplexNumber.setText(f"{(abs(self.parameters.ComplexNumber1)):.2f}")
+        self.Parameter1PolarThetaComplexNumber.setText(f"{(cmath.phase(self.parameters.ComplexNumber1)):.2f}")
+        self.Parameter2PolarRComplexNumber.setText(f"{(abs(self.parameters.ComplexNumber2)):.2f}")
+        self.Parameter2PolarThetaComplexNumber.setText(f"{(cmath.phase(self.parameters.ComplexNumber2)):.2f}")
+        self.updateResultOperationComplexNumber()
+    def updateParametersPolarComplexNumber(self):
+        """Updates the Polar Parameters of the Complex Numbers"""
+        try:
+            x = float(self.Parameter1PolarRComplexNumber.text())
+            y = float(self.Parameter1PolarThetaComplexNumber.text())
+            self.parameters.ComplexNumber1 = cmath.rect(x,y)
+        except:
+            self.parameters.ComplexNumber1 = 0+0j
+        try:
+            x = float(self.Parameter2PolarRComplexNumber.text())
+            y = float(self.Parameter2PolarThetaComplexNumber.text())
+            self.parameters.ComplexNumber2 = cmath.rect(x,y)
+        except:
+            self.parameters.ComplexNumber2 = 0+0j
+        self.Parameter1ComplexNumber.setText(f"{(self.parameters.ComplexNumber1.real):.2f}")
+        self.Parameter1jComplexNumber.setText(f"{(self.parameters.ComplexNumber1.imag):.2f}")
+        self.Parameter2ComplexNumber.setText(f"{(self.parameters.ComplexNumber2.real):.2f}")
+        self.Parameter2jComplexNumber.setText(f"{(self.parameters.ComplexNumber2.imag):.2f}")
+
+        self.updateResultOperationComplexNumber()
+
+    def update_Combo_ComplexNumber(self):
+        """Updates the Operation for Complex Numbers"""
+        name_tmp = self.OperationComboBoxComplexNumber.currentText()
+        for dict, names in AnalysisStrings.ComplexNumberOperation.items():
+            if name_tmp in names.values():
+                self.parameters.ComplexNumberOperation = dict
+        self.updateResultOperationComplexNumber()
+    def update_ComboClicker_ComplexNumber(self):
+        """Updates the Clicker for Complex Numbers"""
+        self.parameters.ComplexNumberClicker = self.ClickerComboBoxComplexNumber.currentText()
+
+
+    def updateResultOperationComplexNumber(self):
+        """Do the computation for the complex numbers"""
+        if self.parameters.ComplexNumberOperation == "+":
+            self.parameters.ComplexNumberResult = self.parameters.ComplexNumber1 + self.parameters.ComplexNumber2
+            self.parameters.ComplexNumberLine = self.parameters.ComplexNumber1 + (self.parameters.ComlexAlphaFactor*self.parameters.ComplexNumber2)
+        elif self.parameters.ComplexNumberOperation == "-":
+            self.parameters.ComplexNumberResult = self.parameters.ComplexNumber1 - self.parameters.ComplexNumber2
+            self.parameters.ComplexNumberLine = self.parameters.ComplexNumber1 - (self.parameters.ComlexAlphaFactor*self.parameters.ComplexNumber2)
+        elif self.parameters.ComplexNumberOperation == "*":
+            self.parameters.ComplexNumberResult = self.parameters.ComplexNumber1 * self.parameters.ComplexNumber2
+            self.parameters.ComplexNumberLine = self.parameters.ComplexNumber1 * (self.parameters.ComlexAlphaFactor*self.parameters.ComplexNumber2)
+        elif self.parameters.ComplexNumberOperation == "/":
+            self.parameters.ComplexNumberResult = self.parameters.ComplexNumber1 / self.parameters.ComplexNumber2
+            self.parameters.ComplexNumberLine = self.parameters.ComplexNumber1 / (self.parameters.ComlexAlphaFactor*self.parameters.ComplexNumber2)
+        elif self.parameters.ComplexNumberOperation == "^":
+            self.parameters.ComplexNumberResult = self.parameters.ComplexNumber1 ** self.parameters.ComplexNumber2
+            self.parameters.ComplexNumberLine = self.parameters.ComplexNumber1 ** (self.parameters.ComlexAlphaFactor*self.parameters.ComplexNumber2)
+        elif self.parameters.ComplexNumberOperation == "Comp":
+            self.parameters.ComplexNumberResult = complex(self.parameters.ComplexNumber1.real,-self.parameters.ComplexNumber1.imag)
+        elif self.parameters.ComplexNumberOperation == "ln":
+            self.parameters.ComplexNumberResult = cmath.log(self.parameters.ComplexNumber1)
+            for i in range(self.parameters.ComlexAlphaFactor.shape[0]):
+                self.parameters.ComplexNumberLine[i] = cmath.log(self.parameters.ComlexAlphaFactor[i]*self.parameters.ComplexNumber1)
+        elif self.parameters.ComplexNumberOperation == "log10":
+            self.parameters.ComplexNumberResult = cmath.log10(self.parameters.ComplexNumber1)
+            for i in range(self.parameters.ComlexAlphaFactor.shape[0]):
+                self.parameters.ComplexNumberLine[i] = cmath.log10(self.parameters.ComlexAlphaFactor[i]*self.parameters.ComplexNumber1)
+        elif self.parameters.ComplexNumberOperation == "sin":
+            self.parameters.ComplexNumberResult = cmath.sin(self.parameters.ComplexNumber1)
+            for i in range(self.parameters.ComlexAlphaFactor.shape[0]):
+                self.parameters.ComplexNumberLine[i] = cmath.sin(self.parameters.ComlexAlphaFactor[i]*self.parameters.ComplexNumber1)
+        elif self.parameters.ComplexNumberOperation == "cos":
+            self.parameters.ComplexNumberResult = cmath.cos(self.parameters.ComplexNumber1)
+            for i in range(self.parameters.ComlexAlphaFactor.shape[0]):
+                self.parameters.ComplexNumberLine[i] = cmath.cos(self.parameters.ComlexAlphaFactor[i]*self.parameters.ComplexNumber1)
+        elif self.parameters.ComplexNumberOperation == "tan":
+            self.parameters.ComplexNumberResult = cmath.tan(self.parameters.ComplexNumber1)
+            for i in range(self.parameters.ComlexAlphaFactor.shape[0]):
+                self.parameters.ComplexNumberLine[i] = cmath.tan(self.parameters.ComlexAlphaFactor[i]*self.parameters.ComplexNumber1)
+        elif self.parameters.ComplexNumberOperation == "exp":
+            self.parameters.ComplexNumberResult = cmath.exp(self.parameters.ComplexNumber1)
+            for i in range(self.parameters.ComlexAlphaFactor.shape[0]):
+                self.parameters.ComplexNumberLine[i] = cmath.exp(self.parameters.ComlexAlphaFactor[i]*self.parameters.ComplexNumber1)
+        elif self.parameters.ComplexNumberOperation == "arcsin":
+            self.parameters.ComplexNumberResult = cmath.asin(self.parameters.ComplexNumber1)
+            for i in range(self.parameters.ComlexAlphaFactor.shape[0]):
+                self.parameters.ComplexNumberLine[i] = cmath.asin(self.parameters.ComlexAlphaFactor[i]*self.parameters.ComplexNumber1)
+        elif self.parameters.ComplexNumberOperation == "arccos":
+            self.parameters.ComplexNumberResult = cmath.acos(self.parameters.ComplexNumber1)
+            for i in range(self.parameters.ComlexAlphaFactor.shape[0]):
+                self.parameters.ComplexNumberLine[i] = cmath.acos(self.parameters.ComlexAlphaFactor[i]*self.parameters.ComplexNumber1)
+        elif self.parameters.ComplexNumberOperation == "arctan":
+            self.parameters.ComplexNumberResult = cmath.atan(self.parameters.ComplexNumber1)
+            for i in range(self.parameters.ComlexAlphaFactor.shape[0]):
+                self.parameters.ComplexNumberLine[i] = cmath.atan(self.parameters.ComlexAlphaFactor[i]*self.parameters.ComplexNumber1)
+
+        self.Parameter3ComplexNumber.setText(f"{(self.parameters.ComplexNumberResult.real):.2f}")
+        self.Parameter3jComplexNumber.setText(f"{(self.parameters.ComplexNumberResult.imag):.2f}")
+        self.Parameter3PolarRComplexNumber.setText(f"{(abs(self.parameters.ComplexNumberResult)):.2f}")
+        self.Parameter3PolarThetaComplexNumber.setText(f"{(cmath.phase(self.parameters.ComplexNumberResult)):.2f}")
+
+        self.updateImagesComplexNumber()
+
+    def updateImagesComplexNumber(self):
+        """Updates the Image of the Complex Numbers"""
+        try:
+            self.ImageComplexNumbers.axes.cla()
+        except : pass
+        self.ImageComplexNumbers.axes.plot(self.parameters.ComplexNumber1.real,
+                                           self.parameters.ComplexNumber1.imag,
+                                           color = "r",
+                                           marker = "o")
+        self.ImageComplexNumbers.axes.plot(self.parameters.ComplexNumber2.real,
+                                           self.parameters.ComplexNumber2.imag,
+                                           color="g",
+                                           marker = "o")
+        self.ImageComplexNumbers.axes.plot(self.parameters.ComplexNumberResult.real,
+                                           self.parameters.ComplexNumberResult.imag,
+                                           color="b",
+                                           marker = "*")
+        if self.parameters.ComplexNumberOperation in ["+","-","/","*",
+                                                      "^","ln","log10",
+                                                      "sin","cos","tan","exp",
+                                                      "arcsin","arccos","arctan"]:
+            c = self.parameters.ComlexAlphaFactor
+            col = cm.jet((c-np.min(c))/(np.max(c)-np.min(c)))
+            for i in range(self.parameters.ComlexAlphaFactor.shape[0]-1):
+                self.ImageComplexNumbers.axes.plot([self.parameters.ComplexNumberLine[i].real,self.parameters.ComplexNumberLine[i+1].real],
+                                               [self.parameters.ComplexNumberLine[i].imag,self.parameters.ComplexNumberLine[i+1].imag],
+                                               color = col[i])
+        self.ImageComplexNumbers.axes.axvline(0, color = "k",alpha = 0.5)
+        self.ImageComplexNumbers.axes.axhline(0, color = "k",alpha = 0.5)
+        self.ImageComplexNumbers.axes.set_xlim(left = min([-5,min([0,
+                                                        self.parameters.ComplexNumber1.real,
+                                                        self.parameters.ComplexNumber2.real,
+                                                        self.parameters.ComplexNumberResult.real])-1]),
+                                                right= max([5,max([0,
+                                                        self.parameters.ComplexNumber1.real,
+                                                        self.parameters.ComplexNumber2.real,
+                                                        self.parameters.ComplexNumberResult.real])+1]))
+        self.ImageComplexNumbers.axes.set_ylim(bottom = min([-5,min([0,
+                                                             self.parameters.ComplexNumber1.imag,
+                                                             self.parameters.ComplexNumber2.imag,
+                                                             self.parameters.ComplexNumberResult.imag])-1]),
+                                                top = max([5,max([0,
+                                                             self.parameters.ComplexNumber1.imag,
+                                                             self.parameters.ComplexNumber2.imag,
+                                                             self.parameters.ComplexNumberResult.imag])+1]))
+
+        self.ImageComplexNumbers.axes.grid()
+        self.ImageComplexNumbers.axes.set_xlabel(AnalysisStrings.ComplexNumberImageXAxis[f"{self.language}"])
+        self.ImageComplexNumbers.axes.set_ylabel(AnalysisStrings.ComplexNumberImageYAxis[f"{self.language}"])
+        self.ImageComplexNumbers.axes.set_title(AnalysisStrings.ComplexNumberImageTitle[f"{self.language}"])
+        self.ImageComplexNumbers.draw()
+
+    def onClick(self,event,which):
+        """Allows to click on an image and update the interface"""
+        ix, iy = event.xdata, event.ydata
+        which.coords = []
+        which.coords.append((ix, iy))
+        if len(which.coords) == 2:
+            which.fig.canvas.mpl_disconnect(self.cid)
+        if which == self.ImageComplexNumbers:
+            if self.parameters.ComplexNumberClicker == "1":
+                self.parameters.ComplexNumber1 = complex(ix,iy)
+                self.Parameter1ComplexNumber.setText(f"{(ix):.2f}")
+                self.Parameter1jComplexNumber.setText(f"{(iy):.2f}")
+            if self.parameters.ComplexNumberClicker == "2":
+                self.parameters.ComplexNumber2 = complex(ix,iy)
+                self.Parameter2ComplexNumber.setText(f"{(ix):.2f}")
+                self.Parameter2jComplexNumber.setText(f"{(iy):.2f}")
+            self.updateParametersCartesianComplexNumber()
 class MplCanvas(FigureCanvasQTAgg):
     """Class for the images and the graphs as a widget"""
     def __init__(self, parent=None, width:float=5, height:float=4, dpi:int=75):

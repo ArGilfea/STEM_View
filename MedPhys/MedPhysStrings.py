@@ -249,6 +249,14 @@ ImageTomoName = {
     "SatelliteVille" : {
         "En" : "Satellite City",
         "Fr" : "Satellite Ville"
+    },
+    "Bump" : {
+        "En" : "Bump",
+        "Fr" : "Bosse"
+    },
+    "BumpNoise" : {
+        "En" : "Bump with Noise",
+        "Fr" : "Bosse avec Bruit"
     }
 }
 FilterTomoLabel = {
