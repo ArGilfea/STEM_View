@@ -408,8 +408,10 @@ class CalculusWindow(QMainWindow):
         self.VectorAdditionComponent1CheckBox.setChecked(self.parameters.VectorSumComponent1)
         self.VectorAdditionComponent2CheckBox = QCheckBox()
         self.VectorAdditionComponent2CheckBox.setChecked(self.parameters.VectorSumComponent2)
-        self.VectorAdditionCompositionCheckBox = QCheckBox()
-        self.VectorAdditionCompositionCheckBox.setChecked(self.parameters.VectorSumComposition)
+        self.VectorAdditionComposition1CheckBox = QCheckBox()
+        self.VectorAdditionComposition1CheckBox.setChecked(self.parameters.VectorSumComposition1)
+        self.VectorAdditionComposition2CheckBox = QCheckBox()
+        self.VectorAdditionComposition2CheckBox.setChecked(self.parameters.VectorSumComposition2)
 
         self.Vector1ShowCheckBox.stateChanged.connect(self.updateParametersVectors)
         self.Vector1Component1CheckBox.stateChanged.connect(self.updateParametersVectors)
@@ -428,7 +430,8 @@ class CalculusWindow(QMainWindow):
         self.VectorAdditionCheckBox.stateChanged.connect(self.updateParametersVectors)
         self.VectorAdditionComponent1CheckBox.stateChanged.connect(self.updateParametersVectors)
         self.VectorAdditionComponent2CheckBox.stateChanged.connect(self.updateParametersVectors)
-        self.VectorAdditionCompositionCheckBox.stateChanged.connect(self.updateParametersVectors)
+        self.VectorAdditionComposition1CheckBox.stateChanged.connect(self.updateParametersVectors)
+        self.VectorAdditionComposition2CheckBox.stateChanged.connect(self.updateParametersVectors)
 
         layout.addWidget(QLabel(CalculusStrings.Vector[f"{self.language}"]+" 1"),0,0)
         layout.addWidget(self.Vector1ShowCheckBox,0,1)
@@ -459,7 +462,9 @@ class CalculusWindow(QMainWindow):
         layout.addWidget(QLabel(CalculusStrings.Components[f"{self.language}"]),6,2)
         layout.addWidget(self.VectorAdditionComponent1CheckBox,6,3)
         layout.addWidget(self.VectorAdditionComponent2CheckBox,6,4)
-        layout.addWidget(self.VectorAdditionCompositionCheckBox,7,1)
+        layout.addWidget(QLabel(CalculusStrings.Parallelogram[f"{self.language}"]),7,0)
+        layout.addWidget(self.VectorAdditionComposition1CheckBox,7,1)
+        layout.addWidget(self.VectorAdditionComposition2CheckBox,7,2)
 
 
         self.generalLayoutVector.addWidget(subWidget,self.current_lineVector,2)
@@ -1345,10 +1350,14 @@ class CalculusWindow(QMainWindow):
             self.parameters.VectorSumComponent2 = True
         else: 
             self.parameters.VectorSumComponent2 = False
-        if self.VectorAdditionCompositionCheckBox.isChecked():
-            self.parameters.VectorSumComposition = True
+        if self.VectorAdditionComposition1CheckBox.isChecked():
+            self.parameters.VectorSumComposition1 = True
         else: 
-            self.parameters.VectorSumComposition = False
+            self.parameters.VectorSumComposition1 = False
+        if self.VectorAdditionComposition2CheckBox.isChecked():
+            self.parameters.VectorSumComposition2 = True
+        else: 
+            self.parameters.VectorSumComposition2 = False
 
         self.parameters.Vectors1[2] = (self.parameters.Vectors1[0]**2 + self.parameters.Vectors1[1]**2)**(1/2)
         self.parameters.Vectors2[2] = (self.parameters.Vectors2[0]**2 + self.parameters.Vectors2[1]**2)**(1/2)
@@ -1401,10 +1410,11 @@ class CalculusWindow(QMainWindow):
             self.VectorBaseImage.axes.quiver(0,0,self.parameters.Vectors1[0]+self.parameters.Vectors2[0],
                                              self.parameters.Vectors1[1]+ self.parameters.Vectors2[1], 
                                             angles='xy', scale_units='xy',scale = 1,color = 'green')        
-        if self.parameters.VectorSumComposition:
+        if self.parameters.VectorSumComposition2:
             self.VectorBaseImage.axes.quiver(self.parameters.Vectors1[0],self.parameters.Vectors1[1],self.parameters.Vectors2[0],
                                              self.parameters.Vectors2[1], 
                                             angles='xy', scale_units='xy',scale = 1,color = 'black')     
+        if self.parameters.VectorSumComposition1:
             self.VectorBaseImage.axes.quiver(self.parameters.Vectors2[0],self.parameters.Vectors2[1],self.parameters.Vectors1[0],
                                              self.parameters.Vectors1[1], 
                                             angles='xy', scale_units='xy',scale = 1,color = 'black')     

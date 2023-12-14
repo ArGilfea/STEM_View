@@ -1,8 +1,10 @@
 import numpy as np
 try:
     import Waves
+    import GeometricOptics
 except:
     import WavesAndOptics.Waves as Waves
+    import WavesAndOptics.GeometricOptics as GeometricOptics
 
 class GUIParameters(object):
     """Class where the parameters of the GUI are stored"""
@@ -45,3 +47,40 @@ class GUIParameters(object):
                                                 self.Parameters2DWaves,
                                                 self.TypeMovement2DWaves
                                             )  
+        ###
+        self.CurrentNumberInterfacesRefraction = 1
+        self.maxNumberInterfacesRefraction = 10
+        self.IndicesRefraction = np.ones(self.maxNumberInterfacesRefraction+1)
+        self.PointOfIntersectYRefraction = -np.arange(-1.0,self.maxNumberInterfacesRefraction+1)
+        self.showReflectionsRefraction = []
+        self.showNormalRefraction = []
+        for i in range(self.maxNumberInterfacesRefraction):
+            self.showReflectionsRefraction.append(False)
+            self.showNormalRefraction.append(False)
+
+        self.PointOfIntersectXRefraction = np.ones(self.maxNumberInterfacesRefraction+2)
+
+        self.AnglesRefraction = 10 * np.ones(self.maxNumberInterfacesRefraction+1)
+        self.PointOfIntersectXRefraction[1] = 0
+
+        self.PointOfIntersectXRefraction[0] = -(self.PointOfIntersectYRefraction[0] - self.PointOfIntersectYRefraction[1]) * np.tan(self.AnglesRefraction[0])
+        for i in range(1,self.AnglesRefraction.shape[0]-1):
+            self.AnglesRefraction[i] = GeometricOptics.RefractionLaw(self.IndicesRefraction[i-1],self.AnglesRefraction[i-1],self.IndicesRefraction[i])
+            self.PointOfIntersectXRefraction[i+1] = self.PointOfIntersectXRefraction[i] + np.abs((self.PointOfIntersectYRefraction[i+1]-self.PointOfIntersectYRefraction[i])*np.tan(self.AnglesRefraction[i]*np.pi/180))
+
+
+        ###
+        self.MirrorType = "Concave"
+        self.FocalLengthMirrors = 1
+        self.CurvatureRadiusMirrors = 2 * self.FocalLengthMirrors
+        self.ObjectHeightMirrors = 1
+        self.ObjectPositionMirrors = 2
+
+        self.ImagePositionMirrors = GeometricOptics.MirrorEquation(self.ObjectPositionMirrors, self.FocalLengthMirrors, "p")
+        self.MagnificationMirrors = -self.ImagePositionMirrors/self.ObjectPositionMirrors
+        self.ImageHeightMirrors = self.ObjectHeightMirrors * self.MagnificationMirrors
+
+        self.showObjectMirrors = True
+        self.showImageMirrors = True
+        self.showRaysParallelMirrors = True
+        self.showRaysFocusMirrors = True

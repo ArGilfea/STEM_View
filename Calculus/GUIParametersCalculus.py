@@ -85,7 +85,8 @@ class GUIParameters(object):
         self.VectorSum = False
         self.VectorSumComponent1 = False
         self.VectorSumComponent2 = False
-        self.VectorSumComposition = False
+        self.VectorSumComposition1 = False
+        self.VectorSumComposition2 = False
         
         self.TaylorCurveName = "Cubic"
         self.TaylorParameters = [1.0, 1.0, 0.0, 0.0]

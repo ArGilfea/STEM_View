@@ -15,12 +15,15 @@ try:
     import GUIParametersWaveAndOptics
     import WavesAndOpticsStrings
     import Waves
+    import GeometricOptics
 except:
     import WavesAndOptics.GUIParametersWaveAndOptics as GUIParametersWaveAndOptics
     import WavesAndOptics.WavesAndOpticsStrings as WavesAndOpticsStrings
     import WavesAndOptics.Waves as Waves
+    import WavesAndOptics.GeometricOptics as GeometricOptics
 import matplotlib
 import matplotlib.pyplot as plt
+
 matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -42,6 +45,8 @@ class WavesAndOpticsWindow(QMainWindow):
         self.currentLineSHM = 1
         self.currentLineDamped = 1
         self.currentLine2DWaves = 1
+        self.currentLineRefraction = 1
+        self.currentLineMirrors = 1
         super().__init__(parent=parent)
         self.setMinimumSize(1200, 700)
         self.setWindowTitle(WavesAndOpticsStrings.WindowName[f"{self.language}"])
@@ -49,25 +54,34 @@ class WavesAndOpticsWindow(QMainWindow):
         self.generalLayoutSHM = QGridLayout()
         self.generalLayoutDamped = QGridLayout()
         self.generalLayout2DWaves = QGridLayout()
+        self.generalLayoutRefraction = QGridLayout()
+        self.generalLayoutMirrors = QGridLayout()
         self.generalLayoutReadMe = QGridLayout()
 
         centralWidgetSHM = QWidget(self)
         centralWidgetDamped = QWidget(self)
         centralWidget2DWaves = QWidget(self)
+        centralWidgetRefraction = QWidget(self)
+        centralWidgetMirrors = QWidget(self)
         centralWidgetReadMe = QWidget(self)
 
         centralWidgetSHM.setLayout(self.generalLayoutSHM)
         centralWidgetDamped.setLayout(self.generalLayoutDamped)
         centralWidget2DWaves.setLayout(self.generalLayout2DWaves)
+        centralWidgetRefraction.setLayout(self.generalLayoutRefraction)
+        centralWidgetMirrors.setLayout(self.generalLayoutMirrors)
         centralWidgetReadMe.setLayout(self.generalLayoutReadMe)
 
         self.tabs.addTab(centralWidgetSHM,WavesAndOpticsStrings.SHMTabName[f"{self.language}"])
         #self.tabs.addTab(centralWidgetDamped,WavesAndOpticsStrings.DampedTabName[f"{self.language}"])
         self.tabs.addTab(centralWidget2DWaves,WavesAndOpticsStrings.Waves2DTabName[f"{self.language}"])
+        self.tabs.addTab(centralWidgetRefraction,WavesAndOpticsStrings.RefractionTabName[f"{self.language}"])
+        self.tabs.addTab(centralWidgetMirrors,WavesAndOpticsStrings.MirrorsTabName[f"{self.language}"])
         self.tabs.addTab(centralWidgetReadMe,WavesAndOpticsStrings.ReadMeTabName[f"{self.language}"])
 
         self.setCentralWidget(self.tabs)
-
+        ###
+        #SHM
         self._createPositionImageSHM()
         self._createSpeedImageSHM()
         self._createAccelerationImageSHM()
@@ -75,17 +89,29 @@ class WavesAndOpticsWindow(QMainWindow):
         self._createEnergyImageSHM()
         self._createParametersButtonsSHM()
         ###
+        #2D Waves
         self._createFullImage2DWaves()
         self._createTimeSliceImage2DWaves()
         self._createPositionSliceImage2DWaves()
         self._createParametersButtons2DWaves()
         ###
+        #Refraction
+        self._createImageRefraction()
+        self._createParametersButtonsRefraction()
+        ###
+        #Mirrors
+        self._createImageMirrors()
+        self._createParametersButtonsMirrors()
+        ###
+        #Exit
         self._createExitButton()
 
         self.generalLayoutSHM.setColumnStretch(1,5)
         self.generalLayoutSHM.setColumnStretch(2,5)
         self.generalLayout2DWaves.setColumnStretch(1,5)
         self.generalLayout2DWaves.setColumnStretch(2,5)
+        self.generalLayoutMirrors.setColumnStretch(1,10)
+        self.generalLayoutMirrors.setRowStretch(1,10)
 ################################################################################################
 ################################################################################################
 ################################################################################################
@@ -352,29 +378,212 @@ class WavesAndOpticsWindow(QMainWindow):
 ################################################################################################
 ################################################################################################
 ################################################################################################
+    def _createImageRefraction(self):
+        """Creates the Image for the Refraction"""
+        self.ImageRefraction = MplCanvas(self, width=6, height=6, dpi=75)
+        self.ImageRefraction_cid = self.ImageRefraction.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.ImageRefraction))
+        self.ImageRefraction_cod = self.ImageRefraction.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.ImageRefraction))
+
+        self.generalLayoutRefraction.addWidget(self.ImageRefraction,self.currentLineRefraction,1)
+
+    def _createParametersButtonsRefraction(self):
+        """Creates the Parameters Buttons for Refraction"""
+        subWidget = QWidget()
+        layout = QGridLayout()
+        subWidget.setLayout(layout)
+
+        self.CurrentNumberInterfaceRefractionComboBox = QComboBox()
+        for i in range(self.parameters.maxNumberInterfacesRefraction):
+            self.CurrentNumberInterfaceRefractionComboBox.addItem(f"{i+1}")
+        self.CurrentNumberInterfaceRefractionComboBox.setCurrentText(f"{self.parameters.CurrentNumberInterfacesRefraction}")
+        self.CurrentNumberInterfaceRefractionComboBox.activated[str].connect(self.updateComboNumberInterfaceRefraction)
+
+        self.RegionIndicesRefraction = []
+        self.RegionDistanceRefraction = []
+        self.RegionAngleRefraction = []
+        self.RegionShowReflectionRefraction = []
+        self.RegionShowNormalRefraction = []
+        for i in range(self.parameters.maxNumberInterfacesRefraction+1):
+            newLineEdit = QLineEdit()
+            newLineEdit.setFixedWidth(90)
+            newLineEdit.setText(f"{self.parameters.IndicesRefraction[i]:.1f}")
+            newLineEdit.editingFinished.connect(self.updateCursorRefraction)
+            if i > self.parameters.CurrentNumberInterfacesRefraction:
+                newLineEdit.setReadOnly(True)
+                newLineEdit.setStyleSheet("background-color: grey")
+            self.RegionIndicesRefraction.append(newLineEdit)
+
+            newLineEdit = QLineEdit()
+            newLineEdit.setFixedWidth(90)
+            newLineEdit.setText(f"{self.parameters.PointOfIntersectYRefraction[i]:.1f}")
+            newLineEdit.editingFinished.connect(self.updateCursorRefraction)
+            if i > self.parameters.CurrentNumberInterfacesRefraction:
+                newLineEdit.setReadOnly(True)
+                newLineEdit.setStyleSheet("background-color: grey")
+            self.RegionDistanceRefraction.append(newLineEdit)
+
+            newLineEdit = QLineEdit()
+            newLineEdit.setFixedWidth(90)
+            newLineEdit.setText(f"{self.parameters.AnglesRefraction[i]:.1f}")
+            newLineEdit.editingFinished.connect(self.updateCursorRefraction)
+            if i > 0:
+                newLineEdit.setReadOnly(True)
+            if i > self.parameters.CurrentNumberInterfacesRefraction:
+                newLineEdit.setStyleSheet("background-color: grey")
+            self.RegionAngleRefraction.append(newLineEdit)
+
+        for i in range(self.parameters.maxNumberInterfacesRefraction):
+            newCheckBox = QCheckBox()
+            newCheckBox.setChecked(self.parameters.showReflectionsRefraction[i])
+            newCheckBox.stateChanged.connect(self.updateCursorRefraction)
+            self.RegionShowReflectionRefraction.append(newCheckBox)
+
+            newCheckBox = QCheckBox()
+            newCheckBox.setChecked(self.parameters.showNormalRefraction[i])
+            newCheckBox.stateChanged.connect(self.updateCursorRefraction)
+            self.RegionShowNormalRefraction.append(newCheckBox)
+
+        layout.addWidget(QLabel(WavesAndOpticsStrings.InterfaceNumber[f"{self.language}"]),2,1)
+        layout.addWidget(self.CurrentNumberInterfaceRefractionComboBox,2,3)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.Region[f"{self.language}"]),3,1)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.RefractionIndex[f"{self.language}"]),3,2)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.Distance[f"{self.language}"]),3,3)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.Angle[f"{self.language}"]),3,4)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.Reflection[f"{self.language}"]),3,5)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.Reflection[f"{self.language}"]),3,6)
+        for i in range(self.parameters.maxNumberInterfacesRefraction+1):
+            layout.addWidget(QLabel(f"{i+1}"),4+i,1)
+            layout.addWidget(self.RegionIndicesRefraction[i],4+i,2)
+            layout.addWidget(self.RegionDistanceRefraction[i],4+i,3)
+            layout.addWidget(self.RegionAngleRefraction[i],4+i,4)
+        for i in range(self.parameters.maxNumberInterfacesRefraction):
+            layout.addWidget(self.RegionShowReflectionRefraction[i],4+i,5)
+            layout.addWidget(self.RegionShowNormalRefraction[i],4+i,6)
+
+        self.generalLayoutRefraction.addWidget(subWidget,self.currentLineRefraction,2)
+        self.currentLineRefraction += 1
+        self.updateAllRefraction()
+################################################################################################
+################################################################################################
+################################################################################################
+################################################################################################
+    def _createImageMirrors(self):
+        """Creates the Image for the Mirrors"""
+        self.ImageMirrors = MplCanvas(self, width=6, height=6, dpi=75)
+        self.ImageMirrors_cid = self.ImageMirrors.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.ImageMirrors))
+        self.ImageMirrors_cod = self.ImageMirrors.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.ImageMirrors))
+
+        self.generalLayoutMirrors.addWidget(self.ImageMirrors,self.currentLineMirrors,1)
+        #self.currentLineMirrors += 1
+
+    def _createParametersButtonsMirrors(self):
+        """Creates the Parameters Buttons for Mirrors"""
+        subWidget = QWidget()
+        layout = QGridLayout()
+        subWidget.setLayout(layout)
+
+        self.ObjectHeightLineEdit = QLineEdit()
+        self.ImageHeightLineEdit = QLineEdit()
+        self.ObjectPositionLineEdit = QLineEdit()
+        self.ImagePositionLineEdit = QLineEdit()
+        self.FocalLengthLineEdit = QLineEdit()
+        self.CurvatureLineEdit = QLineEdit()
+        self.ObjectHeightLineEdit.setFixedWidth(90)
+        self.ImageHeightLineEdit.setFixedWidth(90)
+        self.ObjectPositionLineEdit.setFixedWidth(90)
+        self.ImagePositionLineEdit.setFixedWidth(90)
+        self.FocalLengthLineEdit.setFixedWidth(90)
+        self.CurvatureLineEdit.setFixedWidth(90)
+        self.ObjectHeightLineEdit.setText(f"{self.parameters.ObjectHeightMirrors:.2f}")
+        self.ImageHeightLineEdit.setText(f"{self.parameters.ImageHeightMirrors:.2f}")
+        self.ObjectPositionLineEdit.setText(f"{self.parameters.ObjectPositionMirrors:.2f}")
+        self.ImagePositionLineEdit.setText(f"{self.parameters.ImagePositionMirrors:.2f}")
+        self.FocalLengthLineEdit.setText(f"{self.parameters.FocalLengthMirrors:.2f}")
+        self.CurvatureLineEdit.setText(f"{self.parameters.CurvatureRadiusMirrors:.2f}")
+        self.ObjectHeightLineEdit.editingFinished.connect(self.updateCursorObjectMirrors)
+        self.ImageHeightLineEdit.editingFinished.connect(self.updateCursorImageMirrors)
+        self.ObjectPositionLineEdit.editingFinished.connect(self.updateCursorObjectMirrors)
+        self.ImagePositionLineEdit.editingFinished.connect(self.updateCursorImageMirrors)
+        self.FocalLengthLineEdit.editingFinished.connect(self.updateCursorObjectMirrors)
+        self.CurvatureLineEdit.editingFinished.connect(self.updateCurvatureMirrors)
+
+        self.CheckBoxShowObjectMirror = QCheckBox()
+        self.CheckBoxShowImageMirror = QCheckBox()
+        self.CheckBoxRaysParallelMirror = QCheckBox()
+        self.CheckBoxRaysFocusMirror = QCheckBox()
+        self.CheckBoxShowObjectMirror.setChecked(self.parameters.showObjectMirrors)
+        self.CheckBoxShowImageMirror.setChecked(self.parameters.showImageMirrors)
+        self.CheckBoxRaysParallelMirror.setChecked(self.parameters.showRaysParallelMirrors)
+        self.CheckBoxRaysFocusMirror.setChecked(self.parameters.showRaysFocusMirrors)
+        self.CheckBoxShowObjectMirror.stateChanged.connect(self.updateCheckBoxRaysMirrors)
+        self.CheckBoxShowImageMirror.stateChanged.connect(self.updateCheckBoxRaysMirrors)
+        self.CheckBoxRaysParallelMirror.stateChanged.connect(self.updateCheckBoxRaysMirrors)
+        self.CheckBoxRaysFocusMirror.stateChanged.connect(self.updateCheckBoxRaysMirrors)
+
+        layout.addWidget(QLabel(WavesAndOpticsStrings.Position[f"{self.language}"]),1,2)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.Height[f"{self.language}"]),1,3)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.Object[f"{self.language}"]),2,1)
+        layout.addWidget(self.ObjectPositionLineEdit,2,2)
+        layout.addWidget(self.ObjectHeightLineEdit,2,3)
+        layout.addWidget(self.CheckBoxShowObjectMirror,2,4)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.Image[f"{self.language}"]),3,1)
+        layout.addWidget(self.ImagePositionLineEdit,3,2)
+        layout.addWidget(self.ImageHeightLineEdit,3,3)
+        layout.addWidget(self.CheckBoxShowImageMirror,3,4)
+
+
+        layout.addWidget(QLabel(WavesAndOpticsStrings.FocalLength[f"{self.language}"]),4,1)
+        layout.addWidget(self.FocalLengthLineEdit,4,2)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.Curvature[f"{self.language}"]),5,1)
+        layout.addWidget(self.CurvatureLineEdit,5,2)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.Rays[f"{self.language}"]),6,1)
+        layout.addWidget(self.CheckBoxRaysParallelMirror,6,2)
+        layout.addWidget(self.CheckBoxRaysFocusMirror,6,3)
+
+        self.generalLayoutMirrors.addWidget(subWidget,self.currentLineMirrors,2)
+        self.currentLineMirrors += 1
+        self.updateAllMirrors()
+################################################################################################
+################################################################################################
+################################################################################################
+################################################################################################
     def _createExitButton(self):
         """Creates exit buttons"""
         self.exitSHM = QPushButton(WavesAndOpticsStrings.ExitButton[f"{self.language}"])
         self.exitDamped = QPushButton(WavesAndOpticsStrings.ExitButton[f"{self.language}"])
         self.exit2DWaves = QPushButton(WavesAndOpticsStrings.ExitButton[f"{self.language}"])
+        self.exitRefraction = QPushButton(WavesAndOpticsStrings.ExitButton[f"{self.language}"])
+        self.exitMirrors = QPushButton(WavesAndOpticsStrings.ExitButton[f"{self.language}"])
+        
         self.exitSHM.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
         self.exitDamped.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
         self.exit2DWaves.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
+        self.exitRefraction.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
+        self.exitMirrors.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
 
         self.exitSHM.setShortcut("Ctrl+Shift+E")
         self.exitDamped.setShortcut("Ctrl+Shift+E")
         self.exit2DWaves.setShortcut("Ctrl+Shift+E")
-
+        self.exitRefraction.setShortcut("Ctrl+Shift+E")
+        self.exitMirrors.setShortcut("Ctrl+Shift+E")
 
         self.exitSHM.clicked.connect(self.close)
         self.exitDamped.clicked.connect(self.close)
         self.exit2DWaves.clicked.connect(self.close)
+        self.exitRefraction.clicked.connect(self.close)
+        self.exitMirrors.clicked.connect(self.close)
+
         self.generalLayoutSHM.addWidget(self.exitSHM,self.currentLineSHM+1,3)  
         #self.generalLayoutDamped.addWidget(self.exitDamped,self.currentLineDamped+1,3)  
         self.generalLayout2DWaves.addWidget(self.exit2DWaves,self.currentLine2DWaves+1,3)  
+        self.generalLayoutRefraction.addWidget(self.exitRefraction,self.currentLineRefraction+1,3)  
+        self.generalLayoutMirrors.addWidget(self.exitMirrors,self.currentLineMirrors+1,3)  
+
         self.currentLineSHM += 1
         self.currentLineDamped += 1
         self.currentLine2DWaves += 1
+        self.currentLineRefraction += 1
+        self.currentLineMirrors += 1
 ################################################################################################
 ################################################################################################
 ################################################################################################
@@ -758,6 +967,263 @@ class WavesAndOpticsWindow(QMainWindow):
         self.PositionSliceImage2DWaves.axes.grid()   
         self.PositionSliceImage2DWaves.draw()
 
+##############################################################################################################################
+    def updateCursorRefraction(self):
+        """Updates the values of the refraction"""
+        try:
+            self.parameters.AnglesRefraction[0] = float(self.RegionAngleRefraction[0].text())
+        except:
+            self.parameters.AnglesRefraction[0] = 1.0 
+        for i in range(self.parameters.maxNumberInterfacesRefraction+1):
+            try:
+                self.parameters.IndicesRefraction[i] = float(self.RegionIndicesRefraction[i].text())
+            except:
+                self.parameters.IndicesRefraction[i] = 1.0 
+            try:
+                self.parameters.PointOfIntersectYRefraction[i] = float(self.RegionDistanceRefraction[i].text())
+            except:
+                self.parameters.PointOfIntersectYRefraction[i] = 1.0 
+        for i in range(self.parameters.maxNumberInterfacesRefraction):
+            if self.RegionShowReflectionRefraction[i].isChecked():
+                self.parameters.showReflectionsRefraction[i] = True
+            else:
+                self.parameters.showReflectionsRefraction[i] = False
+            if self.RegionShowNormalRefraction[i].isChecked():
+                self.parameters.showNormalRefraction[i] = True
+            else:
+                self.parameters.showNormalRefraction[i] = False
+        self.updateAllRefraction()
+
+    def updateComboNumberInterfaceRefraction(self):
+        """Updates the number of interface for the refraction"""
+        self.parameters.CurrentNumberInterfacesRefraction = int(self.CurrentNumberInterfaceRefractionComboBox.currentText())
+
+        for i in range(self.parameters.maxNumberInterfacesRefraction+1):
+            if i - 1 < self.parameters.CurrentNumberInterfacesRefraction:
+                self.RegionIndicesRefraction[i].setReadOnly(False)
+                self.RegionDistanceRefraction[i].setReadOnly(False)
+                #self.RegionAngleRefraction[i].setReadOnly(False)
+                self.RegionIndicesRefraction[i].setStyleSheet("background-color: white")
+                self.RegionDistanceRefraction[i].setStyleSheet("background-color: white")
+                self.RegionAngleRefraction[i].setStyleSheet("background-color: white")
+            else:
+                self.RegionIndicesRefraction[i].setReadOnly(True)
+                self.RegionDistanceRefraction[i].setReadOnly(True)
+                self.RegionAngleRefraction[i].setReadOnly(True)
+                self.RegionIndicesRefraction[i].setStyleSheet("background-color: grey")
+                self.RegionDistanceRefraction[i].setStyleSheet("background-color: grey")
+                self.RegionAngleRefraction[i].setStyleSheet("background-color: grey")
+
+        self.updateAllRefraction()
+
+    def updateAllRefraction(self):
+        """Updates everything for the Refraction"""
+        self.updateAnglesRefraction()
+        self.updateImageRefraction()
+
+    def updateAnglesRefraction(self):
+        """Updates the angles for the refraction"""
+        self.parameters.PointOfIntersectXRefraction[0] = -(self.parameters.PointOfIntersectYRefraction[0] - self.parameters.PointOfIntersectYRefraction[1]) * np.tan(self.parameters.AnglesRefraction[0]*np.pi/180)
+
+        for i in range(1,self.parameters.AnglesRefraction.shape[0]):
+            self.parameters.AnglesRefraction[i] = GeometricOptics.RefractionLaw(self.parameters.IndicesRefraction[i-1],self.parameters.AnglesRefraction[i-1],self.parameters.IndicesRefraction[i])
+            self.parameters.PointOfIntersectXRefraction[i+1] = self.parameters.PointOfIntersectXRefraction[i] - ((self.parameters.PointOfIntersectYRefraction[i+1]-self.parameters.PointOfIntersectYRefraction[i])*np.tan(self.parameters.AnglesRefraction[i]*np.pi/180))
+            self.RegionAngleRefraction[i].setText(f"{self.parameters.AnglesRefraction[i]:.1f}")
+
+
+    def updateImageRefraction(self):
+        """Updates the Image of the Full 2D Waves"""
+        try:
+            self.ImageRefraction.axes.cla()
+        except : pass
+        color = ["brown","green","magenta","purple","darkgreen"]
+        self.ImageRefraction.axes.plot([self.parameters.PointOfIntersectXRefraction[0],self.parameters.PointOfIntersectXRefraction[1]],
+                                       [self.parameters.PointOfIntersectYRefraction[0],self.parameters.PointOfIntersectYRefraction[1]],
+                                       color = "red")
+
+        for i in range(1,self.parameters.CurrentNumberInterfacesRefraction+1):
+            self.ImageRefraction.axes.axhline(self.parameters.PointOfIntersectYRefraction[i])
+
+            self.ImageRefraction.axes.plot([self.parameters.PointOfIntersectXRefraction[i],self.parameters.PointOfIntersectXRefraction[i+1]],
+                                [self.parameters.PointOfIntersectYRefraction[i],self.parameters.PointOfIntersectYRefraction[i+1]],
+                                color = "red")
+            
+        topValue = self.parameters.PointOfIntersectYRefraction[0]
+        botValue = self.parameters.PointOfIntersectYRefraction[self.parameters.CurrentNumberInterfacesRefraction+1]
+        for i in range(0,self.parameters.CurrentNumberInterfacesRefraction):
+            if self.parameters.showReflectionsRefraction[i]:
+                tmpPosX = 2*self.parameters.PointOfIntersectXRefraction[i+1]-self.parameters.PointOfIntersectXRefraction[i]
+                self.ImageRefraction.axes.plot([self.parameters.PointOfIntersectXRefraction[i+1],
+                                                tmpPosX],
+                                            [self.parameters.PointOfIntersectYRefraction[i+1],self.parameters.PointOfIntersectYRefraction[i]],
+                                            color = color[i])
+                for j in range(i-1,-1,-1):
+                    tmpPosXOld = tmpPosX
+                    tmpPosX += self.parameters.PointOfIntersectXRefraction[j+1]-self.parameters.PointOfIntersectXRefraction[j+0]
+                    self.ImageRefraction.axes.plot([tmpPosXOld,
+                                                tmpPosX],
+                                            [self.parameters.PointOfIntersectYRefraction[j+1],self.parameters.PointOfIntersectYRefraction[j]],
+                                            color = color[i])
+            if self.parameters.showNormalRefraction[i]:
+                midPoint = (self.parameters.PointOfIntersectYRefraction[i+1] - botValue)/(topValue - botValue)
+                interval = 0.2 - self.parameters.CurrentNumberInterfacesRefraction * 0.15/self.parameters.maxNumberInterfacesRefraction
+                self.ImageRefraction.axes.axvline(self.parameters.PointOfIntersectXRefraction[i+1],
+                                                  ymin=midPoint - interval, 
+                                                  ymax = midPoint + interval,
+                                                  linestyle = "dashed")
+
+        self.ImageRefraction.axes.set_ylim(botValue, topValue)
+        self.ImageRefraction.axes.grid()        
+        self.ImageRefraction.draw()
+##############################################################################################################################
+    def updateCurvatureMirrors(self):
+        """Updates the Radius of Curvature"""
+        try:
+            self.parameters.CurvatureRadiusMirrors = float(self.CurvatureLineEdit.text())
+        except:
+            self.parameters.CurvatureRadiusMirrors = 2.0    
+        self.parameters.FocalLengthMirrors = self.parameters.CurvatureRadiusMirrors/2
+        self.FocalLengthLineEdit.setText(f"{self.parameters.FocalLengthMirrors:.2f}")
+        self.updateCursorObjectMirrors()       
+
+    def updateCursorObjectMirrors(self):
+        """Updates the values of the Mirrors when the object is changed"""
+
+        try:
+            self.parameters.ObjectHeightMirrors = float(self.ObjectHeightLineEdit.text())
+        except:
+            self.parameters.ObjectHeightMirrors = 1.0        
+        try:
+            self.parameters.ObjectPositionMirrors = float(self.ObjectPositionLineEdit.text())
+        except:
+            self.parameters.ObjectPositionMirrors = 2.0  
+        try:
+            self.parameters.FocalLengthMirrors = float(self.FocalLengthLineEdit.text())
+        except:
+            self.parameters.FocalLengthMirrors = 1.0  
+
+        self.parameters.CurvatureRadiusMirrors = 2 * self.parameters.FocalLengthMirrors
+        self.parameters.ImagePositionMirrors = GeometricOptics.MirrorEquation(self.parameters.ObjectPositionMirrors, self.parameters.FocalLengthMirrors, "p")
+        self.parameters.MagnificationMirrors = -self.parameters.ImagePositionMirrors/self.parameters.ObjectPositionMirrors
+        self.parameters.ImageHeightMirrors = self.parameters.ObjectHeightMirrors*self.parameters.MagnificationMirrors
+
+        self.updateAllMirrors()
+
+    def updateCursorImageMirrors(self):
+        """Updates the values of the Mirrors when the object is changed"""
+
+        try:
+            self.parameters.ImageHeightMirrors = float(self.ImageHeightLineEdit.text())
+        except:
+            self.parameters.ImageHeightMirrors = 1.0        
+        try:
+            self.parameters.ImagePositionMirrors = float(self.ImagePositionLineEdit.text())
+        except:
+            self.parameters.ImagePositionMirrors = 2.0   
+
+        self.parameters.ObjectPositionMirrors = GeometricOptics.MirrorEquation(self.parameters.ImagePositionMirrors, self.parameters.FocalLengthMirrors, "q")
+        self.parameters.MagnificationMirrors = -self.parameters.ImagePositionMirrors/self.parameters.ObjectPositionMirrors
+        self.parameters.ObjectHeightMirrors = self.parameters.ImageHeightMirrors/self.parameters.MagnificationMirrors
+
+        self.updateAllMirrors()
+
+    def updateCheckBoxRaysMirrors(self):
+        """Updates the check Box for the showing of Rays for the Mirrors"""
+
+        if self.CheckBoxRaysParallelMirror.isChecked():
+            self.parameters.showRaysParallelMirrors = True
+        else:
+            self.parameters.showRaysParallelMirrors = False
+        if self.CheckBoxRaysFocusMirror.isChecked():
+            self.parameters.showRaysFocusMirrors = True
+        else:
+            self.parameters.showRaysFocusMirrors = False
+        if self.CheckBoxShowObjectMirror.isChecked():
+            self.parameters.showObjectMirrors = True
+        else:
+            self.parameters.showObjectMirrors = False
+        if self.CheckBoxShowImageMirror.isChecked():
+            self.parameters.showImageMirrors = True
+        else:
+            self.parameters.showImageMirrors = False
+
+        self.updateAllMirrors()
+
+    def updateAllMirrors(self):
+        """Updates everything for the Mirrors"""
+        self.updateLineEditsMirrors()
+        self.updateImageMirrors()
+
+    def updateLineEditsMirrors(self):
+        """Updates the line edits of the mirrors tab"""
+        self.ObjectHeightLineEdit.setText(f"{self.parameters.ObjectHeightMirrors:.2f}")
+        self.ImageHeightLineEdit.setText(f"{self.parameters.ImageHeightMirrors:.2f}")
+        self.ObjectPositionLineEdit.setText(f"{self.parameters.ObjectPositionMirrors:.2f}")
+        self.ImagePositionLineEdit.setText(f"{self.parameters.ImagePositionMirrors:.2f}")
+        self.FocalLengthLineEdit.setText(f"{self.parameters.FocalLengthMirrors:.2f}")
+        self.CurvatureLineEdit.setText(f"{self.parameters.CurvatureRadiusMirrors:.2f}")
+
+    def updateImageMirrors(self):
+        """Updates the Image of the Full 2D Waves"""
+        try:
+            self.ImageMirrors.axes.cla()
+        except : pass
+
+        colours = ["blue", "red", "green","grey"]
+
+        self.ImageMirrors.axes.axhline(0, color = "k", alpha = 0.5)
+        self.ImageMirrors.axes.axvline(0, color = colours[2], linewidth = 10,
+                                       label = WavesAndOpticsStrings.Mirror[f"{self.language}"])
+
+        if self.parameters.showObjectMirrors:
+            self.ImageMirrors.axes.plot([self.parameters.ObjectPositionMirrors,self.parameters.ObjectPositionMirrors],
+                                    [0,self.parameters.ObjectHeightMirrors],
+                                    color = colours[0], linewidth = 10,
+                                    label = WavesAndOpticsStrings.Object[f"{self.language}"])
+        if self.parameters.showImageMirrors:
+            self.ImageMirrors.axes.plot([self.parameters.ImagePositionMirrors,self.parameters.ImagePositionMirrors],
+                                    [0,self.parameters.ImageHeightMirrors],
+                                    color = colours[1], linewidth = 10,
+                                    label = WavesAndOpticsStrings.Image[f"{self.language}"])
+
+
+        self.ImageMirrors.axes.plot(self.parameters.FocalLengthMirrors, 0,
+                                    marker = "*", markersize = 20,
+                                    label = WavesAndOpticsStrings.FocalLength[f"{self.language}"])
+
+        if self.parameters.showRaysFocusMirrors:
+            if self.parameters.ImagePositionMirrors < 0:
+                self.ImageMirrors.axes.plot([0, self.parameters.FocalLengthMirrors],
+                                        [self.parameters.ImageHeightMirrors, 0],
+                                        linestyle = "dashed", color = colours[3])
+ 
+            self.ImageMirrors.axes.plot([0, self.parameters.ObjectPositionMirrors],
+                                        [self.parameters.ImageHeightMirrors, self.parameters.ObjectHeightMirrors],
+                                        linestyle = "dashed", color = colours[1])
+
+            self.ImageMirrors.axes.plot([0, self.parameters.ImagePositionMirrors],
+                                        [self.parameters.ImageHeightMirrors, self.parameters.ImageHeightMirrors],
+                                        linestyle = "dashed", color = colours[1])
+        if self.parameters.showRaysParallelMirrors:
+            if self.parameters.ImagePositionMirrors < 0:
+                self.ImageMirrors.axes.plot([self.parameters.FocalLengthMirrors, self.parameters.ImagePositionMirrors],
+                                        [0, self.parameters.ImageHeightMirrors],
+                                        linestyle = "dashed", color = colours[3])
+
+            self.ImageMirrors.axes.plot([0, self.parameters.ObjectPositionMirrors],
+                                        [self.parameters.ObjectHeightMirrors, self.parameters.ObjectHeightMirrors],
+                                        linestyle = "dashed", color = colours[0])
+
+            self.ImageMirrors.axes.plot([0, self.parameters.ImagePositionMirrors],
+                                        [self.parameters.ObjectHeightMirrors, self.parameters.ImageHeightMirrors],
+                                        linestyle = "dashed", color = colours[0])
+ 
+              
+
+        self.ImageMirrors.axes.grid()        
+        self.ImageMirrors.axes.legend()        
+        self.ImageMirrors.draw()
+
     def onClick(self,event,which):
         """Allows to click on an image and update the interface"""
         ix, iy = event.xdata, event.ydata
@@ -793,6 +1259,11 @@ class WavesAndOpticsWindow(QMainWindow):
             self.parameters.CursorT2DWaves = ix
             self.CursorT2DWave.setText(str(f"{ix:.2f}"))
             self.updateAll2DWave()
+        elif which == self.ImageMirrors:
+            self.parameters.ObjectHeightMirrors = iy
+            self.parameters.ObjectPositionMirrors = ix
+            self.updateLineEditsMirrors()
+            self.updateCursorObjectMirrors()
 
     def onRoll(self,event,which):
         """Allows to scroll on an image and update the interface"""
@@ -809,6 +1280,16 @@ class WavesAndOpticsWindow(QMainWindow):
                      self.AccelerationImageSHM,
                      self.EnergyImageSHM]:
             self.updateAllSHM()
+        elif which == self.ImageMirrors:
+            self.parameters.ObjectPositionMirrors += scale_factor*0.1
+            self.updateLineEditsMirrors()
+            self.updateCursorObjectMirrors()
+        elif which == self.ImageRefraction:
+            if self.parameters.AnglesRefraction[0] + scale_factor >= 0:
+                if self.parameters.AnglesRefraction[0]  + scale_factor < 90:
+                    self.parameters.AnglesRefraction[0]  += scale_factor
+            self.RegionAngleRefraction[0].setText(f"{self.parameters.AnglesRefraction[0] :.1f}")
+            self.updateAllRefraction()
 ################################################################################################
 ################################################################################################
 ################################################################################################

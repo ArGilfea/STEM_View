@@ -200,6 +200,10 @@ Components = {
     "En" : "Components",
     "Fr" : "Composantes"
 }
+Parallelogram = {
+    "En" : "Parallelogram",
+    "Fr" : "Parallélogramme"
+}
 ############
 CenterTaylor = {
     "En" : "Center",

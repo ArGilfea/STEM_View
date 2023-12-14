@@ -14,6 +14,14 @@ Waves2DTabName = {
     "En" : "2D Waves",
     "Fr" : "Ondes 2D"    
 }
+RefractionTabName = {
+    "En" : "Refraction",
+    "Fr" : "Réfraction"
+}
+MirrorsTabName = {
+    "En" : "Mirrors",
+    "Fr" : "Miroirs"
+}
 ReadMeTabName = {
     "En" : "ReadMe",
     "Fr" : "Lisez-Moi"    
@@ -185,6 +193,92 @@ ButtonChoiceTypeMotion2DWaves = {
         "En" : "Packet",
         "Fr" : "Paquet"
     }
+}
+##########################################
+InitialAngle = {
+    "En" : "Initial Angle (degrees)",
+    "Fr" : "Angle Initial (degrés)"
+}
+Region = {
+    "En" : "Region",
+    "Fr" : "Région"
+}
+RefractionIndex = {
+    "En" : "Index of Refraction",
+    "Fr" : "Indice de Réfraction"
+}
+Distance = {
+    "En" : "Distance",
+    "Fr" : "Distance"
+}
+Angle = {
+    "En" : "Angle",
+    "Fr" : "Angle"
+}
+Reflection = {
+    "En" : "Reflection",
+    "Fr" : "Réflexion"
+}
+Normal = {
+    "En" : "Normal",
+    "Fr" : "Normale"
+}
+InterfaceNumber = {
+    "En" : "Number of Interface",
+    "Fr" : "Nombre d'Interfaces"
+}
+##########################################
+Mirror = {
+    "En" : "Mirror",
+    "Fr" : "Miroir"
+}
+Object = {
+    "En" : "Object",
+    "Fr" : "Objet"
+}
+Image = {
+    "En" : "Image",
+    "Fr" : "Image"
+}
+Position = {
+    "En" : "Position",
+    "Fr" : "Position"
+}
+Height = {
+    "En" : "Height",
+    "Fr" : "Hauteur"
+}
+Show = {
+    "En" : "Show",
+    "Fr" : "Montrer"
+}
+FocalLength = {
+    "En" : "Focal Length",
+    "Fr" : "Longueur Focale"
+}
+Curvature = {
+    "En" : "Radius of Curvature",
+    "Fr" : "Rayon de Courbure"
+}
+HeightObject = {
+    "En" : "Object Height",
+    "Fr" : "Hauteur de l'Objet"
+}
+HeightImage = {
+    "En" : "Image Height",
+    "Fr" : "Hauteur de l'Image"
+}
+PositionObject = {
+    "En" : "Object Position",
+    "Fr" : "Position de l'Objet"
+}
+PositionImage = {
+    "En" : "Image Position",
+    "Fr" : "Position de l'Image"
+}
+Rays = {
+    "En" : "Rays",
+    "Fr" : "Rayons"
 }
 ##########################################
 ExitButton = {
