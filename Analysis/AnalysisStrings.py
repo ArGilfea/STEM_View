@@ -73,6 +73,30 @@ CurvesTypeFourier1D = {
         "Fr" : "Sinus"
     }
 }
+ParametersImageFourier1D = {
+    "En" : "Parameters of the Image",
+    "Fr" : "Paramètres de l'Image"    
+}
+ParametersFilterFourier1D = {
+    "En" : "Parameters of the Filter",
+    "Fr" : "Paramètres du Filtre"    
+}
+FourierDirectFourier1D = {
+    "En" : "Fourier",
+    "Fr" : "Fourier"    
+}
+Phase = {
+    "En" : "Phase",
+    "Fr" : "Phase"    
+}
+Frequency = {
+    "En" : "Frequency",
+    "Fr" : "Fréquence"    
+}
+Amplitude = {
+    "En" : "Amplitude",
+    "Fr" : "Amplitude"    
+}
 FullRangeFourier1D = {
     "En" : "Full Range",
     "Fr" : "Portée Complète"    
@@ -88,6 +112,14 @@ Parameters2Fourier1D = {
 FourierGraphNameFourier1D = {
     "En" : "Fourier Transform of ",
     "Fr" : "Transformée de Fourier de "
+}
+ConvolutionGraphNameFourier1D = {
+    "En" : "Convolution",
+    "Fr" : "Convolution"
+}
+ConvolutionFouriedGraphNameFourier1D = {
+    "En" : "Fourier Transform of the Convolution",
+    "Fr" : "Transformée de Fourier de la Convolution"
 }
 ###
 CurvesTypeFilters = {
@@ -118,10 +150,6 @@ CurvesTypeFilters = {
     "Ramp" : {
         "En" : "Ramp",
         "Fr" : "Rampe"
-    },
-    "Welch" : {
-        "En" : "Welch",
-        "Fr" : "Welch"
     },
     "Cosine" : {
         "En" : "Cosine",
@@ -288,6 +316,10 @@ ComplexNumberOperation = {
 ComplexNumberClickerHeader = {
     "En" : "Clicker",
     "Fr" : "Cliqueur"
+}
+ComplexNumberClickerSwitch = {
+    "En" : "Switch",
+    "Fr" : "Alterne"
 }
 ComplexNumberImageXAxis = {
     "En" : "Real Part",

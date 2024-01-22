@@ -8,64 +8,108 @@ from scipy.io import loadmat      #Pour lire un fichier matlab
 
 from skimage.transform import radon, rescale
 
-def create1DFunctions(CurveRange:np.ndarray,CurveParameters:np.ndarray,CurveType: str = "Hamming", fullRange: bool = True) -> np.ndarray:
+def create1DFunctions(CurveRange:np.ndarray,CurveParameters:np.ndarray,CurveType: np.ndarray, fullRange: bool = True) -> np.ndarray:
   """Creates a Filter of the same size as image, with specified parameters"""
   filter = np.zeros_like(CurveRange)
-  if fullRange:
-    RangeValue = [0, CurveRange.shape[0]]
-  else:
-    for i in range(CurveRange.shape[0]):
-      if CurveRange[i] < CurveParameters[0]/2:
-        indexValue = i
-    RangeValue = [CurveRange.shape[0] - indexValue, indexValue]
-  if CurveType == "Hamming":
-    for i in range(RangeValue[0],RangeValue[1]):
-        filter[i] = 25/46 - (1-25/46)*np.cos(2*np.pi*(CurveRange[i]-CurveRange[RangeValue[0]])/CurveParameters[0])
-  elif CurveType == "Hann":
-    for i in range(RangeValue[0],RangeValue[1]):
-        filter[i] = 1/2 - (1-1/2)*np.cos(2*np.pi*(CurveRange[i]-CurveRange[RangeValue[0]])/CurveParameters[0])
-  elif CurveType == "Cosine-Sum":
-    for i in range(RangeValue[0],RangeValue[1]):
-        filter[i] = CurveParameters[1] - (1-CurveParameters[1])*np.cos(2*np.pi*(CurveRange[i]-CurveRange[RangeValue[0]])/CurveParameters[0])
-  elif CurveType == "Low Pass Flat":
-    for i in range(RangeValue[0],RangeValue[1]):
-      filter[i] = CurveParameters[1]
-  elif CurveType == "High Pass Flat":
-    for i in range(filter.shape[0]):
-      if (CurveRange[i] < -CurveParameters[0]/2 or CurveRange[i] > CurveParameters[0]/2):
-        filter[i] = CurveParameters[1]
-  elif CurveType == "Triangular":
-    for i in range(RangeValue[0],RangeValue[1]):
-      filter[i] = (RangeValue[1] - RangeValue[0] - np.abs((i - filter.shape[0]/2)/(CurveParameters[0]/2)))*(CurveRange[1]-CurveRange[0])
-  elif CurveType == "Ramp":
-    for i in range(RangeValue[0],RangeValue[1]):
-      filter[i] = np.abs((i - filter.shape[0]/2)/(CurveParameters[0]/2))*(CurveRange[1]-CurveRange[0])
-  elif CurveType == "Welch":
-    for i in range(RangeValue[0],RangeValue[1]):
-      filter[i] = (RangeValue[1] - RangeValue[0] -((i - filter.shape[0]/2)/(CurveParameters[0]/2))**2)
-  elif CurveType == "Cosine":
-    for i in range(RangeValue[0],RangeValue[1]):
-      filter[i] = np.cos(np.pi*(i - filter.shape[0]/2)/(CurveParameters[0]))
-  elif CurveType == "Gaussian":
-    for i in range(RangeValue[0],RangeValue[1]):
-      filter[i] = np.exp(-(1/2)*(i - filter.shape[0]/2)**2/(CurveParameters[0]/2)**2) 
-  elif CurveType == "Exponential":
-    for i in range(RangeValue[0],RangeValue[1]):
-      filter[i] = np.exp(-(1/(CurveParameters[0]/2))*np.abs(i - filter.shape[0]/2))
-  elif CurveType == "Deltas":
-    dx = CurveRange[1] - CurveRange[0]
-    for i in range(int(CurveParameters.shape[0]/2 - 1)):
-      for j in range(RangeValue[0],RangeValue[1]):
-        if (CurveRange[j] > CurveParameters[2*i + 2] - dx/2) and (CurveRange[j] < CurveParameters[2*i + 2] + dx/2):
-          filter[j] = CurveParameters[2*i + 3]
-          filter[CurveRange.shape[0] - j] = CurveParameters[2*i + 3]
-  elif CurveType == "Sines":
-    dx = CurveRange[1] - CurveRange[0]
-    for i in range(int(CurveParameters.shape[0]/2 - 1)):
-      for j in range(RangeValue[0],RangeValue[1]):
-        filter[j] += CurveParameters[2*i + 3] * np.sin(2*np.pi*CurveParameters[2*i + 2] * CurveRange[j])
-  else:
-    raise Exception("Invalid choice of Curve: ",CurveType)
+  for j in range(int(CurveParameters.shape[0])):
+    if CurveType[j] == "Hamming":
+      for i in range(filter.shape[0]):
+        if fullRange[j]:
+          if CurveParameters[j,1] != 0 :
+            filter[i] += 25/46 - (1-25/46)*np.cos(2*np.pi*(CurveRange[i]-CurveParameters[j,1]/2)/CurveParameters[j,1])
+        else:
+          if CurveParameters[j,1] != 0 :
+            if CurveRange[i] >=  CurveParameters[j,0]- CurveParameters[j,1]/2 and CurveRange[i] <=  CurveParameters[j,0] + CurveParameters[j,1]/2:
+              filter[i] += 25/46 - (1-25/46)*np.cos(2*np.pi*(CurveRange[i]-CurveParameters[j,1]/2)/CurveParameters[j,1])
+    elif CurveType[j] == "Hann":
+      for i in range(filter.shape[0]):
+        if fullRange[j]:
+          if CurveParameters[j,1] != 0 :
+            filter[i] += 1/2 - (1-1/2)*np.cos(2*np.pi*(CurveRange[i]-CurveParameters[j,1]/2)/CurveParameters[j,1])
+        else:
+          if CurveParameters[j,1] != 0 :
+            if CurveRange[i] >=  CurveParameters[j,0]- CurveParameters[j,1]/2 and CurveRange[i] <=  CurveParameters[j,0] + CurveParameters[j,1]/2:
+              filter[i] += 1/2 - (1-1/2)*np.cos(2*np.pi*(CurveRange[i]-CurveParameters[j,1]/2)/CurveParameters[j,1])
+    elif CurveType[j] == "Cosine-Sum":
+      for i in range(filter.shape[0]):
+        if fullRange[j]:
+          if CurveParameters[j,1] != 0 :
+            filter[i] += CurveParameters[j,2] - (1-CurveParameters[j,2])*np.cos(2*np.pi*(CurveRange[i]-CurveParameters[j,1]/2)/CurveParameters[j,1])
+        else:
+          if CurveParameters[j,1] != 0 :
+            if CurveRange[i] >=  CurveParameters[j,0]- CurveParameters[j,1]/2 and CurveRange[i] <=  CurveParameters[j,0] + CurveParameters[j,1]/2:
+              filter[i] += CurveParameters[j,2] - (1-CurveParameters[j,2])*np.cos(2*np.pi*(CurveRange[i]-CurveParameters[j,1]/2)/CurveParameters[j,1])
+
+    elif CurveType[j] == "Low Pass Flat":
+      for i in range(filter.shape[0]):
+        if CurveRange[i] >=  CurveParameters[j,0]- CurveParameters[j,1]/2 and CurveRange[i] <=  CurveParameters[j,0] + CurveParameters[j,1]/2:
+          if CurveParameters[j,2] != 0 :
+            filter[i] += CurveParameters[j,2]
+
+    elif CurveType[j] == "High Pass Flat":
+      for i in range(filter.shape[0]):
+        if  not (CurveRange[i] >=  CurveParameters[j,0]- CurveParameters[j,1]/2 and CurveRange[i] <=  CurveParameters[j,0] + CurveParameters[j,1]/2):
+          if CurveParameters[j,2] != 0 :
+            filter[i] += CurveParameters[j,2]
+
+    elif CurveType[j] == "Triangular":
+      for i in range(filter.shape[0]):
+        if fullRange[j]:
+          pass
+        else:
+          if CurveRange[i] >=  CurveParameters[j,0]- CurveParameters[j,1]/2 and CurveRange[i] <=  CurveParameters[j,0] + CurveParameters[j,1]/2:
+            filter[i] += 2*CurveParameters[j,2]*np.abs(np.abs(CurveRange[i] - CurveParameters[j,0]) - CurveParameters[j,1]/2)
+    elif CurveType[j] == "Ramp":
+      for i in range(filter.shape[0]):
+          if CurveRange[i] >=  CurveParameters[j,0]- CurveParameters[j,1]/2 and CurveRange[i] <=  CurveParameters[j,0] + CurveParameters[j,1]/2:
+            filter[i] += 2*CurveParameters[j,2] * np.abs(CurveRange[i] - CurveParameters[j,0])
+
+    elif CurveType[j] == "Cosine":
+      for i in range(filter.shape[0]):
+        if fullRange[j]:
+          if CurveParameters[j,2] != 0 :
+              filter[i] += CurveParameters[j,2]*np.cos(2*np.pi*(CurveRange[i]-CurveParameters[j,0]/2)*(CurveParameters[j,1]))
+        else:
+          if CurveParameters[j,2] != 0 :
+            if CurveRange[i] >=  CurveParameters[j,0]- CurveParameters[j,2]/2 and CurveRange[i] <=  CurveParameters[j,0] + CurveParameters[j,2]/2:
+              filter[i] += CurveParameters[j,2]*np.cos(2*np.pi*(CurveRange[i]-CurveParameters[j,0]/2)*(CurveParameters[j,1]))
+
+    elif CurveType[j] == "Gaussian":
+      for i in range(filter.shape[0]):
+        if fullRange[j]:
+          if CurveParameters[j,1] != 0 :
+            filter[i] += CurveParameters[j,2]*np.exp(-(1/2)*(CurveRange[i] - CurveParameters[j,0]/2)**2/(CurveParameters[j,1])**2) 
+        else:
+          if CurveParameters[j,1] != 0 :
+            if CurveRange[i] >=  CurveParameters[j,0]- CurveParameters[j,2]/2 and CurveRange[i] <=  CurveParameters[j,0] + CurveParameters[j,2]/2:
+              filter[i] += CurveParameters[j,2]*np.exp(-(1/2)*(CurveRange[i] - CurveParameters[j,0]/2)**2/(CurveParameters[j,1])**2) 
+
+    elif CurveType[j] == "Exponential":
+      for i in range(filter.shape[0]):
+        if fullRange[j]:
+          if CurveParameters[j,1] != 0 :
+            filter[i] += CurveParameters[j,2] * np.exp(-(1/(CurveParameters[j,1]/2))*np.abs(CurveRange[i] - CurveParameters[j,0]/2))
+        else:
+          if CurveParameters[j,1] != 0 :
+            if CurveRange[i] >=  CurveParameters[j,0]- CurveParameters[j,2]/2 and CurveRange[i] <=  CurveParameters[j,0] + CurveParameters[j,2]/2:
+              filter[i] += CurveParameters[j,2] * np.exp(-(1/(CurveParameters[j,1]/2))*np.abs(CurveRange[i] - CurveParameters[j,0]/2))
+
+    elif CurveType[j] == "Deltas":
+      dx = CurveRange[1] - CurveRange[0]
+      for i in range(filter.shape[0]):
+        if (CurveRange[i] > CurveParameters[j,0] - dx/2) and (CurveRange[i] < CurveParameters[j,0] + dx/2):
+          filter[i] += CurveParameters[j,1]
+    elif CurveType[j] == "Sines":
+      for i in range(filter.shape[0]):
+        if fullRange[j]:
+          if CurveParameters[j,2] != 0 :
+              filter[i] += CurveParameters[j,2]*np.sin(2*np.pi*(CurveRange[i]-CurveParameters[j,0]/2)*(CurveParameters[j,1]))
+        else:
+          if CurveParameters[j,2] != 0 :
+            if CurveRange[i] >=  CurveParameters[j,0]- CurveParameters[j,2]/2 and CurveRange[i] <=  CurveParameters[j,0] + CurveParameters[j,2]/2:
+              filter[i] += CurveParameters[j,2]*np.sin(2*np.pi*(CurveRange[i]-CurveParameters[j,0]/2)*(CurveParameters[j,1]))
+    else:
+      raise Exception("Invalid choice of Curve: ",CurveType[j])
 
   return filter
 

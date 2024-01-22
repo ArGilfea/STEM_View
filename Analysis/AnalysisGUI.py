@@ -75,9 +75,12 @@ class AnalysisWindow(QMainWindow):
 
         #Fourier 1D Tab
         self._createBaseFunctionImageFourier1D()
-        self._createFourierFunctionImageFourier1D()
-        self._createNoisedFunctionImageFourier1D()
-        self._createParametersButtonsFourier1D()
+        self._createFilterFouriedImageFourier1D()
+
+        self._createConvolutionImageFourier1D()
+        self._createConvolutionFouriedImageFourier1D()
+
+        self._createParametersImageButtonsFourier1D()
         #Filters Tab
         self._createBaseImageFilters()
         self._createFilterImageFilters()
@@ -95,103 +98,95 @@ class AnalysisWindow(QMainWindow):
         self.generalLayoutFourier1D.setColumnStretch(2,5)
         self.generalLayoutFilters.setColumnStretch(1,5)
         self.generalLayoutFilters.setColumnStretch(2,5)
+        self.showMaximized()
+        self.complexClicker = 1
+
     ###Create Interface###
     def _createBaseFunctionImageFourier1D(self):
-        """Creates an Image for the Base function of Fourier 1D"""
-        self.Fourier1DBaseImage = MplCanvas(self, width=6, height=6, dpi=75)
-        self.generalLayoutFourier1D.addWidget(self.Fourier1DBaseImage,self.currentLineFourier1D,1)
+        """Creates Images for the Spatial Functions of Fourier 1D"""
+        self.Fourier1DBaseImage = np.zeros(self.parameters.numberFilter, dtype = object)
+        for i in range(self.parameters.numberFilter):
+            self.Fourier1DBaseImage[i] = MplCanvas(self, width=6, height=6, dpi=75)
+            self.generalLayoutFourier1D.addWidget(self.Fourier1DBaseImage[i],self.currentLineFourier1D,i + 1)
         self.currentLineFourier1D += 1
-    def _createParametersButtonsFourier1D(self):
-        """Creates the Buttons for the Parameters of the Fourier 1D"""
-        subWidget = QWidget()
-        layout = QGridLayout()
-        subWidget.setLayout(layout)
 
-        self.CurveTypeComboBoxFourier1D = QComboBox()
-        for _, names in AnalysisStrings.CurvesTypeFourier1D.items():
-            self.CurveTypeComboBoxFourier1D.addItem(names[f"{self.language}"])
-        self.CurveTypeComboBoxFourier1D.setCurrentText(self.parameters.CurveTypeFourier1D)
-        self.CurveTypeComboBoxFourier1D.activated[str].connect(self.update_Combo_CurveFourier1D)
-
-        self.FullRangeComboBoxFourier1D = QCheckBox()
-        self.FullRangeComboBoxFourier1D.stateChanged.connect(self.update_Check_FullRangeFourier1D)
-
-        self.RangeMinLineEditFourier1D = QLineEdit()
-        self.RangeMaxLineEditFourier1D = QLineEdit()
-        self.Parameter1LineEditFourier1D = QLineEdit()
-        self.Parameter2LineEditFourier1D = QLineEdit()
-        self.Parameter3LineEditFourier1D = QLineEdit()
-        self.Parameter4LineEditFourier1D = QLineEdit()
-        self.Parameter5LineEditFourier1D = QLineEdit()
-        self.Parameter6LineEditFourier1D = QLineEdit()
-        self.Parameter7LineEditFourier1D = QLineEdit()
-        self.Parameter8LineEditFourier1D = QLineEdit()
-
-        self.RangeMinLineEditFourier1D.setFixedWidth(90)
-        self.RangeMaxLineEditFourier1D.setFixedWidth(90)
-        self.Parameter1LineEditFourier1D.setFixedWidth(90)
-        self.Parameter2LineEditFourier1D.setFixedWidth(90)
-        self.Parameter3LineEditFourier1D.setFixedWidth(90)
-        self.Parameter4LineEditFourier1D.setFixedWidth(90)
-        self.Parameter5LineEditFourier1D.setFixedWidth(90)
-        self.Parameter6LineEditFourier1D.setFixedWidth(90)
-        self.Parameter7LineEditFourier1D.setFixedWidth(90)
-        self.Parameter8LineEditFourier1D.setFixedWidth(90)
-
-        self.RangeMinLineEditFourier1D.setText(str(self.parameters.CurveRangeFourier1D[0]))
-        self.RangeMaxLineEditFourier1D.setText(str(self.parameters.CurveRangeFourier1D[1]))
-        self.Parameter1LineEditFourier1D.setText(str(self.parameters.CurveParametersFourier1D[0]))
-        self.Parameter2LineEditFourier1D.setText(str(self.parameters.CurveParametersFourier1D[1]))
-        self.Parameter3LineEditFourier1D.setText(str(self.parameters.CurveParametersFourier1D[2]))
-        self.Parameter4LineEditFourier1D.setText(str(self.parameters.CurveParametersFourier1D[3]))
-        self.Parameter5LineEditFourier1D.setText(str(self.parameters.CurveParametersFourier1D[4]))
-        self.Parameter6LineEditFourier1D.setText(str(self.parameters.CurveParametersFourier1D[5]))
-        self.Parameter7LineEditFourier1D.setText(str(self.parameters.CurveParametersFourier1D[6]))
-        self.Parameter8LineEditFourier1D.setText(str(self.parameters.CurveParametersFourier1D[7]))
-
-        self.RangeMinLineEditFourier1D.editingFinished.connect(self.updateParametersFourier1D)
-        self.RangeMaxLineEditFourier1D.editingFinished.connect(self.updateParametersFourier1D)
-        self.Parameter1LineEditFourier1D.editingFinished.connect(self.updateParametersFourier1D)
-        self.Parameter2LineEditFourier1D.editingFinished.connect(self.updateParametersFourier1D)
-        self.Parameter3LineEditFourier1D.editingFinished.connect(self.updateParametersFourier1D)
-        self.Parameter4LineEditFourier1D.editingFinished.connect(self.updateParametersFourier1D)
-        self.Parameter5LineEditFourier1D.editingFinished.connect(self.updateParametersFourier1D)
-        self.Parameter6LineEditFourier1D.editingFinished.connect(self.updateParametersFourier1D)
-        self.Parameter7LineEditFourier1D.editingFinished.connect(self.updateParametersFourier1D)
-        self.Parameter8LineEditFourier1D.editingFinished.connect(self.updateParametersFourier1D)
-
-
-        layout.addWidget(self.CurveTypeComboBoxFourier1D,1,1)
-        layout.addWidget(QLabel(AnalysisStrings.FullRangeFourier1D[f"{self.language}"]),2,1)
-        layout.addWidget(self.FullRangeComboBoxFourier1D,2,2)
-        layout.addWidget(self.RangeMinLineEditFourier1D,2,3)
-        layout.addWidget(self.RangeMaxLineEditFourier1D,2,4)
-        layout.addWidget(QLabel(AnalysisStrings.Parameters1Fourier1D[f"{self.language}"]),3,1)
-        layout.addWidget(self.Parameter1LineEditFourier1D,3,2)
-        layout.addWidget(self.Parameter2LineEditFourier1D,3,3)
-        layout.addWidget(QLabel(AnalysisStrings.Parameters2Fourier1D[f"{self.language}"] + " 1"),4,1)
-        layout.addWidget(self.Parameter3LineEditFourier1D,4,2)
-        layout.addWidget(self.Parameter4LineEditFourier1D,4,3)
-        layout.addWidget(QLabel(AnalysisStrings.Parameters2Fourier1D[f"{self.language}"] + " 2"),5,1)
-        layout.addWidget(self.Parameter5LineEditFourier1D,5,2)
-        layout.addWidget(self.Parameter6LineEditFourier1D,5,3)
-        layout.addWidget(QLabel(AnalysisStrings.Parameters2Fourier1D[f"{self.language}"] + " 3"),6,1)
-        layout.addWidget(self.Parameter7LineEditFourier1D,6,2)
-        layout.addWidget(self.Parameter8LineEditFourier1D,6,3)
-
-        self.generalLayoutFourier1D.addWidget(subWidget,self.currentLineFourier1D,2)
+    def _createFilterFouriedImageFourier1D(self):
+        """Creates the Fouried Image of Fourier 1D"""
+        self.Fourier1DFouriedImage = np.zeros(self.parameters.numberFilter, dtype = object)
+        for i in range(self.parameters.numberFilter):
+            self.Fourier1DFouriedImage[i] = MplCanvas(self, width=6, height=6, dpi=75)
+            self.generalLayoutFourier1D.addWidget(self.Fourier1DFouriedImage[i],self.currentLineFourier1D,i+1)
         self.currentLineFourier1D += 1
-    def _createFourierFunctionImageFourier1D(self):
-        """Creates an Image for the Fourier of the function of Fourier 1D"""
-        self.Fourier1DFourierImage = MplCanvas(self, width=6, height=6, dpi=75)
-        self.generalLayoutFourier1D.addWidget(self.Fourier1DFourierImage,self.currentLineFourier1D,1)
-    def _createNoisedFunctionImageFourier1D(self):
+
+    def _createConvolutionImageFourier1D(self):
         """Creates an Image for the Base function of Fourier 1D"""
-        self.Fourier1DNoiseImage = MplCanvas(self, width=6, height=6, dpi=75)
-        self.generalLayoutFourier1D.addWidget(self.Fourier1DNoiseImage,self.currentLineFourier1D,2)
+        self.Fourier1DConvolvedImage = MplCanvas(self, width=6, height=6, dpi=75)
+        self.generalLayoutFourier1D.addWidget(self.Fourier1DConvolvedImage,self.currentLineFourier1D,1)
+
+    def _createConvolutionFouriedImageFourier1D(self):
+        """Creates an Image for the Base function of Fourier 1D"""
+        self.Fourier1DConvolvedFouriedImage = MplCanvas(self, width=6, height=6, dpi=75)
+        self.generalLayoutFourier1D.addWidget(self.Fourier1DConvolvedFouriedImage,self.currentLineFourier1D,2)
         self.currentLineFourier1D += 1
 
         self.updateImagesFourier1D()
+
+
+    def _createParametersImageButtonsFourier1D(self):
+        """Creates the Buttons for the Parameters of the Fourier 1D"""
+        self.CurveTypeComboBoxFourier1D = np.zeros((self.parameters.numberFilter,self.parameters.numberParameters),dtype = object)
+        self.CurveDirectFourierComboBoxFourier1D = np.zeros(self.parameters.numberFilter,dtype = object)
+        self.FullRangeComboBoxFourier1D = np.zeros((self.parameters.numberFilter,self.parameters.numberParameters),dtype = object)
+        self.ParameterLineEditFourier1D = np.zeros((self.parameters.numberFilter,self.parameters.numberParameters,self.parameters.numberParameters2),dtype = object)
+
+        self.RangeMinLineEditFourier1D = QLineEdit()
+        self.RangeMaxLineEditFourier1D = QLineEdit()
+
+        for i in range(self.parameters.numberFilter):
+            subWidget = QWidget()
+            layout = QGridLayout()
+            subWidget.setLayout(layout)
+            for j in range(self.parameters.numberParameters):
+                self.CurveTypeComboBoxFourier1D[i,j] = QComboBox()
+                for _, names in AnalysisStrings.CurvesTypeFourier1D.items():
+                    self.CurveTypeComboBoxFourier1D[i,j].addItem(names[f"{self.language}"])
+                self.CurveTypeComboBoxFourier1D[i,j].setCurrentText(AnalysisStrings.CurvesTypeFilters[f"{self.parameters.CurveTypeFourier1D[i,j]}"][f"{self.language}"])
+                self.CurveTypeComboBoxFourier1D[i,j].activated[str].connect(self.update_Combo_CurveFourier1D)
+
+                self.FullRangeComboBoxFourier1D[i,j] = QCheckBox()
+                self.FullRangeComboBoxFourier1D[i,j].stateChanged.connect(self.update_Check_FullRangeFourier1D)
+
+            self.CurveDirectFourierComboBoxFourier1D[i] = QCheckBox()
+            self.CurveDirectFourierComboBoxFourier1D[i].stateChanged.connect(self.update_Check_DirectFourierFourier1D)
+
+            for j in range(self.parameters.numberParameters):
+                for k in range(self.parameters.numberParameters2):
+                    self.ParameterLineEditFourier1D[i,j,k] = QLineEdit()
+                    self.ParameterLineEditFourier1D[i,j,k].setFixedWidth(90)
+                    self.ParameterLineEditFourier1D[i,j,k].setText(str(self.parameters.CurveParametersFourier1D[i,j,k]))
+                    self.ParameterLineEditFourier1D[i,j,k].editingFinished.connect(self.updateParametersFourier1D)
+
+            layout.addWidget(QLabel(AnalysisStrings.ParametersImageFourier1D[f"{self.language}"]),0,1)
+            layout.addWidget(QLabel(AnalysisStrings.FourierDirectFourier1D[f"{self.language}"]),0,3)
+            layout.addWidget(self.CurveDirectFourierComboBoxFourier1D[i],0,4)
+            for j in range(self.parameters.numberParameters):
+                layout.addWidget(self.CurveTypeComboBoxFourier1D[i,j],j+3,1)
+                layout.addWidget(QLabel(AnalysisStrings.Parameters2Fourier1D[f"{self.language}"]+f" {j+1}"),j+3,2)
+                for k in range(self.parameters.numberParameters2):
+
+                    layout.addWidget(self.ParameterLineEditFourier1D[i,j,k],j+3,k+2)
+                layout.addWidget(self.FullRangeComboBoxFourier1D[i,j],j+3,k+4)
+            for k in range(self.parameters.numberParameters2):
+                if k == 0:
+                    layout.addWidget(QLabel(AnalysisStrings.Phase[f"{self.language}"]),2,k+2)
+                elif k == 1:
+                    layout.addWidget(QLabel(AnalysisStrings.Frequency[f"{self.language}"]),2,k+2)
+                elif k == 2:
+                    layout.addWidget(QLabel(AnalysisStrings.Amplitude[f"{self.language}"]),2,k+2)
+            layout.addWidget(QLabel(AnalysisStrings.FullRangeFourier1D[f"{self.language}"]),2,k+4)
+
+            self.generalLayoutFourier1D.addWidget(subWidget,self.currentLineFourier1D,i+1)
+        self.currentLineFourier1D += 1
 
     def _createBaseImageFilters(self):
         """Creates an Image for the Base Image of Filters"""
@@ -339,6 +334,7 @@ class AnalysisWindow(QMainWindow):
         self.ClickerComboBoxComplexNumber = QComboBox()
         self.ClickerComboBoxComplexNumber.addItem("1")
         self.ClickerComboBoxComplexNumber.addItem("2")
+        self.ClickerComboBoxComplexNumber.addItem(AnalysisStrings.ComplexNumberClickerSwitch[f"{self.language}"])
         self.ClickerComboBoxComplexNumber.setCurrentText(self.parameters.ComplexNumberClicker)
         self.ClickerComboBoxComplexNumber.activated[str].connect(self.update_ComboClicker_ComplexNumber)        
 
@@ -394,18 +390,34 @@ class AnalysisWindow(QMainWindow):
     ###Update Interface###
     def update_Combo_CurveFourier1D(self):
         """Updates the Curve Type"""
-        name_tmp = self.CurveTypeComboBoxFourier1D.currentText()
-        for dict, names in AnalysisStrings.CurvesTypeFourier1D.items():
-            if name_tmp in names.values():
-                self.parameters.CurveTypeFourier1D = dict
+        for i in range(self.parameters.numberFilter):
+            for j in range(self.parameters.numberParameters):
+                name_tmp = self.CurveTypeComboBoxFourier1D[i,j].currentText()
+                for dict, names in AnalysisStrings.CurvesTypeFourier1D.items():
+                    if name_tmp in names.values():
+                        self.parameters.CurveTypeFourier1D[i,j] = dict
+
         self.updateImagesFourier1D()
 
     def update_Check_FullRangeFourier1D(self):
         """Updates the Boolean for Full Range"""
-        if self.FullRangeComboBoxFourier1D.isChecked():
-            self.parameters.fullRangeFourier1D = True
-        else:
-            self.parameters.fullRangeFourier1D = False
+        for i in range(self.parameters.numberFilter):
+            for j in range(self.parameters.numberParameters):
+                if self.FullRangeComboBoxFourier1D[i,j].isChecked():
+                    self.parameters.fullRangeFourier1D[i,j] = True
+                else:
+                    self.parameters.fullRangeFourier1D[i,j] = False
+
+        self.updateImagesFourier1D()
+
+    def update_Check_DirectFourierFourier1D(self):
+        """Updates the Boolean for Direct Fourier"""
+        for i in range(self.parameters.numberFilter):
+            if self.CurveDirectFourierComboBoxFourier1D[i].isChecked():
+                self.parameters.directFourierCurve1D[i] = True
+            else:
+                self.parameters.directFourierCurve1D[i] = False
+
         self.updateImagesFourier1D()
 
     def updateParametersFourier1D(self):
@@ -424,85 +436,126 @@ class AnalysisWindow(QMainWindow):
         self.parameters.RangeFourierFourier1D = np.arange(-1/(2*self.parameters.dxFourier1D),
                                                             1/(2*self.parameters.dxFourier1D),
                                                             1/(self.parameters.dxFourier1D*self.parameters.XAxisFourier1D.shape[0]))
-        try:
-            self.parameters.CurveParametersFourier1D[0] = float(self.Parameter1LineEditFourier1D.text())
-        except:
-            self.parameters.CurveParametersFourier1D[0] = 1.0
-        try:
-            self.parameters.CurveParametersFourier1D[1] = float(self.Parameter2LineEditFourier1D.text())
-        except:
-            self.parameters.CurveParametersFourier1D[1] = 1.0
-        try:
-            self.parameters.CurveParametersFourier1D[2] = float(self.Parameter3LineEditFourier1D.text())
-        except:
-            self.parameters.CurveParametersFourier1D[2] = 1.0
-        try:
-            self.parameters.CurveParametersFourier1D[3] = float(self.Parameter4LineEditFourier1D.text())
-        except:
-            self.parameters.CurveParametersFourier1D[3] = 1.0
-        try:
-            self.parameters.CurveParametersFourier1D[4] = float(self.Parameter5LineEditFourier1D.text())
-        except:
-            self.parameters.CurveParametersFourier1D[4] = 1.0
-        try:
-            self.parameters.CurveParametersFourier1D[5] = float(self.Parameter6LineEditFourier1D.text())
-        except:
-            self.parameters.CurveParametersFourier1D[5] = 1.0
-        try:
-            self.parameters.CurveParametersFourier1D[6] = float(self.Parameter7LineEditFourier1D.text())
-        except:
-            self.parameters.CurveParametersFourier1D[6] = 1.0
-        try:
-            self.parameters.CurveParametersFourier1D[7] = float(self.Parameter8LineEditFourier1D.text())
-        except:
-            self.parameters.CurveParametersFourier1D[7] = 1.0
+        self.parameters.XAxisFilterFourier1D = np.copy(self.parameters.XAxisFourier1D)
+        self.parameters.RangeFilterFourierFourier1D = np.copy(self.parameters.RangeFourierFourier1D)
+        
+        for i in range(self.parameters.numberFilter):
+            for j in range(self.parameters.numberParameters):
+                for k in range(self.parameters.numberParameters2):
+                    try:
+                        self.parameters.CurveParametersFourier1D[i,j,k] = float(self.ParameterLineEditFourier1D[i,j,k].text())
+                    except:
+                        self.parameters.CurveParametersFourier1D[0] = 0.0
+                        self.ParameterLineEditFourier1D[i,j,k].setText("0.0")
 
         self.updateImagesFourier1D()
 
     def updateImagesFourier1D(self):
         """Updates all the Images"""
         self.updateCurvesFourier1D()
+        self.updateConvolutionFourier1D()
+
         self.updateFourierBaseImage()
-        self.updateFourierFourierImage()
+        self.updateFouriedFourierImage()
+        self.updateFourierConvolutionImage()
+        self.updateFourierConvolutionFouriedImage()
 
     def updateCurvesFourier1D(self):
         """Updates the Curve"""
-        self.parameters.BaseCurveFourier1D = Fourier1D.create1DFunctions(self.parameters.XAxisFourier1D,
-                                                                self.parameters.CurveParametersFourier1D,
-                                                                self.parameters.CurveTypeFourier1D,
-                                                                self.parameters.fullRangeFourier1D)
-        self.parameters.FourierCurveFourier1DAbs, self.parameters.FourierCurveFourier1D = Fourier1D.FourierTransform1D(self.parameters.BaseCurveFourier1D)
+        for i in range(self.parameters.numberFilter):
+            if not self.parameters.directFourierCurve1D[i]:
+                self.parameters.BaseCurveFourier1D[i] = Fourier1D.create1DFunctions(self.parameters.XAxisFourier1D,
+                                                                    self.parameters.CurveParametersFourier1D[i,:,:],
+                                                                    self.parameters.CurveTypeFourier1D[i,:],
+                                                                    self.parameters.fullRangeFourier1D[i,:])
+                self.parameters.FourierCurveFourier1DAbs[i], self.parameters.FourierCurveFourier1D = Fourier1D.FourierTransform1D(self.parameters.BaseCurveFourier1D[i])
+            else:
+                self.parameters.FourierCurveFourier1DAbs[i] = Fourier1D.create1DFunctions(self.parameters.XAxisFourier1D,
+                                                                    self.parameters.CurveParametersFourier1D[i,:,:],
+                                                                    self.parameters.CurveTypeFourier1D[i,:],
+                                                                    self.parameters.fullRangeFourier1D[i,:])
+                self.parameters.BaseCurveFourier1D[i], _ = Fourier1D.InverseFourierTransform1D(self.parameters.FourierCurveFourier1DAbs[i])
 
+    def updateConvolutionFourier1D(self):
+        """Updates the Convolution"""
+        """if (self.parameters.directFourierCurve1D[i] or self.parameters.directFourierFilter1D[i]):
+            self.parameters.ConvolutionFouried1DFourier = self.parameters.FourierCurveFourier1DAbs*self.parameters.FourierFilterFourier1DAbs
+            self.parameters.Convolution1DFourier, tmp = Fourier1D.InverseFourierTransform1D(self.parameters.ConvolutionFouried1DFourier)
+            #self.parameters.Convolution1DFourier = np.real(self.parameters.Convolution1DFourier)"""
+        
+        if True:
+            for i in range(self.parameters.numberFilter):
+                if i == 0:
+                    self.parameters.Convolution1DFourier = np.copy(self.parameters.BaseCurveFourier1D[i])
+                    self.parameters.ConvolutionFouried1DFourier = np.copy(self.parameters.FourierCurveFourier1DAbs[i])
+                else:
+                    self.parameters.Convolution1DFourier = np.convolve(self.parameters.Convolution1DFourier,self.parameters.BaseCurveFourier1D[i],mode = 'same') * (self.parameters.XAxisFourier1D[1]-self.parameters.XAxisFourier1D[0])
+                    self.parameters.ConvolutionFouried1DFourier *= self.parameters.FourierCurveFourier1DAbs[i]
+ 
     def updateFourierBaseImage(self):
         """Updates the Basic Fourier Image"""
-        try:
-            self.Fourier1DBaseImage.axes.cla()
-        except:
-            pass
-        self.Fourier1DBaseImage.axes.plot(self.parameters.XAxisFourier1D,self.parameters.BaseCurveFourier1D)
+        for i in range(self.parameters.numberFilter):
+            try:
+                self.Fourier1DBaseImage[i].axes.cla()
+            except:
+                pass
+            self.Fourier1DBaseImage[i].axes.plot(self.parameters.XAxisFourier1D,self.parameters.BaseCurveFourier1D[i])
 
-        self.Fourier1DBaseImage.axes.grid()
-        self.Fourier1DBaseImage.axes.set_xlabel("x")
-        self.Fourier1DBaseImage.axes.set_ylabel("y")
-        self.Fourier1DBaseImage.axes.set_title(AnalysisStrings.CurvesTypeFourier1D[f"{self.parameters.CurveTypeFourier1D}"][f"{self.language}"])
+            self.Fourier1DBaseImage[i].axes.grid()
+            self.Fourier1DBaseImage[i].axes.set_xlabel("x")
+            self.Fourier1DBaseImage[i].axes.set_ylabel("y")
+            self.Fourier1DBaseImage[i].axes.set_title(AnalysisStrings.CurvesTypeFourier1D[f"{self.parameters.CurveTypeFourier1D[i,0]}"][f"{self.language}"])
 
-        self.Fourier1DBaseImage.draw()
-    def updateFourierFourierImage(self):
+            self.Fourier1DBaseImage[i].draw()
+    def updateFouriedFourierImage(self):
+        """Updates the Basic Fourier Image"""
+        for i in range(self.parameters.numberFilter):
+            try:
+                self.Fourier1DFouriedImage[i].axes.cla()
+            except:
+                pass
+            self.Fourier1DFouriedImage[i].axes.plot(self.parameters.RangeFourierFourier1D,self.parameters.FourierCurveFourier1DAbs[i])
+
+            self.Fourier1DFouriedImage[i].axes.grid()
+            self.Fourier1DFouriedImage[i].axes.set_xlabel("$k_x$")
+            self.Fourier1DFouriedImage[i].axes.set_ylabel("$k_y$")
+            self.Fourier1DFouriedImage[i].axes.set_title(AnalysisStrings.FourierGraphNameFourier1D[f"{self.language}"] + 
+                                                        AnalysisStrings.CurvesTypeFourier1D[f"{self.parameters.CurveTypeFourier1D[i,0]}"][f"{self.language}"])
+
+            #self.Fourier1DFouriedImage.axes.set_xlim(-4,4)
+            self.Fourier1DFouriedImage[i].draw()
+
+    def updateFourierConvolutionImage(self):
         """Updates the Basic Fourier Image"""
         try:
-            self.Fourier1DFourierImage.axes.cla()
+            self.Fourier1DConvolvedImage.axes.cla()
         except:
             pass
-        self.Fourier1DFourierImage.axes.plot(self.parameters.RangeFourierFourier1D,self.parameters.FourierCurveFourier1DAbs)
 
-        self.Fourier1DFourierImage.axes.grid()
-        self.Fourier1DFourierImage.axes.set_xlabel("x")
-        self.Fourier1DFourierImage.axes.set_ylabel("y")
-        self.Fourier1DFourierImage.axes.set_title(AnalysisStrings.FourierGraphNameFourier1D[f"{self.language}"] + 
-                                                    AnalysisStrings.CurvesTypeFourier1D[f"{self.parameters.CurveTypeFourier1D}"][f"{self.language}"])
+        self.Fourier1DConvolvedImage.axes.plot(self.parameters.XAxisFourier1D,self.parameters.Convolution1DFourier)
 
-        self.Fourier1DFourierImage.axes.set_xlim(-4,4)
-        self.Fourier1DFourierImage.draw()
+        self.Fourier1DConvolvedImage.axes.grid()
+        self.Fourier1DConvolvedImage.axes.set_xlabel("x")
+        self.Fourier1DConvolvedImage.axes.set_ylabel("y")
+        self.Fourier1DConvolvedImage.axes.set_title(AnalysisStrings.ConvolutionGraphNameFourier1D[f"{self.language}"])
+
+        self.Fourier1DConvolvedImage.draw()
+
+    def updateFourierConvolutionFouriedImage(self):
+        """Updates the Basic Fourier Image"""
+        try:
+            self.Fourier1DConvolvedFouriedImage.axes.cla()
+        except:
+            pass
+
+        self.Fourier1DConvolvedFouriedImage.axes.plot(self.parameters.RangeFourierFourier1D,self.parameters.ConvolutionFouried1DFourier)
+
+        self.Fourier1DConvolvedFouriedImage.axes.grid()
+        self.Fourier1DConvolvedFouriedImage.axes.set_xlabel("$k_x$")
+        self.Fourier1DConvolvedFouriedImage.axes.set_ylabel("$k_y$")
+        self.Fourier1DConvolvedFouriedImage.axes.set_title(AnalysisStrings.ConvolutionFouriedGraphNameFourier1D[f"{self.language}"])
+
+        self.Fourier1DConvolvedFouriedImage.draw()
 
     def update_Combo_ImageFilters(self):
         """Updates the Curve Type"""
@@ -836,10 +889,20 @@ class AnalysisWindow(QMainWindow):
                 self.parameters.ComplexNumber1 = complex(ix,iy)
                 self.Parameter1ComplexNumber.setText(f"{(ix):.2f}")
                 self.Parameter1jComplexNumber.setText(f"{(iy):.2f}")
-            if self.parameters.ComplexNumberClicker == "2":
+            elif self.parameters.ComplexNumberClicker == "2":
                 self.parameters.ComplexNumber2 = complex(ix,iy)
                 self.Parameter2ComplexNumber.setText(f"{(ix):.2f}")
                 self.Parameter2jComplexNumber.setText(f"{(iy):.2f}")
+            else:
+                if self.complexClicker > 0 :
+                    self.parameters.ComplexNumber1 = complex(ix,iy)
+                    self.Parameter1ComplexNumber.setText(f"{(ix):.2f}")
+                    self.Parameter1jComplexNumber.setText(f"{(iy):.2f}")                    
+                elif self.complexClicker < 0 :
+                    self.parameters.ComplexNumber2 = complex(ix,iy)
+                    self.Parameter2ComplexNumber.setText(f"{(ix):.2f}")
+                    self.Parameter2jComplexNumber.setText(f"{(iy):.2f}")
+                self.complexClicker *= -1
             self.updateParametersCartesianComplexNumber()
 class MplCanvas(FigureCanvasQTAgg):
     """Class for the images and the graphs as a widget"""

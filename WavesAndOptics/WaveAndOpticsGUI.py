@@ -28,8 +28,7 @@ matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import matplotlib.image as mpimg
-from matplotlib.patches import Circle
-from matplotlib.patches import Polygon
+from matplotlib.patches import Circle, Polygon, Arc
 
 size_Image = 200
 
@@ -110,6 +109,8 @@ class WavesAndOpticsWindow(QMainWindow):
         self.generalLayoutSHM.setColumnStretch(2,5)
         self.generalLayout2DWaves.setColumnStretch(1,5)
         self.generalLayout2DWaves.setColumnStretch(2,5)
+        self.generalLayoutRefraction.setColumnStretch(1,10)
+        self.generalLayoutRefraction.setColumnStretch(2,10)
         self.generalLayoutMirrors.setColumnStretch(1,10)
         self.generalLayoutMirrors.setRowStretch(1,10)
 ################################################################################################
@@ -402,7 +403,11 @@ class WavesAndOpticsWindow(QMainWindow):
         self.RegionDistanceRefraction = []
         self.RegionAngleRefraction = []
         self.RegionShowReflectionRefraction = []
+        self.RegionShowRefractionRefraction = []
         self.RegionShowNormalRefraction = []
+        self.RegionShowIncidentAngleRefraction = []
+        self.RegionShowReflectedAngleRefraction = []
+        self.RegionShowRefractedAngleRefraction = []
         for i in range(self.parameters.maxNumberInterfacesRefraction+1):
             newLineEdit = QLineEdit()
             newLineEdit.setFixedWidth(90)
@@ -443,6 +448,26 @@ class WavesAndOpticsWindow(QMainWindow):
             newCheckBox.stateChanged.connect(self.updateCursorRefraction)
             self.RegionShowNormalRefraction.append(newCheckBox)
 
+            newCheckBox = QCheckBox()
+            newCheckBox.setChecked(self.parameters.showRefractionRefraction[i])
+            newCheckBox.stateChanged.connect(self.updateCursorRefraction)
+            self.RegionShowRefractionRefraction.append(newCheckBox)
+
+            newCheckBox = QCheckBox()
+            newCheckBox.setChecked(self.parameters.showIncidentAngleRefraction[i])
+            newCheckBox.stateChanged.connect(self.updateCursorRefraction)
+            self.RegionShowIncidentAngleRefraction.append(newCheckBox)
+
+            newCheckBox = QCheckBox()
+            newCheckBox.setChecked(self.parameters.showReflectedAngleRefraction[i])
+            newCheckBox.stateChanged.connect(self.updateCursorRefraction)
+            self.RegionShowReflectedAngleRefraction.append(newCheckBox)
+
+            newCheckBox = QCheckBox()
+            newCheckBox.setChecked(self.parameters.showRefractedAngleRefraction[i])
+            newCheckBox.stateChanged.connect(self.updateCursorRefraction)
+            self.RegionShowRefractedAngleRefraction.append(newCheckBox)
+
         layout.addWidget(QLabel(WavesAndOpticsStrings.InterfaceNumber[f"{self.language}"]),2,1)
         layout.addWidget(self.CurrentNumberInterfaceRefractionComboBox,2,3)
         layout.addWidget(QLabel(WavesAndOpticsStrings.Region[f"{self.language}"]),3,1)
@@ -450,15 +475,21 @@ class WavesAndOpticsWindow(QMainWindow):
         layout.addWidget(QLabel(WavesAndOpticsStrings.Distance[f"{self.language}"]),3,3)
         layout.addWidget(QLabel(WavesAndOpticsStrings.Angle[f"{self.language}"]),3,4)
         layout.addWidget(QLabel(WavesAndOpticsStrings.Reflection[f"{self.language}"]),3,5)
-        layout.addWidget(QLabel(WavesAndOpticsStrings.Reflection[f"{self.language}"]),3,6)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.Refraction[f"{self.language}"]),3,6)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.Normal[f"{self.language}"]),3,7)
         for i in range(self.parameters.maxNumberInterfacesRefraction+1):
             layout.addWidget(QLabel(f"{i+1}"),4+i,1)
             layout.addWidget(self.RegionIndicesRefraction[i],4+i,2)
             layout.addWidget(self.RegionDistanceRefraction[i],4+i,3)
             layout.addWidget(self.RegionAngleRefraction[i],4+i,4)
         for i in range(self.parameters.maxNumberInterfacesRefraction):
-            layout.addWidget(self.RegionShowReflectionRefraction[i],4+i,5)
-            layout.addWidget(self.RegionShowNormalRefraction[i],4+i,6)
+            layout.addWidget(self.RegionShowReflectionRefraction[i],4+i+1,5)
+            layout.addWidget(self.RegionShowRefractionRefraction[i],4+i+1,6)
+            layout.addWidget(self.RegionShowNormalRefraction[i],4+i+1,7)
+
+            layout.addWidget(self.RegionShowIncidentAngleRefraction[i],4+i+1,8)
+            layout.addWidget(self.RegionShowReflectedAngleRefraction[i],4+i+1,9)
+            layout.addWidget(self.RegionShowRefractedAngleRefraction[i],4+i+1,10)
 
         self.generalLayoutRefraction.addWidget(subWidget,self.currentLineRefraction,2)
         self.currentLineRefraction += 1
@@ -988,10 +1019,27 @@ class WavesAndOpticsWindow(QMainWindow):
                 self.parameters.showReflectionsRefraction[i] = True
             else:
                 self.parameters.showReflectionsRefraction[i] = False
+            if self.RegionShowRefractionRefraction[i].isChecked():
+                self.parameters.showRefractionRefraction[i] = True
+            else:
+                self.parameters.showRefractionRefraction[i] = False
             if self.RegionShowNormalRefraction[i].isChecked():
                 self.parameters.showNormalRefraction[i] = True
             else:
                 self.parameters.showNormalRefraction[i] = False
+
+            if self.RegionShowIncidentAngleRefraction[i].isChecked():
+                self.parameters.showIncidentAngleRefraction[i] = True
+            else:
+                self.parameters.showIncidentAngleRefraction[i] = False
+            if self.RegionShowReflectedAngleRefraction[i].isChecked():
+                self.parameters.showReflectedAngleRefraction[i] = True
+            else:
+                self.parameters.showReflectedAngleRefraction[i] = False
+            if self.RegionShowRefractedAngleRefraction[i].isChecked():
+                self.parameters.showRefractedAngleRefraction[i] = True
+            else:
+                self.parameters.showRefractedAngleRefraction[i] = False
         self.updateAllRefraction()
 
     def updateComboNumberInterfaceRefraction(self):
@@ -1044,7 +1092,8 @@ class WavesAndOpticsWindow(QMainWindow):
         for i in range(1,self.parameters.CurrentNumberInterfacesRefraction+1):
             self.ImageRefraction.axes.axhline(self.parameters.PointOfIntersectYRefraction[i])
 
-            self.ImageRefraction.axes.plot([self.parameters.PointOfIntersectXRefraction[i],self.parameters.PointOfIntersectXRefraction[i+1]],
+            if np.sum(self.parameters.showRefractionRefraction[:i]) >= i:
+                self.ImageRefraction.axes.plot([self.parameters.PointOfIntersectXRefraction[i],self.parameters.PointOfIntersectXRefraction[i+1]],
                                 [self.parameters.PointOfIntersectYRefraction[i],self.parameters.PointOfIntersectYRefraction[i+1]],
                                 color = "red")
             
@@ -1064,14 +1113,33 @@ class WavesAndOpticsWindow(QMainWindow):
                                                 tmpPosX],
                                             [self.parameters.PointOfIntersectYRefraction[j+1],self.parameters.PointOfIntersectYRefraction[j]],
                                             color = color[i])
+            midPoint = (self.parameters.PointOfIntersectYRefraction[i+1] - botValue)/(topValue - botValue)
+            interval = 0.2 - self.parameters.CurrentNumberInterfacesRefraction * 0.15/self.parameters.maxNumberInterfacesRefraction
             if self.parameters.showNormalRefraction[i]:
-                midPoint = (self.parameters.PointOfIntersectYRefraction[i+1] - botValue)/(topValue - botValue)
-                interval = 0.2 - self.parameters.CurrentNumberInterfacesRefraction * 0.15/self.parameters.maxNumberInterfacesRefraction
                 self.ImageRefraction.axes.axvline(self.parameters.PointOfIntersectXRefraction[i+1],
                                                   ymin=midPoint - interval, 
                                                   ymax = midPoint + interval,
                                                   linestyle = "dashed")
-
+            if self.parameters.showIncidentAngleRefraction[i]:
+                self.ImageRefraction.axes.add_patch(Arc(xy = (self.parameters.PointOfIntersectXRefraction[i+1],self.parameters.PointOfIntersectYRefraction[i+1]),
+                                                        width = 3.6*interval, height = 3.6*interval, 
+                                                        theta1 = 90, 
+                                                        theta2 = 90-np.arctan((self.parameters.PointOfIntersectXRefraction[i+1]-self.parameters.PointOfIntersectXRefraction[i])/(self.parameters.PointOfIntersectYRefraction[i+1]-self.parameters.PointOfIntersectYRefraction[i]))*180/np.pi,
+                                                        color = "red"))
+            if self.parameters.showReflectedAngleRefraction[i]:
+                self.ImageRefraction.axes.add_patch(Arc(xy = (self.parameters.PointOfIntersectXRefraction[i+1],self.parameters.PointOfIntersectYRefraction[i+1]),
+                                                        width = 3.6*interval, height = 3.6*interval, 
+                                                        theta1 = 90+np.arctan((self.parameters.PointOfIntersectXRefraction[i+1]-self.parameters.PointOfIntersectXRefraction[i])/(self.parameters.PointOfIntersectYRefraction[i+1]-self.parameters.PointOfIntersectYRefraction[i]))*180/np.pi,
+                                                        theta2 = 90, 
+                                                        color = "blue"))
+            if self.parameters.showRefractedAngleRefraction[i]:
+                try:
+                    self.ImageRefraction.axes.add_patch(Arc(xy = (self.parameters.PointOfIntersectXRefraction[i+1],self.parameters.PointOfIntersectYRefraction[i+1]),
+                                                        width = 3.6*interval, height = 3.6*interval, 
+                                                        theta1 = 270, 
+                                                        theta2 = 270-np.arctan((self.parameters.PointOfIntersectXRefraction[i+2]-self.parameters.PointOfIntersectXRefraction[i+1])/(self.parameters.PointOfIntersectYRefraction[i+2]-self.parameters.PointOfIntersectYRefraction[i+1]))*180/np.pi,
+                                                        color = "black"))
+                except: pass
         self.ImageRefraction.axes.set_ylim(botValue, topValue)
         self.ImageRefraction.axes.grid()        
         self.ImageRefraction.draw()

@@ -53,10 +53,18 @@ class GUIParameters(object):
         self.IndicesRefraction = np.ones(self.maxNumberInterfacesRefraction+1)
         self.PointOfIntersectYRefraction = -np.arange(-1.0,self.maxNumberInterfacesRefraction+1)
         self.showReflectionsRefraction = []
+        self.showRefractionRefraction = []
         self.showNormalRefraction = []
+        self.showIncidentAngleRefraction = []
+        self.showReflectedAngleRefraction = []
+        self.showRefractedAngleRefraction = []
         for i in range(self.maxNumberInterfacesRefraction):
             self.showReflectionsRefraction.append(False)
+            self.showRefractionRefraction.append(True)
             self.showNormalRefraction.append(False)
+            self.showIncidentAngleRefraction.append(False)
+            self.showReflectedAngleRefraction.append(False)
+            self.showRefractedAngleRefraction.append(False)
 
         self.PointOfIntersectXRefraction = np.ones(self.maxNumberInterfacesRefraction+2)
 

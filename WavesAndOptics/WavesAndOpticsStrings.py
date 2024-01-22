@@ -219,6 +219,10 @@ Reflection = {
     "En" : "Reflection",
     "Fr" : "Réflexion"
 }
+Refraction = {
+    "En" : "Refraction",
+    "Fr" : "Réfraction"
+}
 Normal = {
     "En" : "Normal",
     "Fr" : "Normale"

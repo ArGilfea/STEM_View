@@ -99,6 +99,9 @@ class MedPhysWindow(QMainWindow):
     def _addSpecterImagePBA(self):
         """Adds the central image socket for Photon Beam Attenuation showing the Specter"""
         self.PBASpecter = MplCanvas(self, width=6, height=6, dpi=75)
+        self.PBASpecter_cid = self.PBASpecter.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.PBASpecter))
+        self.PBASpecter_cod = self.PBASpecter.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.PBASpecter))
+
         self.generalLayoutPBA.addWidget(self.PBASpecter,self.current_linePBA,1)
 
         self.updateImagePBA()
@@ -947,7 +950,7 @@ class MedPhysWindow(QMainWindow):
             # deal with zoom out
             scale_factor = -1
             #print("-")
-        if which == self.PBAAttenuation:
+        if which in [self.PBAAttenuation,self.PBASpecter]:
             actual = float(self.lineEditDepthPBA.text())
             scale_factor = scale_factor*self.parameters.depthRangePBA[-1]/100
             self.parameters.depthPBA = actual + scale_factor
