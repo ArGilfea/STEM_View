@@ -58,8 +58,19 @@ class GUIParameters(object):
         self.attenuatedEnergy = []
 
         self.angleTomo = 0
-        self.ImageTomoName = "Lenna"
-        self.ImageTomo = mpimg.imread(f'{basedir}/TomoImage/{self.ImageTomoName}.pgm')        
+
+        self.NumberParameterTomo1= 4
+        self.NumberParameterTomo2 = 2
+        self.NumberShapesTomo = 3
+        self.ImageTomoName = np.zeros(self.NumberShapesTomo, dtype = object)
+        self.ImageTomoName[:] = "Lenna"
+
+        self.ParameterTomo = np.zeros((self.NumberShapesTomo,self.NumberParameterTomo1,self.NumberParameterTomo2))
+        self.ParameterTomo[:,0,:] = 50
+        self.ParameterTomo[0,1,:] = self.ParameterTomo[0,0,:]/2
+        self.ParameterTomo[0,2:,:] = 1
+
+        self.ImageTomo = mpimg.imread(f'{basedir}/TomoImage/{self.ImageTomoName[0]}.pgm')        
         self.ImageRotatedTomo =  np.copy(self.ImageTomo)
 
         self.AngleStepTomo = 1

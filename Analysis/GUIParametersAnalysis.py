@@ -24,7 +24,8 @@ class GUIParametersAnalysis(object):
         self.RangeFourierFourier1D = np.arange(-1/(2*self.dxFourier1D),1/(2*self.dxFourier1D),1/(self.dxFourier1D*self.XAxisFourier1D.shape[0]))
 
         self.CurveTypeFourier1D = np.zeros((self.numberFilter,self.numberParameters),dtype = object)
-        self.fullRangeFourier1D = np.zeros((self.numberFilter, self.numberParameters), dtype = bool)
+        self.fullRangeFourier1D = np.zeros((self.numberFilter, self.numberParameters), dtype = int)
+        self.showCurveFourier1D = np.zeros((self.numberFilter, self.numberParameters), dtype = int)
         self.directFourierCurve1D = np.zeros((self.numberFilter),dtype = bool)
         self.CurveParametersFourier1D = np.zeros((self.numberFilter,self.numberParameters,self.numberParameters2))
 
@@ -36,12 +37,15 @@ class GUIParametersAnalysis(object):
             for k in range(self.numberParameters):
                 self.CurveTypeFourier1D[i,k] = "Low Pass Flat"
                 self.fullRangeFourier1D[i,k] = False
+                self.showCurveFourier1D[i,k] = True
             self.CurveParametersFourier1D[i,0,1] = 1.0
             self.CurveParametersFourier1D[i,0,2] = 1.0
 
             self.directFourierCurve1D[i] = False
 
-            self.BaseCurveFourier1D[i] = Fourier1D.create1DFunctions(self.XAxisFourier1D,self.CurveParametersFourier1D[i,:,:],self.CurveTypeFourier1D[i,:],self.fullRangeFourier1D[i,:])
+            self.BaseCurveFourier1D[i] = Fourier1D.create1DFunctions(self.XAxisFourier1D,self.CurveParametersFourier1D[i,:,:],
+                                                                     self.CurveTypeFourier1D[i,:],self.fullRangeFourier1D[i,:],
+                                                                     self.showCurveFourier1D[i,:])
             self.FourierCurveFourier1DAbs[i], self.FourierCurveFourier1D[i] = Fourier1D.FourierTransform1D(self.BaseCurveFourier1D[i])
         
         self.ConvolutionFouried1DFourier = np.ones_like(self.FourierCurveFourier1DAbs[0])
@@ -52,7 +56,8 @@ class GUIParametersAnalysis(object):
             else:
                 self.Convolution1DFourier = np.convolve(self.Convolution1DFourier,self.BaseCurveFourier1D[i],mode = 'same') * (self.XAxisFourier1D[1]-self.XAxisFourier1D[0])
             self.ConvolutionFouried1DFourier *= self.FourierCurveFourier1DAbs[i]
-
+        self.ConvolutionUnFouried1DFourier, _ = Fourier1D.InverseFourierTransform1D(self.ConvolutionFouried1DFourier)
+        self.ConvolutionUnFouried1DFourier *= (self.XAxisFourier1D[1]-self.XAxisFourier1D[0])
 
         self.ImageFiltersName = "Phantom"
         self.ImageFilters = mpimg.imread(f'{basedir}/AnalysisImage/{self.ImageFiltersName}.pgm')

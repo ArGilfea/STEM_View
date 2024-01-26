@@ -137,6 +137,7 @@ class AnalysisWindow(QMainWindow):
         self.CurveTypeComboBoxFourier1D = np.zeros((self.parameters.numberFilter,self.parameters.numberParameters),dtype = object)
         self.CurveDirectFourierComboBoxFourier1D = np.zeros(self.parameters.numberFilter,dtype = object)
         self.FullRangeComboBoxFourier1D = np.zeros((self.parameters.numberFilter,self.parameters.numberParameters),dtype = object)
+        self.ShowCurveComboBoxFourier1D = np.zeros((self.parameters.numberFilter,self.parameters.numberParameters),dtype = object)
         self.ParameterLineEditFourier1D = np.zeros((self.parameters.numberFilter,self.parameters.numberParameters,self.parameters.numberParameters2),dtype = object)
 
         self.RangeMinLineEditFourier1D = QLineEdit()
@@ -154,7 +155,12 @@ class AnalysisWindow(QMainWindow):
                 self.CurveTypeComboBoxFourier1D[i,j].activated[str].connect(self.update_Combo_CurveFourier1D)
 
                 self.FullRangeComboBoxFourier1D[i,j] = QCheckBox()
+                self.FullRangeComboBoxFourier1D[i,j].setChecked(self.parameters.fullRangeFourier1D[i,j])
                 self.FullRangeComboBoxFourier1D[i,j].stateChanged.connect(self.update_Check_FullRangeFourier1D)
+
+                self.ShowCurveComboBoxFourier1D[i,j] = QCheckBox()
+                self.ShowCurveComboBoxFourier1D[i,j].setChecked(self.parameters.showCurveFourier1D[i,j])
+                self.ShowCurveComboBoxFourier1D[i,j].stateChanged.connect(self.update_Check_ShowCurveFourier1D)
 
             self.CurveDirectFourierComboBoxFourier1D[i] = QCheckBox()
             self.CurveDirectFourierComboBoxFourier1D[i].stateChanged.connect(self.update_Check_DirectFourierFourier1D)
@@ -176,6 +182,7 @@ class AnalysisWindow(QMainWindow):
 
                     layout.addWidget(self.ParameterLineEditFourier1D[i,j,k],j+3,k+2)
                 layout.addWidget(self.FullRangeComboBoxFourier1D[i,j],j+3,k+4)
+                layout.addWidget(self.ShowCurveComboBoxFourier1D[i,j],j+3,k+5)
             for k in range(self.parameters.numberParameters2):
                 if k == 0:
                     layout.addWidget(QLabel(AnalysisStrings.Phase[f"{self.language}"]),2,k+2)
@@ -184,6 +191,7 @@ class AnalysisWindow(QMainWindow):
                 elif k == 2:
                     layout.addWidget(QLabel(AnalysisStrings.Amplitude[f"{self.language}"]),2,k+2)
             layout.addWidget(QLabel(AnalysisStrings.FullRangeFourier1D[f"{self.language}"]),2,k+4)
+            layout.addWidget(QLabel(AnalysisStrings.ShowCurveFourier1D[f"{self.language}"]),2,k+5)
 
             self.generalLayoutFourier1D.addWidget(subWidget,self.currentLineFourier1D,i+1)
         self.currentLineFourier1D += 1
@@ -409,6 +417,17 @@ class AnalysisWindow(QMainWindow):
                     self.parameters.fullRangeFourier1D[i,j] = False
 
         self.updateImagesFourier1D()
+    
+    def update_Check_ShowCurveFourier1D(self):
+        """Updates the Boolean for Full Range"""
+        for i in range(self.parameters.numberFilter):
+            for j in range(self.parameters.numberParameters):
+                if self.ShowCurveComboBoxFourier1D[i,j].isChecked():
+                    self.parameters.showCurveFourier1D[i,j] = True
+                else:
+                    self.parameters.showCurveFourier1D[i,j] = False
+
+        self.updateImagesFourier1D()
 
     def update_Check_DirectFourierFourier1D(self):
         """Updates the Boolean for Direct Fourier"""
@@ -467,13 +486,15 @@ class AnalysisWindow(QMainWindow):
                 self.parameters.BaseCurveFourier1D[i] = Fourier1D.create1DFunctions(self.parameters.XAxisFourier1D,
                                                                     self.parameters.CurveParametersFourier1D[i,:,:],
                                                                     self.parameters.CurveTypeFourier1D[i,:],
-                                                                    self.parameters.fullRangeFourier1D[i,:])
+                                                                    self.parameters.fullRangeFourier1D[i,:],
+                                                                    self.parameters.showCurveFourier1D[i,:])
                 self.parameters.FourierCurveFourier1DAbs[i], self.parameters.FourierCurveFourier1D = Fourier1D.FourierTransform1D(self.parameters.BaseCurveFourier1D[i])
             else:
                 self.parameters.FourierCurveFourier1DAbs[i] = Fourier1D.create1DFunctions(self.parameters.XAxisFourier1D,
                                                                     self.parameters.CurveParametersFourier1D[i,:,:],
                                                                     self.parameters.CurveTypeFourier1D[i,:],
-                                                                    self.parameters.fullRangeFourier1D[i,:])
+                                                                    self.parameters.fullRangeFourier1D[i,:],
+                                                                    self.parameters.showCurveFourier1D[i,:])
                 self.parameters.BaseCurveFourier1D[i], _ = Fourier1D.InverseFourierTransform1D(self.parameters.FourierCurveFourier1DAbs[i])
 
     def updateConvolutionFourier1D(self):
@@ -491,7 +512,8 @@ class AnalysisWindow(QMainWindow):
                 else:
                     self.parameters.Convolution1DFourier = np.convolve(self.parameters.Convolution1DFourier,self.parameters.BaseCurveFourier1D[i],mode = 'same') * (self.parameters.XAxisFourier1D[1]-self.parameters.XAxisFourier1D[0])
                     self.parameters.ConvolutionFouried1DFourier *= self.parameters.FourierCurveFourier1DAbs[i]
- 
+            self.parameters.ConvolutionUnFouried1DFourier, _ = Fourier1D.InverseFourierTransform1D(self.parameters.ConvolutionFouried1DFourier)
+            self.parameters.ConvolutionUnFouried1DFourier *= (self.parameters.XAxisFourier1D[1]-self.parameters.XAxisFourier1D[0])
     def updateFourierBaseImage(self):
         """Updates the Basic Fourier Image"""
         for i in range(self.parameters.numberFilter):
@@ -532,6 +554,7 @@ class AnalysisWindow(QMainWindow):
         except:
             pass
 
+        #self.Fourier1DConvolvedImage.axes.plot(self.parameters.XAxisFourier1D,self.parameters.ConvolutionUnFouried1DFourier, color = 'r')
         self.Fourier1DConvolvedImage.axes.plot(self.parameters.XAxisFourier1D,self.parameters.Convolution1DFourier)
 
         self.Fourier1DConvolvedImage.axes.grid()

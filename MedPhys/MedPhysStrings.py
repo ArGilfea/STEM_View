@@ -221,6 +221,26 @@ ImageTomoLabel = {
     "En" : "Image",
     "Fr" : "Image"
 }
+ParametersImageTomo = {
+    "En" : "Parameters of the Image",
+    "Fr" : "Paramètres de l'Image"    
+}
+ParametersCenterTomo = {
+    "En" : "Center",
+    "Fr" : "Centre"
+}
+ParametersDimensionsTomo = {
+    "En" : "Dimensions",
+    "Fr" : "Dimensions"
+}
+ParametersSizeTomo = {
+    "En" : "Size",
+    "Fr" : "Grosseur"
+}
+ParametersHeightTomo = {
+    "En" : "Height",
+    "Fr" : "Hauteur"
+}
 ImageTomoName = {
     "Lenna" : {
         "En" : "Lenna",
@@ -257,6 +277,30 @@ ImageTomoName = {
     "BumpNoise" : {
         "En" : "Bump with Noise",
         "Fr" : "Bosse avec Bruit"
+    },
+    "Rectangle" : {
+        "En" : "Rectangle",
+        "Fr" : "Rectangle"
+    },
+    "Ellipsoid" : {
+        "En" : "Ellipsoid",
+        "Fr" : "Ellipse"
+    },
+    "Dense Shell Ellipsoid" : {
+        "En" : "Dense Shell Ellipsoid",
+        "Fr" : "Ellipse avec Capsule Dense"
+    },
+    "Dense Core Ellipsoid" : {
+        "En" : "Dense Core Ellipsoid",
+        "Fr" : "Ellipse avec Centre Dense"
+    },
+    "Gaussian" : {
+        "En" : "Gaussian",
+        "Fr" : "Gaussienne"
+    },
+    "Sinc" : {
+        "En" : "Sinc Function",
+        "Fr" : "Sinus Cardinal"
     }
 }
 FilterTomoLabel = {

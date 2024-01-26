@@ -52,3 +52,44 @@ def segm_interpolation_2D(slice:np.ndarray,p1:float,p2:float) -> float:
         xprimeyprime = 0
 
     return xprimeyprime
+
+def CreateImage(parameters: np.ndarray, name: str)->np.ndarray:
+    """Creates an Image based on parameters"""
+    newImage = np.zeros((int(parameters[0,0]),int(parameters[0,1])))
+    
+    if name == "Rectangle":
+        for i in range(newImage.shape[0]):
+            for j in range(newImage.shape[1]):
+                if (i <= parameters[1,0] + parameters[2,0]/2) and (i >= parameters[1,0] - parameters[2,0]/2):
+                    if (j <= parameters[1,1] + parameters[2,1]/2) and (j >= parameters[1,1] - parameters[2,1]/2):
+                        newImage[i,j] = parameters[3,0]
+    elif name == "Ellipsoid":
+        for i in range(newImage.shape[0]):
+            for j in range(newImage.shape[1]):
+                if (((i-parameters[1,0])/parameters[2,0])**2 + ((j - parameters[1,1])/parameters[2,1])**2) <= 1:
+                    newImage[i,j] = parameters[3,0]
+    elif name == "Dense Shell Ellipsoid":
+        for i in range(newImage.shape[0]):
+            for j in range(newImage.shape[1]):
+                if (((i-parameters[1,0])/parameters[2,0])**2 + ((j - parameters[1,1])/parameters[2,1])**2) <= 1:
+                    newImage[i,j] = parameters[3,0] * ((i-parameters[1,0])/parameters[2,0])**2 + parameters[3,1] * ((j - parameters[1,1])/parameters[2,1])**2
+    elif name == "Dense Core Ellipsoid":
+        for i in range(newImage.shape[0]):
+            for j in range(newImage.shape[1]):
+                if (((i-parameters[1,0])/parameters[2,0])**2 + ((j - parameters[1,1])/parameters[2,1])**2) <= 1:
+                    newImage[i,j] = 1/(parameters[3,0] * ((i-parameters[1,0]))**2 + parameters[3,1] * ((j - parameters[1,1]))**2 + 1)
+ 
+    elif name == "Gaussian":
+        for i in range(newImage.shape[0]):
+            newImage[i,:] = parameters[3,0] * np.exp(-(i-parameters[1,0])**2/(2*parameters[2,0]**2))
+        for j in range(newImage.shape[1]):
+            newImage[:,j] *= parameters[3,1] * np.exp(-(j-parameters[1,1])**2/(2*parameters[2,1]**2))
+    elif name == "Sinc":
+        for i in range(newImage.shape[0]):
+            newImage[i,:] = parameters[3,0] * np.sin(2*np.pi*parameters[2,0]*(i-parameters[1,0]))
+        for j in range(newImage.shape[1]):
+            newImage[:,j] *= parameters[3,1] * np.sin(2*np.pi*parameters[2,1]*(j-parameters[1,1]))
+    else:
+        raise Exception(f"Invalid choice of Image with : {name}")
+
+    return newImage

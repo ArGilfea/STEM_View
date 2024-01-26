@@ -71,6 +71,10 @@ CurvesTypeFourier1D = {
     "Sines" : {
         "En" : "Sines",
         "Fr" : "Sinus"
+    },
+    "Gaussian Noise" : {
+        "En" : "Gaussian Noise",
+        "Fr" : "Bruit Gaussien"
     }
 }
 ParametersImageFourier1D = {
@@ -100,6 +104,10 @@ Amplitude = {
 FullRangeFourier1D = {
     "En" : "Full Range",
     "Fr" : "Portée Complète"    
+}
+ShowCurveFourier1D = {
+    "En" : "Show",
+    "Fr" : "Montrer"    
 }
 Parameters1Fourier1D = {
     "En" : "Width and Main",

@@ -74,18 +74,19 @@ class MedPhysWindow(QMainWindow):
         self.tabs.addTab(centralWidgetReadMe,MedPhysStrings.ReadMeName[f"{self.language}"])
 
         self.setCentralWidget(self.tabs)
-
+        #PBA
         self._addSpecterImagePBA()
         self._addMaterialTypePBA()
         self._addDepthSliderPBA()
         self._addXCOMDataImagePBA()
         self._addDataImageAttenuationPBA()
-
+        #Tomo
         self._addImageTomo()
         self._addImageReconsTomo()
         self._addAngleSliderTomo()
         self._addFlatImageTomo()
         self._addSinoImageTomo()
+        self._addParamTomo()
         self._addOptionsTomo()
 
 
@@ -343,6 +344,36 @@ class MedPhysWindow(QMainWindow):
         self.current_lineFilter += 1
         self.current_lineTomo += 1
     
+    def _addParamTomo(self):
+        """Creates parameters buttons for the Tomography"""
+        subWidget = QWidget()
+        layout = QGridLayout()
+        subWidget.setLayout(layout)        
+        sizeText = 40
+        self.ParametersLineEditTomo = np.zeros((self.parameters.NumberShapesTomo,self.parameters.NumberParameterTomo1,self.parameters.NumberParameterTomo2),dtype = object)
+
+        for k in range(self.parameters.NumberShapesTomo):
+            for i in range(self.parameters.NumberParameterTomo1):
+                for j in range(self.parameters.NumberParameterTomo2):
+                    self.ParametersLineEditTomo[k,i,j] = QLineEdit()
+                    self.ParametersLineEditTomo[k,i,j].setFixedWidth(sizeText)
+                    self.ParametersLineEditTomo[k,i,j].setText(str(self.parameters.ParameterTomo[k,i,j]))
+                    self.ParametersLineEditTomo[k,i,j].editingFinished.connect(self.updateParametersTomo)
+
+                    if (k ==0 or i != 0):
+                        layout.addWidget(self.ParametersLineEditTomo[k,i,j],i+2,k*self.parameters.NumberParameterTomo1 + j+1)
+                    if i == 0:
+                        if j % 2 == 0: layout.addWidget(QLabel("x"),1,k*self.parameters.NumberParameterTomo1 + j+1)
+                        elif j % 2 == 1: layout.addWidget(QLabel("y"),1,k*self.parameters.NumberParameterTomo1 + j+1)
+
+                if i == 0: layout.addWidget(QLabel(MedPhysStrings.ParametersDimensionsTomo[f"{self.language}"]),i+2,0)
+                if i == 1: layout.addWidget(QLabel(MedPhysStrings.ParametersCenterTomo[f"{self.language}"]),i+2,0)
+                if i == 2: layout.addWidget(QLabel(MedPhysStrings.ParametersSizeTomo[f"{self.language}"]),i+2,0)
+                if i == 3: layout.addWidget(QLabel(MedPhysStrings.ParametersHeightTomo[f"{self.language}"]),i+2,0)
+
+        layout.addWidget(QLabel(MedPhysStrings.ParametersImageTomo[f"{self.language}"]),0,0)
+        self.generalLayoutTomo.addWidget(subWidget,self.current_lineTomo,1)
+
     def _addOptionsTomo(self):
         """Creates the Option parameters for the Tomography"""
         subWidget = QWidget()
@@ -350,10 +381,15 @@ class MedPhysWindow(QMainWindow):
         subWidget.setLayout(layout)        
         sizeText = 30
 
-        self.ImageChoiceTomo = QComboBox()
-        for _, names in MedPhysStrings.ImageTomoName.items():
-            self.ImageChoiceTomo.addItem(names[f"{self.language}"])
-        self.ImageChoiceTomo.setCurrentText(MedPhysStrings.ImageTomoName[f"{self.parameters.ImageTomoName}"][f"{self.language}"])
+        self.generalLayoutTomo.addWidget(subWidget,self.current_lineTomo,2)
+
+        self.ImageChoiceTomo = np.zeros((self.parameters.NumberShapesTomo),dtype = object)
+        for i in range(self.parameters.NumberShapesTomo):
+            self.ImageChoiceTomo[i] = QComboBox()
+            for _, names in MedPhysStrings.ImageTomoName.items():
+                self.ImageChoiceTomo[i].addItem(names[f"{self.language}"])
+            self.ImageChoiceTomo[i].setCurrentText(MedPhysStrings.ImageTomoName[f"{self.parameters.ImageTomoName[i]}"][f"{self.language}"])
+            self.ImageChoiceTomo[i].activated[str].connect(self.update_Combo_ImageTomo)
 
         self.ImageFilterTomo = QComboBox()
         for _, names in MedPhysStrings.FilterTomoName.items():
@@ -364,17 +400,17 @@ class MedPhysWindow(QMainWindow):
         self.StepAngleTomoLineEdit.setText(f"{self.parameters.AngleStepTomo}")
         self.StepAngleTomoLineEdit.setFixedWidth(sizeText)
 
-        self.ImageChoiceTomo.activated[str].connect(self.update_Combo_ImageTomo)
         self.ImageFilterTomo.activated[str].connect(self.update_Combo_FilterTomo)
         self.StepAngleTomoLineEdit.editingFinished.connect(self.update_Step_AngleTomo)
 
+        layout.addWidget(QLabel(MedPhysStrings.FilterTomoLabel[f"{self.language}"]),0,0)
+        layout.addWidget(self.ImageFilterTomo,0,1)
+        layout.addWidget(QLabel(MedPhysStrings.StepTomoLabel[f"{self.language}"]),1,0)
+        layout.addWidget(self.StepAngleTomoLineEdit,1,1)
 
-        layout.addWidget(QLabel(MedPhysStrings.ImageTomoLabel[f"{self.language}"]),0,0)
-        layout.addWidget(self.ImageChoiceTomo,0,1)
-        layout.addWidget(QLabel(MedPhysStrings.FilterTomoLabel[f"{self.language}"]),1,0)
-        layout.addWidget(self.ImageFilterTomo,1,1)
-        layout.addWidget(QLabel(MedPhysStrings.StepTomoLabel[f"{self.language}"]),2,0)
-        layout.addWidget(self.StepAngleTomoLineEdit,2,1)
+        for i in range(self.parameters.NumberShapesTomo):
+            layout.addWidget(QLabel(MedPhysStrings.ImageTomoLabel[f"{self.language}"]+f" {i+1}"),2+i,0)
+            layout.addWidget(self.ImageChoiceTomo[i],2+i,1)
 
         self.generalLayoutTomo.addWidget(subWidget,self.current_lineTomo,2)
         self.current_lineTomo += 1
@@ -540,11 +576,11 @@ class MedPhysWindow(QMainWindow):
         self.TomoImage.axes.pcolormesh(self.parameters.ImageRotatedTomo,cmap = 'Greys_r')
         self.TomoImage.axes.invert_yaxis()
 
-        self.TomoImage.axes.set_title(MedPhysStrings.ImageTomoName[self.parameters.ImageTomoName][self.language] +
+        self.TomoImage.axes.set_title(MedPhysStrings.ImageTomoName[self.parameters.ImageTomoName[0]][self.language] +
                                         ", " +
                                         MedPhysStrings.AngleTomoLabel[self.language] +  
                                         " = " + 
-                                        str(self.parameters.angleTomo))
+                                        str(f"{self.parameters.angleTomo:.1f}"))
         self.TomoImage.draw()
 
     def updateImageReconstructed(self):
@@ -560,7 +596,7 @@ class MedPhysWindow(QMainWindow):
         if self.language in ["En"]:
             self.TomoReconstructed.axes.set_title(MedPhysStrings.ReconstructedLabel[self.language] + 
                                                     " " +
-                                                    MedPhysStrings.ImageTomoName[self.parameters.ImageTomoName][self.language] + 
+                                                    MedPhysStrings.ImageTomoName[self.parameters.ImageTomoName[0]][self.language] + 
                                                     ", " + 
                                                     MedPhysStrings.FilterTomoName[self.parameters.ReconstructionFilterName][self.language] +
                                                     " " + 
@@ -568,7 +604,7 @@ class MedPhysWindow(QMainWindow):
         elif self.language in ["Fr"]:
             self.TomoReconstructed.axes.set_title(MedPhysStrings.ReconstructedLabel[self.language] + 
                                                     " " +
-                                                    MedPhysStrings.ImageTomoName[self.parameters.ImageTomoName][self.language] + 
+                                                    MedPhysStrings.ImageTomoName[self.parameters.ImageTomoName[0]][self.language] + 
                                                     " " +
                                                     MedPhysStrings.Reconstructed2Label[self.language]+ 
                                                     ", " + 
@@ -586,7 +622,7 @@ class MedPhysWindow(QMainWindow):
 
         self.FlatImage.axes.plot(self.parameters.FlatImageAngleTomo)
         self.FlatImage.axes.set_title(MedPhysStrings.LineIntensityLabel[self.language] +
-                                        self.parameters.ImageTomoName +
+                                        self.parameters.ImageTomoName[0] +
                                         MedPhysStrings.LineIntensity2Label[self.language] +
                                         f"{self.parameters.angleTomo:.1f}" +
                                         MedPhysStrings.LineIntensity3Label[self.language])
@@ -605,9 +641,9 @@ class MedPhysWindow(QMainWindow):
         self.SinoImage.axes.pcolormesh(self.parameters.SinogramTomo,cmap = 'Greys_r')
         self.SinoImage.axes.axvline(self.parameters.angleTomo/self.parameters.AngleStepTomo,color = 'r',alpha=0.3)
         self.SinoImage.axes.set_title(MedPhysStrings.SinogramTitleLabel[self.language] +
-                                        MedPhysStrings.ImageTomoName[self.parameters.ImageTomoName][self.language] +
+                                        MedPhysStrings.ImageTomoName[self.parameters.ImageTomoName[0]][self.language] +
                                         MedPhysStrings.SinogramTitle2Label[self.language] +
-                                        str(self.parameters.AngleStepTomo) +
+                                        str(f"{self.parameters.AngleStepTomo:.2f}") +
                                         MedPhysStrings.LineIntensity3Label[self.language])
 
         self.SinoImage.draw()
@@ -677,13 +713,22 @@ class MedPhysWindow(QMainWindow):
 
     def update_Combo_ImageTomo(self):
         """Updates the Combo of the Image of the Tomo"""
-        name_tmp = self.ImageChoiceTomo.currentText()
-        for dict, names in MedPhysStrings.ImageTomoName.items():
-            if name_tmp in names.values():
-                self.parameters.ImageTomoName = dict
-        self.parameters.ImageTomo = mpimg.imread(f'{basedir}/TomoImage/{self.parameters.ImageTomoName}.pgm')
-        self.parameters.ImageTomo = rescale(self.parameters.ImageTomo, scale = 0.5)
+        self.parameters.ImageTomo = np.zeros((int(self.parameters.ParameterTomo[0,0,0]),int(self.parameters.ParameterTomo[0,0,1])))
+        for i in range(self.parameters.NumberShapesTomo):
+            name_tmp = self.ImageChoiceTomo[i].currentText()
+            for dict, names in MedPhysStrings.ImageTomoName.items():
+                if name_tmp in names.values():
+                    self.parameters.ImageTomoName[i] = dict
+            if self.parameters.ImageTomoName[i] not in ["Rectangle","Ellipsoid","Dense Shell Ellipsoid","Dense Core Ellipsoid",
+                                                    "Gaussian","Sinc"]:
+                tmpImg = mpimg.imread(f'{basedir}/TomoImage/{self.parameters.ImageTomoName[i]}.pgm')
+                self.parameters.ImageTomo += self.parameters.ParameterTomo[i,3,0]*rescale(tmpImg, scale = [self.parameters.ParameterTomo[0,0,0]/tmpImg.shape[0],self.parameters.ParameterTomo[0,0,1]/tmpImg.shape[1]])
+            else:
+                for k in range(self.parameters.NumberShapesTomo):
+                    self.parameters.ImageTomo += Tomography.CreateImage(self.parameters.ParameterTomo[k,:,:],self.parameters.ImageTomoName[i])
+        self.update_ImageTomo()
 
+    def update_ImageTomo(self):
         self.parameters.ImageRotatedTomo = Tomography.Rotate(self.parameters.ImageTomo,angle = self.parameters.angleTomo*2*np.pi/360)
 
         self.parameters.FlatImageAngleTomo = np.sum(self.parameters.ImageRotatedTomo,axis=1)
@@ -693,10 +738,30 @@ class MedPhysWindow(QMainWindow):
                                                                 filter=self.parameters.ReconstructionFilterName)
         self.parameters.ReconstructedRotatedTomo = Tomography.Rotate(self.parameters.ReconstructedTomo,angle = self.parameters.angleTomo*2*np.pi/360)
 
+        self.updateAllImagesTomo()
+
+    def updateAllImagesTomo(self):
         self.updateImageTomoSlice()
         self.updateImageTomoBase()
         self.updateImageTomoSino()
         self.updateImageReconstructed()
+
+    def updateParametersTomo(self):
+        """Updates the Parameters of the Tomo Image"""
+
+        for k in range(self.parameters.NumberShapesTomo):
+            for i in range(self.parameters.NumberParameterTomo1):
+                for j in range(self.parameters.NumberParameterTomo2):
+                    try:
+                        self.parameters.ParameterTomo[k,i,j] = float(self.ParametersLineEditTomo[k,i,j].text())
+                    except:
+                        self.parameters.ParameterTomo[k,i,j] = 0.0
+                        self.ParametersLineEditTomo[k,i,j].setText("0.0")
+                    if i == 0:
+                        self.parameters.ParameterTomo[k,i,j] = self.parameters.ParameterTomo[0,i,j]
+        """if self.parameters.ImageTomoName in ["Rectangle","Ellipsoid","Dense Shell Ellipsoid","Dense Core Ellipsoid",
+                                             "Gaussian","Sinc"]:"""
+        if True: self.update_Combo_ImageTomo()
 
     def update_Combo_FilterTomo(self):
         self.parameters.ReconstructionFilterName = self.ImageFilterTomo.currentText()
