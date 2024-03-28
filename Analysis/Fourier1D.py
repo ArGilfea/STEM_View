@@ -110,6 +110,11 @@ def create1DFunctions(CurveRange:np.ndarray,CurveParameters:np.ndarray,CurveType
             if CurveParameters[j,2] != 0 :
               if CurveRange[i] >=  CurveParameters[j,0]- CurveParameters[j,2]/2 and CurveRange[i] <=  CurveParameters[j,0] + CurveParameters[j,2]/2:
                 filter[i] += CurveParameters[j,2]*np.sin(2*np.pi*(CurveRange[i]-CurveParameters[j,0]/2)*(CurveParameters[j,1]))
+      elif CurveType[j] == "Half Circle":
+        for i in range(filter.shape[0]):
+            if CurveParameters[j,2] != 0 :
+              if CurveRange[i] >= -CurveParameters[j,0] and CurveRange[i] <= CurveParameters[j,0]:
+                filter[i] += CurveParameters[j,2] * (CurveParameters[j,0]**2-CurveRange[i]**2)**(1/2)
       elif CurveType[j] == "Gaussian Noise":
         for i in range(filter.shape[0]):
           if fullRange[j]:

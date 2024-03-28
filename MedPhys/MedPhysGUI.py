@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 from PyQt5 import QtGui
 from functools import partial
-from skimage.transform import radon, rescale
+from skimage.transform import rescale
 ###
 try:
     import GUIParametersMedPhys
@@ -400,6 +400,10 @@ class MedPhysWindow(QMainWindow):
         self.StepAngleTomoLineEdit.setText(f"{self.parameters.AngleStepTomo}")
         self.StepAngleTomoLineEdit.setFixedWidth(sizeText)
 
+        self.logImageTomoQCheckBox = QCheckBox()
+        self.logImageTomoQCheckBox.setChecked(self.parameters.logImagesTomo)
+        self.logImageTomoQCheckBox.stateChanged.connect(self.update_Check_logImageTomo)
+
         self.ImageFilterTomo.activated[str].connect(self.update_Combo_FilterTomo)
         self.StepAngleTomoLineEdit.editingFinished.connect(self.update_Step_AngleTomo)
 
@@ -408,9 +412,12 @@ class MedPhysWindow(QMainWindow):
         layout.addWidget(QLabel(MedPhysStrings.StepTomoLabel[f"{self.language}"]),1,0)
         layout.addWidget(self.StepAngleTomoLineEdit,1,1)
 
+        layout.addWidget(QLabel(MedPhysStrings.LogImageTomoLabel[f"{self.language}"]),2,0)
+        layout.addWidget(self.logImageTomoQCheckBox,2,1)
+
         for i in range(self.parameters.NumberShapesTomo):
-            layout.addWidget(QLabel(MedPhysStrings.ImageTomoLabel[f"{self.language}"]+f" {i+1}"),2+i,0)
-            layout.addWidget(self.ImageChoiceTomo[i],2+i,1)
+            layout.addWidget(QLabel(MedPhysStrings.ImageTomoLabel[f"{self.language}"]+f" {i+1}"),3+i,0)
+            layout.addWidget(self.ImageChoiceTomo[i],3+i,1)
 
         self.generalLayoutTomo.addWidget(subWidget,self.current_lineTomo,2)
         self.current_lineTomo += 1
@@ -573,9 +580,13 @@ class MedPhysWindow(QMainWindow):
         except:
             pass
 
-        self.TomoImage.axes.pcolormesh(self.parameters.ImageRotatedTomo,cmap = 'Greys_r')
+        if not self.parameters.logImagesTomo:
+            self.TomoImage.axes.pcolormesh(self.parameters.ImageRotatedTomo,cmap = 'Greys_r')
+        else:
+            self.TomoImage.axes.pcolormesh(np.log10(self.parameters.ImageRotatedTomo+1),cmap = 'Greys_r')
         self.TomoImage.axes.invert_yaxis()
-
+        self.TomoImage.axes.axvline(self.parameters.ImageRotatedTomo.shape[0]/2)
+        self.TomoImage.axes.axhline(self.parameters.ImageRotatedTomo.shape[0]/2)
         self.TomoImage.axes.set_title(MedPhysStrings.ImageTomoName[self.parameters.ImageTomoName[0]][self.language] +
                                         ", " +
                                         MedPhysStrings.AngleTomoLabel[self.language] +  
@@ -589,8 +600,10 @@ class MedPhysWindow(QMainWindow):
             self.TomoReconstructed.axes.cla()
         except:
             pass
-
-        self.TomoReconstructed.axes.pcolormesh(self.parameters.ReconstructedRotatedTomo,cmap = 'Greys_r')
+        if not self.parameters.logImagesTomo:
+            self.TomoReconstructed.axes.pcolormesh(self.parameters.ReconstructedRotatedTomo,cmap = 'Greys_r')
+        else:
+            self.TomoReconstructed.axes.pcolormesh(np.log10(self.parameters.ReconstructedRotatedTomo+1),cmap = 'Greys_r')
         self.TomoReconstructed.axes.invert_yaxis()
 
         if self.language in ["En"]:
@@ -638,7 +651,11 @@ class MedPhysWindow(QMainWindow):
             self.SinoImage.axes.cla()
         except:
             pass
-        self.SinoImage.axes.pcolormesh(self.parameters.SinogramTomo,cmap = 'Greys_r')
+        if not self.parameters.logImagesTomo:
+            self.SinoImage.axes.pcolormesh(self.parameters.SinogramTomo,cmap = 'Greys_r')
+        else:
+            self.SinoImage.axes.pcolormesh(np.log10(self.parameters.SinogramTomo+1),cmap = 'Greys_r')
+        self.SinoImage.axes.axhline(self.parameters.SinogramTomo.shape[0]/2,color = 'r',alpha=0.3)
         self.SinoImage.axes.axvline(self.parameters.angleTomo/self.parameters.AngleStepTomo,color = 'r',alpha=0.3)
         self.SinoImage.axes.set_title(MedPhysStrings.SinogramTitleLabel[self.language] +
                                         MedPhysStrings.ImageTomoName[self.parameters.ImageTomoName[0]][self.language] +
@@ -724,8 +741,7 @@ class MedPhysWindow(QMainWindow):
                 tmpImg = mpimg.imread(f'{basedir}/TomoImage/{self.parameters.ImageTomoName[i]}.pgm')
                 self.parameters.ImageTomo += self.parameters.ParameterTomo[i,3,0]*rescale(tmpImg, scale = [self.parameters.ParameterTomo[0,0,0]/tmpImg.shape[0],self.parameters.ParameterTomo[0,0,1]/tmpImg.shape[1]])
             else:
-                for k in range(self.parameters.NumberShapesTomo):
-                    self.parameters.ImageTomo += Tomography.CreateImage(self.parameters.ParameterTomo[k,:,:],self.parameters.ImageTomoName[i])
+                self.parameters.ImageTomo += Tomography.CreateImage(self.parameters.ParameterTomo[i,:,:],self.parameters.ImageTomoName[i])
         self.update_ImageTomo()
 
     def update_ImageTomo(self):
@@ -755,13 +771,21 @@ class MedPhysWindow(QMainWindow):
                     try:
                         self.parameters.ParameterTomo[k,i,j] = float(self.ParametersLineEditTomo[k,i,j].text())
                     except:
-                        self.parameters.ParameterTomo[k,i,j] = 0.0
+                        self.parameters.ParameterTomo[k,i,j] = 1.0
                         self.ParametersLineEditTomo[k,i,j].setText("0.0")
                     if i == 0:
                         self.parameters.ParameterTomo[k,i,j] = self.parameters.ParameterTomo[0,i,j]
         """if self.parameters.ImageTomoName in ["Rectangle","Ellipsoid","Dense Shell Ellipsoid","Dense Core Ellipsoid",
                                              "Gaussian","Sinc"]:"""
         if True: self.update_Combo_ImageTomo()
+
+    def update_Check_logImageTomo(self):
+        """Updates the Boolean for Full Range"""
+        if self.logImageTomoQCheckBox.isChecked():
+            self.parameters.logImagesTomo = True
+        else:
+            self.parameters.logImagesTomo = False
+        self.updateImageSliceTomo()
 
     def update_Combo_FilterTomo(self):
         self.parameters.ReconstructionFilterName = self.ImageFilterTomo.currentText()

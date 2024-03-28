@@ -9,8 +9,11 @@ def Sinogram(Image:np.ndarray,angles_step:np.ndarray = 1):
 def Reconstruction(Sinogram: np.ndarray,angles_step:np.ndarray = 1, filter: str = 'ramp'):
     """Reconstructs an Image from a Sinogram"""
     angles = np.arange(0,360,angles_step)
-    return iradon(Sinogram, angles, filter_name=filter)
-    
+    if filter != "None":
+        return iradon(Sinogram, angles, filter_name=filter)
+    else:
+        return iradon(Sinogram, angles, filter_name=None)
+
 def Rotate(array:np.ndarray,angle:float):
     """Rotate a slice of an array around a point"""
     center = np.array([int(array.shape[0]/2),int(array.shape[1]/2)])
@@ -80,10 +83,12 @@ def CreateImage(parameters: np.ndarray, name: str)->np.ndarray:
                     newImage[i,j] = 1/(parameters[3,0] * ((i-parameters[1,0]))**2 + parameters[3,1] * ((j - parameters[1,1]))**2 + 1)
  
     elif name == "Gaussian":
-        for i in range(newImage.shape[0]):
-            newImage[i,:] = parameters[3,0] * np.exp(-(i-parameters[1,0])**2/(2*parameters[2,0]**2))
-        for j in range(newImage.shape[1]):
-            newImage[:,j] *= parameters[3,1] * np.exp(-(j-parameters[1,1])**2/(2*parameters[2,1]**2))
+        if parameters[2,0] != 0:
+            for i in range(newImage.shape[0]):
+                newImage[i,:] = parameters[3,0] * np.exp(-(i-parameters[1,0])**2/(2*parameters[2,0]**2))
+        if parameters[2,1] != 0:
+            for j in range(newImage.shape[1]):
+                newImage[:,j] *= parameters[3,1] * np.exp(-(j-parameters[1,1])**2/(2*parameters[2,1]**2))
     elif name == "Sinc":
         for i in range(newImage.shape[0]):
             newImage[i,:] = parameters[3,0] * np.sin(2*np.pi*parameters[2,0]*(i-parameters[1,0]))

@@ -308,6 +308,10 @@ FilterTomoLabel = {
     "Fr" : "Filtre"
 }
 FilterTomoName = {
+    "None" : {
+        "En" : "None",
+        "Fr" : "Aucun"
+    },
     "ramp" : {
         "En" : "Ramp",
         "Fr" : "Rampe"
@@ -336,6 +340,10 @@ AngleTomoLabel = {
 StepTomoLabel = {
     "En" : "Step",
     "Fr" : "Bond"
+}
+LogImageTomoLabel = {
+    "En" : "log",
+    "Fr" : "log"
 }
 PositionLabel = {
     "En" : "Position",
