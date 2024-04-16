@@ -72,6 +72,10 @@ CurvesTypeFourier1D = {
         "En" : "Sines",
         "Fr" : "Sinus"
     },
+    "Half Circle" : {
+        "En" : "Half Circle",
+        "Fr" : "Demi-Cercle"
+    },
     "Gaussian Noise" : {
         "En" : "Gaussian Noise",
         "Fr" : "Bruit Gaussien"
@@ -212,6 +216,18 @@ ImageNameFilters = {
     "BumpNoise" : {
         "En" : "Bump with Noise",
         "Fr" : "Bosse avec Bruit"
+    },
+    "D1r" : {
+        "En" : "Wall",
+        "Fr" : "Mur"
+    },
+    "D11r" : {
+        "En" : "Carpet",
+        "Fr" : "Tapis"
+    },
+    "D46r" : {
+        "En" : "Embroiding",
+        "Fr" : "Tapisserie"
     }
 }
 ImageHeaderFilters = {
