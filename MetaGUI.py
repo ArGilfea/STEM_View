@@ -12,6 +12,7 @@ from Calculus.CalculusGUI import CalculusWindow
 from WavesAndOptics.WaveAndOpticsGUI import WavesAndOpticsWindow
 from Analysis.AnalysisGUI import AnalysisWindow
 from QuantumMechanics.QuantumMechanicsGUI import QuantumMechanicsWindow
+from Mechanics.MechanicsGUI import MechanicsWindow
 import MetaGUIStrings
 
 class MetaGUI(QMainWindow):
@@ -38,6 +39,7 @@ class MetaGUI(QMainWindow):
 
         self._createAnalysisButton()
         self._createCalculusButton()
+        self._createMechanicsButton()
         self._createPhysMedButton()
         self._createQMButton()
         self._createWavesAndOpticsButton()
@@ -88,6 +90,17 @@ class MetaGUI(QMainWindow):
         self.PhysMed.setShortcut("Ctrl+M")
         self.generalLayout.addWidget(self.PhysMed)  
 
+    def _createMechanicsButton(self):
+        """Creates the button for the Mechanics GUI"""
+        self.Mechanics = QPushButton(MetaGUIStrings.Mechanics[f"{self.language}"])
+        self.Mechanics.setToolTip(MetaGUIStrings.OpenWindow1[f"{self.language}"] + 
+                             MetaGUIStrings.Mechanics[f"{self.language}"] + 
+                             MetaGUIStrings.OpenWindow2[f"{self.language}"] +
+                             " (Ctrl+N)")
+        self.Mechanics.clicked.connect(self.openMechanics)
+        self.Mechanics.setShortcut("Ctrl+N")
+        self.generalLayout.addWidget(self.Mechanics)  
+
     def _createQMButton(self):
         """Creates the button for the Quantum Mechanics GUI"""
         self.QM = QPushButton(MetaGUIStrings.QuantumMechanics[f"{self.language}"])
@@ -135,6 +148,11 @@ class MetaGUI(QMainWindow):
     def openWavesOptics(self):
         "Opens the Waves and Optics GUI"
         window = WavesAndOpticsWindow(self,language= self.language)
+        window.show()
+
+    def openMechanics(self):
+        "Opens the Mechanics GUI"
+        window = MechanicsWindow(self,language= self.language)
         window.show()
 
     def openPhysMed(self):
