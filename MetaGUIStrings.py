@@ -31,6 +31,14 @@ Mechanics = {
     "En" : "Mechanics",
     "Fr" : "Mécanique"
 }
+Electromagnetism = {
+    "En" : "ElectroMagnetism",
+    "Fr" : "Électromagnétisme"
+}
+Statistics = {
+    "En" : "Statistics",
+    "Fr" : "Statistiques"
+}
 QuantumMechanics = {
     "En" : "Quantum Mechanics",
     "Fr" : "Mécanique Quantique"

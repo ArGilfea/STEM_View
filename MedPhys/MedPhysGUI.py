@@ -558,16 +558,16 @@ class MedPhysWindow(QMainWindow):
         self.throughPBA = through
         if self.parameters.ShowBaseSpecterPBA:
             if self.parameters.MeanEPBA:
-                self.PBASpecter.axes.axvline(PhotonBeams.AverageE(self.parameters.Specter),color = 'b')
                 self.PBASpecter.axes.plot(self.parameters.SpecterEValues,basic,label= MedPhysStrings.BaseLabel[self.language] + f", μ = {PhotonBeams.AverageE(self.parameters.Specter):.3g}MeV",color = 'b')
+                self.PBASpecter.axes.axvline(PhotonBeams.AverageE(self.parameters.Specter),color = 'b')
             else:
                 self.PBASpecter.axes.plot(self.parameters.SpecterEValues,basic,label=MedPhysStrings.BaseLabel[self.language],color = 'b')
         if self.parameters.MeanEPBA:
             Specter_tmp = np.zeros((self.parameters.SpecterfValues.shape[0],2))
             Specter_tmp[:,0] = self.parameters.SpecterEValues
             Specter_tmp[:,1] = through
-            self.PBASpecter.axes.axvline(PhotonBeams.AverageE(Specter_tmp),color = 'r')
             self.PBASpecter.axes.plot(self.parameters.SpecterEValues,through,label = MedPhysStrings.AttenuatedLabel[self.language] + f", μ = {PhotonBeams.AverageE(Specter_tmp):.3g}MeV",color = 'r')
+            self.PBASpecter.axes.axvline(PhotonBeams.AverageE(Specter_tmp),color = 'r')
         else:
             self.PBASpecter.axes.plot(self.parameters.SpecterEValues,through,label = MedPhysStrings.AttenuatedLabel[self.language],color = 'r')
         self.baseImagePBA()
@@ -712,6 +712,7 @@ class MedPhysWindow(QMainWindow):
                                                 MedPhysStrings.ElementsNamePBA[self.parameters.MaterialTypePBA][self.language])
         if self.parameters.ShowSavedPBA:
             self.PBASpecter.axes.set_title(MedPhysStrings.AttenuatedSpectrumTitleLabel[self.language])
+        self.PBASpecter.axes.set_xlim(left = 0)
     def update_Combo_MaterialPBA(self):
         """Updates the Combo of the Material of the PBA"""
         name_tmp = self.PBAMaterialType.currentText()
@@ -1041,9 +1042,12 @@ class MedPhysWindow(QMainWindow):
             #print("-")
         if which in [self.PBAAttenuation,self.PBASpecter]:
             actual = float(self.lineEditDepthPBA.text())
-            scale_factor = scale_factor*self.parameters.depthRangePBA[-1]/100
-            self.parameters.depthPBA = actual + scale_factor
-            self.lineEditDepthPBA.setText(str(f"{(actual + scale_factor):.2f}"))
+            scale_factor = scale_factor*self.parameters.depthRangePBA[-1]/20
+            if actual + scale_factor >= 0:
+                self.lineEditDepthPBA.setText(str(f"{(actual + scale_factor):.2f}"))
+            else:
+                self.lineEditDepthPBA.setText(str(f"{(0):.2f}"))
+            self.parameters.depthPBA = float(self.lineEditDepthPBA.text())
             self.update_Combo_SpecterPBA()
         elif which == self.SinoImage:
             actual = float(self.lineEditAngleTomo.text())

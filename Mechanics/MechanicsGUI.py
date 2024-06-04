@@ -91,13 +91,13 @@ class MechanicsWindow(QMainWindow):
         ### 2D Trajectory
         self._createTrajectory2DImage()
         self._createOptions2DTrajectory()
-        self._createAccelerationTrajectory2DImage()
         self._createVelocityTrajectory2DImage()
+        self._createAccelerationTrajectory2DImage()
         ### 3 Body Problem
         self._createTrajectory3BodyProlem()
         self._createOptions3BodyProblem()
-        self._createAccelerationTrajectory3BodyProlem()
         self._createVelocityTrajectory3BodyProlem()
+        self._createAccelerationTrajectory3BodyProlem()
         ### Exit
         self._createExitButton() 
 
@@ -211,22 +211,24 @@ class MechanicsWindow(QMainWindow):
     def _createVelocityTrajectory2DImage(self):
         """Creates the Image for the Velocity of the 2D Trajectory"""
         self.TrajectoryVelocity2DImage = pg.PlotWidget()
-        self.generalLayout2DTrajectory.addWidget(self.TrajectoryVelocity2DImage,self.current_line2DTrajectory,2)
+        self.generalLayout2DTrajectory.addWidget(self.TrajectoryVelocity2DImage,self.current_line2DTrajectory,1)
         self.initializeVelocityImage2DTrajectory()
-        self.current_line2DTrajectory += 1
+
+
+
+    def _createAccelerationTrajectory2DImage(self):
+        """Creates the Image for the Acceleration of the 2D Trajectory"""
+        self.TrajectoryAcceleration2DImage = pg.PlotWidget()
+        self.trajectory2DCounter = 0
+        self.generalLayout2DTrajectory.addWidget(self.TrajectoryAcceleration2DImage,self.current_line2DTrajectory,2)
+        self.initializeAccelerationImage2DTrajectory()
 
         self.trajectory2DTimer = QtCore.QTimer()
         self.trajectory2DTimer.setInterval(self.parameters.dynamicSpeed2DTrajectory)
         self.trajectory2DTimer.timeout.connect(self.updateImages2DTrajectory)
         if self.parameters.toggleDynamic2DTrajectory or self.parameters.toggleObjectPositions2DTrajectory:
             self.trajectory2DTimer.start()
-
-    def _createAccelerationTrajectory2DImage(self):
-        """Creates the Image for the Acceleration of the 2D Trajectory"""
-        self.TrajectoryAcceleration2DImage = pg.PlotWidget()
-        self.trajectory2DCounter = 0
-        self.generalLayout2DTrajectory.addWidget(self.TrajectoryAcceleration2DImage,self.current_line2DTrajectory,1)
-        self.initializeAccelerationImage2DTrajectory()
+        self.current_line2DTrajectory += 1
 
 
     def _createOptions2DTrajectory(self):
@@ -278,14 +280,17 @@ class MechanicsWindow(QMainWindow):
         self.Static2DTrajectoryCheckBox = QCheckBox()
         self.Object2DTrajectoryCheckBox = QCheckBox()
         self.Collision2DTrajectoryCheckBox = QCheckBox()
+        self.Absolute2DTrajectoryCheckBox = QCheckBox()
         self.Dynamic2DTrajectoryCheckBox.setChecked(self.parameters.toggleDynamic2DTrajectory)
         self.Static2DTrajectoryCheckBox.setChecked(self.parameters.toggleStatic2DTrajectory)
         self.Object2DTrajectoryCheckBox.setChecked(self.parameters.toggleObjectPositions2DTrajectory)
         self.Collision2DTrajectoryCheckBox.setChecked(self.parameters.toggleCollision2DTrajectory)
+        self.Absolute2DTrajectoryCheckBox.setChecked(self.parameters.toggleAbsValues2DTrajectory)
         self.Dynamic2DTrajectoryCheckBox.stateChanged.connect(self.updateCheckBoxDynamic2DTrajectory)
         self.Static2DTrajectoryCheckBox.stateChanged.connect(self.updateCheckBoxStatic2DTrajectory)
         self.Object2DTrajectoryCheckBox.stateChanged.connect(self.updateCheckBoxObject2DTrajectory)
         self.Collision2DTrajectoryCheckBox.stateChanged.connect(self.updateCheckBoxCollision2DTrajectory)
+        self.Absolute2DTrajectoryCheckBox.stateChanged.connect(self.updateCheckBoxAbsolute2DTrajectory)
 
         self.Position1x2DTrajectoryLineEdit = QLineEdit()
         self.Position1y2DTrajectoryLineEdit = QLineEdit()
@@ -378,35 +383,39 @@ class MechanicsWindow(QMainWindow):
         layout.addWidget(QLabel(MechanicsStrings.collision[f"{self.language}"]),6,2)
         layout.addWidget(self.Collision2DTrajectoryCheckBox,6,3)
 
-        layout.addWidget(QLabel(MechanicsStrings.visualBox[f"{self.language}"]),7,0)
-        layout.addWidget(QLabel("x"),7,1)
-        layout.addWidget(QLabel("y"),7,2)
-        layout.addWidget(QLabel(MechanicsStrings.Factor[f"{self.language}"]),7,3)
-        layout.addWidget(QLabel(MechanicsStrings.Pos[f"{self.language}"]+" "+MechanicsStrings.object[f"{self.language}"]+ " 1"),8,0)
-        layout.addWidget(self.Position1x2DTrajectoryLineEdit,8,1)
-        layout.addWidget(self.Position1y2DTrajectoryLineEdit,8,2)
-        layout.addWidget(self.Position1Factor2DTrajectoryComboxBox,8,3)
-        layout.addWidget(QLabel(MechanicsStrings.Pos[f"{self.language}"]+" "+MechanicsStrings.object[f"{self.language}"]+ " 2"),9,0)
-        layout.addWidget(self.Position2x2DTrajectoryLineEdit,9,1)
-        layout.addWidget(self.Position2y2DTrajectoryLineEdit,9,2)
-        layout.addWidget(self.Position2Factor2DTrajectoryComboxBox,9,3)
-        layout.addWidget(QLabel(MechanicsStrings.Speed[f"{self.language}"]+" "+MechanicsStrings.object[f"{self.language}"]+ " 1"),10,0)
-        layout.addWidget(self.Speed1x2DTrajectoryLineEdit,10,1)
-        layout.addWidget(self.Speed1y2DTrajectoryLineEdit,10,2)
-        layout.addWidget(self.Speed1Factor2DTrajectoryComboxBox,10,3)
-        layout.addWidget(QLabel(MechanicsStrings.Speed[f"{self.language}"]+" "+MechanicsStrings.object[f"{self.language}"]+ " 2"),11,0)
-        layout.addWidget(self.Speed2x2DTrajectoryLineEdit,11,1)
-        layout.addWidget(self.Speed2y2DTrajectoryLineEdit,11,2)
-        layout.addWidget(self.Speed2Factor2DTrajectoryComboxBox,11,3)
+        layout.addWidget(QLabel(MechanicsStrings.Abs[f"{self.language}"]),7,0)
+        layout.addWidget(self.Absolute2DTrajectoryCheckBox,7,1)
 
-        layout.addWidget(QLabel(MechanicsStrings.endTime[f"{self.language}"]),12,0)
-        layout.addWidget(self.endTime2DTrajectoryLineEdit,12,1)
-        layout.addWidget(QLabel(MechanicsStrings.StepNumber[f"{self.language}"]),12,2)
-        layout.addWidget(self.numberSteps2DTrajectoryLineEdit,12,3)
-        layout.addWidget(QLabel(MechanicsStrings.dynamicSpeed[f"{self.language}"]),13,0)
-        layout.addWidget(self.dynamicSpeed2DTrajectoryLineEdit,13,1)
-        layout.addWidget(QLabel(MechanicsStrings.dynamicStep[f"{self.language}"]),13,2)
-        layout.addWidget(self.dynamicStep2DTrajectoryLineEdit,13,3)
+
+        layout.addWidget(QLabel(MechanicsStrings.visualBox[f"{self.language}"]),8,0)
+        layout.addWidget(QLabel("x"),8,1)
+        layout.addWidget(QLabel("y"),8,2)
+        layout.addWidget(QLabel(MechanicsStrings.Factor[f"{self.language}"]),8,3)
+        layout.addWidget(QLabel(MechanicsStrings.Pos[f"{self.language}"]+" "+MechanicsStrings.object[f"{self.language}"]+ " 1"),9,0)
+        layout.addWidget(self.Position1x2DTrajectoryLineEdit,9,1)
+        layout.addWidget(self.Position1y2DTrajectoryLineEdit,9,2)
+        layout.addWidget(self.Position1Factor2DTrajectoryComboxBox,9,3)
+        layout.addWidget(QLabel(MechanicsStrings.Pos[f"{self.language}"]+" "+MechanicsStrings.object[f"{self.language}"]+ " 2"),10,0)
+        layout.addWidget(self.Position2x2DTrajectoryLineEdit,10,1)
+        layout.addWidget(self.Position2y2DTrajectoryLineEdit,10,2)
+        layout.addWidget(self.Position2Factor2DTrajectoryComboxBox,10,3)
+        layout.addWidget(QLabel(MechanicsStrings.Speed[f"{self.language}"]+" "+MechanicsStrings.object[f"{self.language}"]+ " 1"),11,0)
+        layout.addWidget(self.Speed1x2DTrajectoryLineEdit,11,1)
+        layout.addWidget(self.Speed1y2DTrajectoryLineEdit,11,2)
+        layout.addWidget(self.Speed1Factor2DTrajectoryComboxBox,11,3)
+        layout.addWidget(QLabel(MechanicsStrings.Speed[f"{self.language}"]+" "+MechanicsStrings.object[f"{self.language}"]+ " 2"),12,0)
+        layout.addWidget(self.Speed2x2DTrajectoryLineEdit,12,1)
+        layout.addWidget(self.Speed2y2DTrajectoryLineEdit,12,2)
+        layout.addWidget(self.Speed2Factor2DTrajectoryComboxBox,12,3)
+
+        layout.addWidget(QLabel(MechanicsStrings.endTime[f"{self.language}"]),13,0)
+        layout.addWidget(self.endTime2DTrajectoryLineEdit,13,1)
+        layout.addWidget(QLabel(MechanicsStrings.StepNumber[f"{self.language}"]),13,2)
+        layout.addWidget(self.numberSteps2DTrajectoryLineEdit,13,3)
+        layout.addWidget(QLabel(MechanicsStrings.dynamicSpeed[f"{self.language}"]),14,0)
+        layout.addWidget(self.dynamicSpeed2DTrajectoryLineEdit,14,1)
+        layout.addWidget(QLabel(MechanicsStrings.dynamicStep[f"{self.language}"]),14,2)
+        layout.addWidget(self.dynamicStep2DTrajectoryLineEdit,14,3)
 
 
         layout.addWidget(self.RunTrajectory2DPushButton,15,0)
@@ -432,16 +441,16 @@ class MechanicsWindow(QMainWindow):
     def _createVelocityTrajectory3BodyProlem(self):
         """Creates the Image for the Velocity of the 3BodyProblem"""
         self.TrajectoryVelocity3BodyProblem = pg.PlotWidget()
-        self.generalLayout3BodyProblem.addWidget(self.TrajectoryVelocity3BodyProblem,self.current_line3BodyProblem,2)
+        self.generalLayout3BodyProblem.addWidget(self.TrajectoryVelocity3BodyProblem,self.current_line3BodyProblem,1)
         self.initializeVelocityImage3BodyProblem()
-        self.current_line3BodyProblem += 1
 
 
     def _createAccelerationTrajectory3BodyProlem(self):
         """Creates the Image for the Acceleration of the 3BodyProblem"""
         self.TrajectoryAcceleration3BodyProblem = pg.PlotWidget()
-        self.generalLayout3BodyProblem.addWidget(self.TrajectoryAcceleration3BodyProblem,self.current_line3BodyProblem,1)
+        self.generalLayout3BodyProblem.addWidget(self.TrajectoryAcceleration3BodyProblem,self.current_line3BodyProblem,2)
         self.initializeAccelerationImage3BodyProblem()
+        self.current_line3BodyProblem += 1
 
     def _createOptions3BodyProblem(self):
         """Creates the docks for the options of the 3BodyProblem"""
@@ -481,14 +490,17 @@ class MechanicsWindow(QMainWindow):
         self.Static3BodyProblemCheckBox = QCheckBox()
         self.Object3BodyProblemCheckBox = QCheckBox()
         self.Collision3BodyProblemCheckBox = QCheckBox()
+        self.AbsValues3BodyProblemCheckBox = QCheckBox()
         self.Dynamic3BodyProblemCheckBox.setChecked(self.parameters.toggleDynamic3BodyProblem)
         self.Static3BodyProblemCheckBox.setChecked(self.parameters.toggleStatic3BodyProblem)
         self.Object3BodyProblemCheckBox.setChecked(self.parameters.toggleObjectPositions3BodyProblem)
         self.Collision3BodyProblemCheckBox.setChecked(self.parameters.toggleCollision3BodyProblem)
+        self.AbsValues3BodyProblemCheckBox.setChecked(self.parameters.toggleAbsValues3BodyProblem)
         self.Dynamic3BodyProblemCheckBox.stateChanged.connect(self.updateCheckBoxDynamic3BodyProblem)
         self.Static3BodyProblemCheckBox.stateChanged.connect(self.updateCheckBoxStatic3BodyProblem)
         self.Object3BodyProblemCheckBox.stateChanged.connect(self.updateCheckBoxObject3BodyProblem)
         self.Collision3BodyProblemCheckBox.stateChanged.connect(self.updateCheckBoxCollision3BodyProblem)
+        self.AbsValues3BodyProblemCheckBox.stateChanged.connect(self.updateCheckBoxAbsValue3BodyProblem)
 
         self.Position3BodyProblemLineEdit = np.zeros((self.parameters.numberOfMass3BodyProblem,2), dtype = object)
         self.Speed3BodyProblemLineEdit = np.zeros((self.parameters.numberOfMass3BodyProblem,2), dtype = object)
@@ -557,7 +569,10 @@ class MechanicsWindow(QMainWindow):
         layout.addWidget(self.Object3BodyProblemCheckBox,tmp_counter+1,1)
         layout.addWidget(QLabel(MechanicsStrings.collision[f"{self.language}"]),tmp_counter+1,2)
         layout.addWidget(self.Collision3BodyProblemCheckBox,tmp_counter+1,3)
-        tmp_counter += 2
+        layout.addWidget(QLabel(MechanicsStrings.Abs[f"{self.language}"]),tmp_counter+2,0)
+        layout.addWidget(self.AbsValues3BodyProblemCheckBox,tmp_counter+2,1)
+
+        tmp_counter += 3
 
         layout.addWidget(QLabel("x"),tmp_counter,1)
         layout.addWidget(QLabel("y"),tmp_counter,2)
@@ -731,6 +746,16 @@ class MechanicsWindow(QMainWindow):
         else:
             self.parameters.toggleCollision2DTrajectory = False
 
+    def updateCheckBoxAbsolute2DTrajectory(self):
+        """Updates the Absolute CheckBox for the 2D Trajectory"""
+        if self.Absolute2DTrajectoryCheckBox.isChecked():
+            self.parameters.toggleAbsValues2DTrajectory = True
+        else:
+            self.parameters.toggleAbsValues2DTrajectory = False
+        self.updateStaticImages2DTrajectory()
+        self.reframe2DTrajectorySimulation()
+        self.relabelGraphs2DTrajectory()
+
     def updateParameters2DTrajectory(self):
         """Updates the inner parameter for the 2D Trajectory. Doesn't restart the simulation until run is pressed."""
         try:
@@ -863,14 +888,49 @@ class MechanicsWindow(QMainWindow):
         height = np.max(self.parameters.PositionsTrajectory2D[:,:,1])-np.min(self.parameters.PositionsTrajectory2D[:,:,1])
         self.Trajectory2DImage.setXRange(np.min(self.parameters.PositionsTrajectory2D[:,:,0])-0.1*width,np.max(self.parameters.PositionsTrajectory2D[:,:,0])+0.1*width)
         self.Trajectory2DImage.setYRange(np.min(self.parameters.PositionsTrajectory2D[:,:,1])-0.1*height,np.max(self.parameters.PositionsTrajectory2D[:,:,1])+0.1*height)
-        width = np.max(self.parameters.VelocitiesTrajectory2D[:,:,0])-np.min(self.parameters.VelocitiesTrajectory2D[:,:,0])
-        height = np.max(self.parameters.VelocitiesTrajectory2D[:,:,1])-np.min(self.parameters.VelocitiesTrajectory2D[:,:,1])
-        self.TrajectoryVelocity2DImage.setXRange(np.min(self.parameters.VelocitiesTrajectory2D[:,:,0])-0.1*width,np.max(self.parameters.VelocitiesTrajectory2D[:,:,0])+0.1*width)
-        self.TrajectoryVelocity2DImage.setYRange(np.min(self.parameters.VelocitiesTrajectory2D[:,:,1])-0.1*height,np.max(self.parameters.VelocitiesTrajectory2D[:,:,1])+0.1*height)
-        width = np.max(self.parameters.AccelerationsTrajectory2D[:,:,0])-np.min(self.parameters.AccelerationsTrajectory2D[:,:,0])
-        height = np.max(self.parameters.AccelerationsTrajectory2D[:,:,1])-np.min(self.parameters.AccelerationsTrajectory2D[:,:,1])
-        self.TrajectoryAcceleration2DImage.setXRange(np.min(self.parameters.AccelerationsTrajectory2D[:,:,0])-0.1*width,np.max(self.parameters.AccelerationsTrajectory2D[:,:,0])+0.1*width)
-        self.TrajectoryAcceleration2DImage.setYRange(np.min(self.parameters.AccelerationsTrajectory2D[:,:,1])-0.1*height,np.max(self.parameters.AccelerationsTrajectory2D[:,:,1])+0.1*height)
+        if not self.parameters.toggleAbsValues2DTrajectory:
+            width = np.max(self.parameters.VelocitiesTrajectory2D[:,:,0])-np.min(self.parameters.VelocitiesTrajectory2D[:,:,0])
+            height = np.max(self.parameters.VelocitiesTrajectory2D[:,:,1])-np.min(self.parameters.VelocitiesTrajectory2D[:,:,1])
+            self.TrajectoryVelocity2DImage.setXRange(np.min(self.parameters.VelocitiesTrajectory2D[:,:,0])-0.1*width,np.max(self.parameters.VelocitiesTrajectory2D[:,:,0])+0.1*width)
+            self.TrajectoryVelocity2DImage.setYRange(np.min(self.parameters.VelocitiesTrajectory2D[:,:,1])-0.1*height,np.max(self.parameters.VelocitiesTrajectory2D[:,:,1])+0.1*height)
+        else:
+            heightTop = np.max((self.parameters.VelocitiesTrajectory2D[:,:,0]**2+self.parameters.VelocitiesTrajectory2D[:,:,1]**2)**(1/2))
+            heightBot = np.min((self.parameters.VelocitiesTrajectory2D[:,:,0]**2+self.parameters.VelocitiesTrajectory2D[:,:,1]**2)**(1/2))
+            self.TrajectoryVelocity2DImage.setXRange(0,self.parameters.timeScale2DTrajectory[-1])
+            self.TrajectoryVelocity2DImage.setYRange(0.9*heightBot,1.1*heightTop)
+
+        if not self.parameters.toggleAbsValues2DTrajectory:
+            width = np.max(self.parameters.AccelerationsTrajectory2D[:,:,0])-np.min(self.parameters.AccelerationsTrajectory2D[:,:,0])
+            height = np.max(self.parameters.AccelerationsTrajectory2D[:,:,1])-np.min(self.parameters.AccelerationsTrajectory2D[:,:,1])
+            self.TrajectoryAcceleration2DImage.setXRange(np.min(self.parameters.AccelerationsTrajectory2D[:,:,0])-0.1*width,np.max(self.parameters.AccelerationsTrajectory2D[:,:,0])+0.1*width)
+            self.TrajectoryAcceleration2DImage.setYRange(np.min(self.parameters.AccelerationsTrajectory2D[:,:,1])-0.1*height,np.max(self.parameters.AccelerationsTrajectory2D[:,:,1])+0.1*height)
+        else:
+            heightTop = np.max((self.parameters.AccelerationsTrajectory2D[:,:,0]**2+self.parameters.AccelerationsTrajectory2D[:,:,1]**2)**(1/2))
+            heightBot = np.min((self.parameters.AccelerationsTrajectory2D[:,:,0]**2+self.parameters.AccelerationsTrajectory2D[:,:,1]**2)**(1/2))
+            self.TrajectoryAcceleration2DImage.setXRange(0,self.parameters.timeScale2DTrajectory[-1])
+            self.TrajectoryAcceleration2DImage.setYRange(0.9*heightBot,1.1*heightTop)
+
+    def relabelGraphs2DTrajectory(self):
+        """Relabels the graphs of the 2D trajectory depending on whether absolute value or not"""
+
+        if not self.parameters.toggleAbsValues2DTrajectory:
+            self.TrajectoryVelocity2DImage.setLabel("left","v_y",color = 'black')
+            self.TrajectoryVelocity2DImage.setLabel("bottom","v_x",color = 'black')
+            self.TrajectoryVelocity2DImage.setTitle(MechanicsStrings.Velocity[f"{self.language}"],color = 'black')
+
+            self.TrajectoryAcceleration2DImage.setLabel("left","a_y",color = 'black')
+            self.TrajectoryAcceleration2DImage.setLabel("bottom","a_x",color = 'black')
+            self.TrajectoryAcceleration2DImage.setTitle(MechanicsStrings.Acceleration[f"{self.language}"],color = 'black')
+
+        else:
+            self.TrajectoryVelocity2DImage.setLabel("left","|v|",color = 'black')
+            self.TrajectoryVelocity2DImage.setLabel("bottom","t",color = 'black')
+            self.TrajectoryVelocity2DImage.setTitle("|"+MechanicsStrings.Velocity[f"{self.language}"]+"|",color = 'black')
+
+            self.TrajectoryAcceleration2DImage.setLabel("left","|a|",color = 'black')
+            self.TrajectoryAcceleration2DImage.setLabel("bottom","t",color = 'black')
+            self.TrajectoryAcceleration2DImage.setTitle("|"+MechanicsStrings.Acceleration[f"{self.language}"]+"|",color = 'black')
+
 
     def updateCheckBoxDynamic3BodyProblem(self):
         """Updates the Dynamic CheckBox for the 3BodyProblem"""
@@ -885,7 +945,7 @@ class MechanicsWindow(QMainWindow):
             self.Dynamic2DTrajectoryCheckBox.setChecked(self.parameters.toggleDynamic2DTrajectory)
         else:
             self.parameters.toggleDynamic3BodyProblem = False
-            if not self.Static3BodyProblemCheckBox.isChecked():
+            if not self.Object3BodyProblemCheckBox.isChecked():
                 self.trajectory3BodyProblemTimer.stop()
         self.updateImages3BodyProblem()
 
@@ -911,6 +971,17 @@ class MechanicsWindow(QMainWindow):
             self.parameters.toggleCollision3BodyProblem = True
         else:
             self.parameters.toggleCollision3BodyProblem = False
+
+    def updateCheckBoxAbsValue3BodyProblem(self):
+        """Updates the Absolute Values CheckBox for the 2D Trajectory"""
+        if self.AbsValues3BodyProblemCheckBox.isChecked():
+            self.parameters.toggleAbsValues3BodyProblem = True
+        else:
+            self.parameters.toggleAbsValues3BodyProblem = False
+
+        self.updateStaticImages3BodyProblem()
+        self.reframe3BodyProblemSimulation()
+        self.relabelGraphs3BodyProblem()
 
 
     def start3BodyProblemSimulation(self):
@@ -941,14 +1012,46 @@ class MechanicsWindow(QMainWindow):
         height = np.max(self.parameters.PositionsTrajectory3BodyProblem[:,:,1])-np.min(self.parameters.PositionsTrajectory3BodyProblem[:,:,1])
         self.Trajectory3BodyProblemImage.setXRange(np.min(self.parameters.PositionsTrajectory3BodyProblem[:,:,0])-0.1*width,np.max(self.parameters.PositionsTrajectory3BodyProblem[:,:,0])+0.1*width)
         self.Trajectory3BodyProblemImage.setYRange(np.min(self.parameters.PositionsTrajectory3BodyProblem[:,:,1])-0.1*height,np.max(self.parameters.PositionsTrajectory3BodyProblem[:,:,1])+0.1*height)
-        width = np.max(self.parameters.VelocitiesTrajectory3BodyProblem[:,:,0])-np.min(self.parameters.VelocitiesTrajectory3BodyProblem[:,:,0])
-        height = np.max(self.parameters.VelocitiesTrajectory3BodyProblem[:,:,1])-np.min(self.parameters.VelocitiesTrajectory3BodyProblem[:,:,1])
-        self.TrajectoryVelocity3BodyProblem.setXRange(np.min(self.parameters.VelocitiesTrajectory3BodyProblem[:,:,0])-0.1*width,np.max(self.parameters.VelocitiesTrajectory3BodyProblem[:,:,0])+0.1*width)
-        self.TrajectoryVelocity3BodyProblem.setYRange(np.min(self.parameters.VelocitiesTrajectory3BodyProblem[:,:,1])-0.1*height,np.max(self.parameters.VelocitiesTrajectory3BodyProblem[:,:,1])+0.1*height)
-        width = np.max(self.parameters.AccelerationsTrajectory3BodyProblem[:,:,0])-np.min(self.parameters.AccelerationsTrajectory3BodyProblem[:,:,0])
-        height = np.max(self.parameters.AccelerationsTrajectory3BodyProblem[:,:,1])-np.min(self.parameters.AccelerationsTrajectory3BodyProblem[:,:,1])
-        self.TrajectoryAcceleration3BodyProblem.setXRange(np.min(self.parameters.AccelerationsTrajectory3BodyProblem[:,:,0])-0.1*width,np.max(self.parameters.AccelerationsTrajectory3BodyProblem[:,:,0])+0.1*width)
-        self.TrajectoryAcceleration3BodyProblem.setYRange(np.min(self.parameters.AccelerationsTrajectory3BodyProblem[:,:,1])-0.1*height,np.max(self.parameters.AccelerationsTrajectory3BodyProblem[:,:,1])+0.1*height)
+        if not self.parameters.toggleAbsValues3BodyProblem:
+            width = np.max(self.parameters.VelocitiesTrajectory3BodyProblem[:,:,0])-np.min(self.parameters.VelocitiesTrajectory3BodyProblem[:,:,0])
+            height = np.max(self.parameters.VelocitiesTrajectory3BodyProblem[:,:,1])-np.min(self.parameters.VelocitiesTrajectory3BodyProblem[:,:,1])
+            self.TrajectoryVelocity3BodyProblem.setXRange(np.min(self.parameters.VelocitiesTrajectory3BodyProblem[:,:,0])-0.1*width,np.max(self.parameters.VelocitiesTrajectory3BodyProblem[:,:,0])+0.1*width)
+            self.TrajectoryVelocity3BodyProblem.setYRange(np.min(self.parameters.VelocitiesTrajectory3BodyProblem[:,:,1])-0.1*height,np.max(self.parameters.VelocitiesTrajectory3BodyProblem[:,:,1])+0.1*height)
+            width = np.max(self.parameters.AccelerationsTrajectory3BodyProblem[:,:,0])-np.min(self.parameters.AccelerationsTrajectory3BodyProblem[:,:,0])
+            height = np.max(self.parameters.AccelerationsTrajectory3BodyProblem[:,:,1])-np.min(self.parameters.AccelerationsTrajectory3BodyProblem[:,:,1])
+            self.TrajectoryAcceleration3BodyProblem.setXRange(np.min(self.parameters.AccelerationsTrajectory3BodyProblem[:,:,0])-0.1*width,np.max(self.parameters.AccelerationsTrajectory3BodyProblem[:,:,0])+0.1*width)
+            self.TrajectoryAcceleration3BodyProblem.setYRange(np.min(self.parameters.AccelerationsTrajectory3BodyProblem[:,:,1])-0.1*height,np.max(self.parameters.AccelerationsTrajectory3BodyProblem[:,:,1])+0.1*height)
+        else:
+            heightTop = np.max((self.parameters.VelocitiesTrajectory3BodyProblem[:,:,0]**2+self.parameters.VelocitiesTrajectory3BodyProblem[:,:,1]**2)**(1/2))
+            heightBot = np.min((self.parameters.VelocitiesTrajectory3BodyProblem[:,:,0]**2+self.parameters.VelocitiesTrajectory3BodyProblem[:,:,1]**2)**(1/2))
+            self.TrajectoryVelocity3BodyProblem.setXRange(0,self.parameters.timeScale3BodyProblem[-1])
+            self.TrajectoryVelocity3BodyProblem.setYRange(0.9*heightBot,1.1*heightTop)
+
+            heightTop = np.max((self.parameters.AccelerationsTrajectory3BodyProblem[:,:,0]**2+self.parameters.AccelerationsTrajectory3BodyProblem[:,:,1]**2)**(1/2))
+            heightBot = np.min((self.parameters.AccelerationsTrajectory3BodyProblem[:,:,0]**2+self.parameters.AccelerationsTrajectory3BodyProblem[:,:,1]**2)**(1/2))
+            self.TrajectoryAcceleration3BodyProblem.setXRange(0,self.parameters.timeScale3BodyProblem[-1])
+            self.TrajectoryAcceleration3BodyProblem.setYRange(0.9*heightBot,1.1*heightTop)
+
+    def relabelGraphs3BodyProblem(self):
+        """Relabels the graphs of the 3 Body Problem depending on whether absolute value or not"""
+
+        if not self.parameters.toggleAbsValues3BodyProblem:
+            self.TrajectoryVelocity3BodyProblem.setLabel("left","v_y",color = 'black')
+            self.TrajectoryVelocity3BodyProblem.setLabel("bottom","v_x",color = 'black')
+            self.TrajectoryVelocity3BodyProblem.setTitle(MechanicsStrings.Velocity[f"{self.language}"],color = 'black')
+
+            self.TrajectoryAcceleration3BodyProblem.setLabel("left","a_y",color = 'black')
+            self.TrajectoryAcceleration3BodyProblem.setLabel("bottom","a_x",color = 'black')
+            self.TrajectoryAcceleration3BodyProblem.setTitle(MechanicsStrings.Acceleration[f"{self.language}"],color = 'black')
+
+        else:
+            self.TrajectoryVelocity3BodyProblem.setLabel("left","|v|",color = 'black')
+            self.TrajectoryVelocity3BodyProblem.setLabel("bottom","t",color = 'black')
+            self.TrajectoryVelocity3BodyProblem.setTitle("|"+MechanicsStrings.Velocity[f"{self.language}"]+"|",color = 'black')
+
+            self.TrajectoryAcceleration3BodyProblem.setLabel("left","|a|",color = 'black')
+            self.TrajectoryAcceleration3BodyProblem.setLabel("bottom","t",color = 'black')
+            self.TrajectoryAcceleration3BodyProblem.setTitle("|"+MechanicsStrings.Acceleration[f"{self.language}"]+"|",color = 'black')
 
 
     def updateParameters3BodyProblem(self):
@@ -974,17 +1077,18 @@ class MechanicsWindow(QMainWindow):
                 if name_tmp in names.values():
                     self.parameters.factorInitialVelocity3BodyProblem[i] = dict
 
-        for j in range(2):
-            try:
-                self.parameters.initialPosition3BodyProblem[i,j] = float(self.Position3BodyProblemLineEdit[i,j].text())
-            except:
-                self.parameters.initialPosition3BodyProblem[i,j] = 1.0
-                self.Position3BodyProblemLineEdit[i,j].setText(f"{self.parameters.initialPosition3BodyProblem[i,j]}")
-            try:
-                self.parameters.initialVelocity3BodyProblem[i,j] = float(self.Speed3BodyProblemLineEdit[i,j].text())
-            except:
-                self.parameters.initialVelocity3BodyProblem[i,j] = 1.0
-                self.Speed3BodyProblemLineEdit[i,j].setText(f"{self.parameters.initialVelocity3BodyProblem[i,j]}")
+        for i in range(self.parameters.numberOfMass3BodyProblem):
+            for j in range(2):
+                try:
+                    self.parameters.initialPosition3BodyProblem[i,j] = float(self.Position3BodyProblemLineEdit[i,j].text())
+                except:
+                    self.parameters.initialPosition3BodyProblem[i,j] = 1.0
+                    self.Position3BodyProblemLineEdit[i,j].setText(f"{self.parameters.initialPosition3BodyProblem[i,j]}")
+                try:
+                    self.parameters.initialVelocity3BodyProblem[i,j] = float(self.Speed3BodyProblemLineEdit[i,j].text())
+                except:
+                    self.parameters.initialVelocity3BodyProblem[i,j] = 1.0
+                    self.Speed3BodyProblemLineEdit[i,j].setText(f"{self.parameters.initialVelocity3BodyProblem[i,j]}")
 
 
 
@@ -1061,20 +1165,34 @@ class MechanicsWindow(QMainWindow):
 
     def updateStaticImages2DTrajectory(self):
         if self.parameters.toggleStatic2DTrajectory:
-            self.TrajectoryVelocity2DImageStatic1.setData(self.parameters.VelocitiesTrajectory2D[:self.parameters.trajectory2DEndValue,0,0],
+            if not self.parameters.toggleAbsValues2DTrajectory:
+                self.TrajectoryVelocity2DImageStatic1.setData(self.parameters.VelocitiesTrajectory2D[:self.parameters.trajectory2DEndValue,0,0],
                                          self.parameters.VelocitiesTrajectory2D[:self.parameters.trajectory2DEndValue,0,1])   
-            self.TrajectoryVelocity2DImageStatic2.setData(self.parameters.VelocitiesTrajectory2D[:self.parameters.trajectory2DEndValue,1,0],
+                self.TrajectoryVelocity2DImageStatic2.setData(self.parameters.VelocitiesTrajectory2D[:self.parameters.trajectory2DEndValue,1,0],
                                          self.parameters.VelocitiesTrajectory2D[:self.parameters.trajectory2DEndValue,1,1])   
-
+            else:
+                self.TrajectoryVelocity2DImageStatic1.setData(self.parameters.timeScale2DTrajectory[:self.parameters.trajectory2DEndValue],
+                                                              (self.parameters.VelocitiesTrajectory2D[:self.parameters.trajectory2DEndValue,0,0]**2+
+                                         self.parameters.VelocitiesTrajectory2D[:self.parameters.trajectory2DEndValue,0,1]**2)**(1/2))   
+                self.TrajectoryVelocity2DImageStatic2.setData(self.parameters.timeScale2DTrajectory[:self.parameters.trajectory2DEndValue],
+                                                              (self.parameters.VelocitiesTrajectory2D[:self.parameters.trajectory2DEndValue,1,0]**2+
+                                         self.parameters.VelocitiesTrajectory2D[:self.parameters.trajectory2DEndValue,1,1]**2)**(1/2))   
         else: 
             self.TrajectoryVelocity2DImageStatic1.setData()
             self.TrajectoryVelocity2DImageStatic2.setData()
         if self.parameters.toggleStatic2DTrajectory:
-            self.TrajectoryAcceleration2DImageStatic1.setData(self.parameters.AccelerationsTrajectory2D[1:self.parameters.trajectory2DEndValue,0,0],
-                                         self.parameters.AccelerationsTrajectory2D[1:self.parameters.trajectory2DEndValue,0,1])   
-            self.TrajectoryAcceleration2DImageStatic2.setData(self.parameters.AccelerationsTrajectory2D[1:self.parameters.trajectory2DEndValue,1,0],
-                                         self.parameters.AccelerationsTrajectory2D[1:self.parameters.trajectory2DEndValue,1,1])   
-
+            if not self.parameters.toggleAbsValues2DTrajectory:
+                self.TrajectoryAcceleration2DImageStatic1.setData(self.parameters.AccelerationsTrajectory2D[1:self.parameters.trajectory2DEndValue,0,0],
+                                        self.parameters.AccelerationsTrajectory2D[1:self.parameters.trajectory2DEndValue,0,1])   
+                self.TrajectoryAcceleration2DImageStatic2.setData(self.parameters.AccelerationsTrajectory2D[1:self.parameters.trajectory2DEndValue,1,0],
+                                        self.parameters.AccelerationsTrajectory2D[1:self.parameters.trajectory2DEndValue,1,1])   
+            else:
+                self.TrajectoryAcceleration2DImageStatic1.setData(self.parameters.timeScale2DTrajectory[1:self.parameters.trajectory2DEndValue],
+                                                                  (self.parameters.AccelerationsTrajectory2D[1:self.parameters.trajectory2DEndValue,0,0]**2+
+                                        self.parameters.AccelerationsTrajectory2D[1:self.parameters.trajectory2DEndValue,0,1]**2)**(1/2))   
+                self.TrajectoryAcceleration2DImageStatic2.setData(self.parameters.timeScale2DTrajectory[1:self.parameters.trajectory2DEndValue],
+                                                                  (self.parameters.AccelerationsTrajectory2D[1:self.parameters.trajectory2DEndValue,1,0]**2+
+                                        self.parameters.AccelerationsTrajectory2D[1:self.parameters.trajectory2DEndValue,1,1]**2)**(1/2))
         else: 
             self.TrajectoryAcceleration2DImageStatic1.setData()
             self.TrajectoryAcceleration2DImageStatic2.setData()
@@ -1090,49 +1208,79 @@ class MechanicsWindow(QMainWindow):
 
     def updateVelocityImage2DTrajectory(self):
         if self.parameters.toggleDynamic2DTrajectory:
-            self.TrajectoryVelocity2DImageDynamic1.setData(self.parameters.VelocitiesTrajectory2D[:self.trajectory2DCounter,0,0],
-                                         self.parameters.VelocitiesTrajectory2D[:self.trajectory2DCounter,0,1])
-            self.TrajectoryVelocity2DImageDynamic2.setData(self.parameters.VelocitiesTrajectory2D[:self.trajectory2DCounter,1,0],
-                                         self.parameters.VelocitiesTrajectory2D[:self.trajectory2DCounter,1,1])
-
+            if not self.parameters.toggleAbsValues2DTrajectory:
+                self.TrajectoryVelocity2DImageDynamic1.setData(self.parameters.VelocitiesTrajectory2D[:self.trajectory2DCounter:10,0,0],
+                                         self.parameters.VelocitiesTrajectory2D[:self.trajectory2DCounter:10,0,1])
+                self.TrajectoryVelocity2DImageDynamic2.setData(self.parameters.VelocitiesTrajectory2D[:self.trajectory2DCounter:10,1,0],
+                                         self.parameters.VelocitiesTrajectory2D[:self.trajectory2DCounter:10,1,1])
+            else:
+                self.TrajectoryVelocity2DImageDynamic1.setData(self.parameters.timeScale2DTrajectory[:self.trajectory2DCounter:10],
+                                                               (self.parameters.VelocitiesTrajectory2D[:self.trajectory2DCounter:10,0,0]**2+
+                                         self.parameters.VelocitiesTrajectory2D[:self.trajectory2DCounter:10,0,1]**2)**(1/2))
+                self.TrajectoryVelocity2DImageDynamic2.setData(self.parameters.timeScale2DTrajectory[:self.trajectory2DCounter:10],
+                                                               (self.parameters.VelocitiesTrajectory2D[:self.trajectory2DCounter:10,1,0]**2+
+                                         self.parameters.VelocitiesTrajectory2D[:self.trajectory2DCounter:10,1,1]**2)**(1/2))
         else: 
             self.TrajectoryVelocity2DImageDynamic1.setData()
             self.TrajectoryVelocity2DImageDynamic2.setData()
 
         if self.parameters.toggleObjectPositions2DTrajectory:
-            self.TrajectoryVelocity2DImageObject1.setData([self.parameters.VelocitiesTrajectory2D[self.trajectory2DCounter,0,0]],
+            if not self.parameters.toggleAbsValues2DTrajectory:
+                self.TrajectoryVelocity2DImageObject1.setData([self.parameters.VelocitiesTrajectory2D[self.trajectory2DCounter,0,0]],
                                                                         [self.parameters.VelocitiesTrajectory2D[self.trajectory2DCounter,0,1]])
-            self.TrajectoryVelocity2DImageObject2.setData([self.parameters.VelocitiesTrajectory2D[self.trajectory2DCounter,1,0]],
-                                                                        [self.parameters.VelocitiesTrajectory2D[self.trajectory2DCounter,1,1]])
+                self.TrajectoryVelocity2DImageObject2.setData([self.parameters.VelocitiesTrajectory2D[self.trajectory2DCounter,1,0]],
+                                                                            [self.parameters.VelocitiesTrajectory2D[self.trajectory2DCounter,1,1]])
+            else:
+                self.TrajectoryVelocity2DImageObject1.setData([self.parameters.timeScale2DTrajectory[self.trajectory2DCounter]],
+                                                              [(self.parameters.VelocitiesTrajectory2D[self.trajectory2DCounter,0,0]**2+self.parameters.VelocitiesTrajectory2D[self.trajectory2DCounter,0,1]**2)**(1/2)])
+                self.TrajectoryVelocity2DImageObject2.setData([self.parameters.timeScale2DTrajectory[self.trajectory2DCounter]],
+                                                              [(self.parameters.VelocitiesTrajectory2D[self.trajectory2DCounter,1,0]**2+self.parameters.VelocitiesTrajectory2D[self.trajectory2DCounter,1,1]**2)**(1/2)])                
         else: 
             self.TrajectoryVelocity2DImageObject1.setData()
             self.TrajectoryVelocity2DImageObject2.setData()
 
     def updateAccelerationImage2DTrajectory(self):
         if self.parameters.toggleDynamic2DTrajectory:
-            self.TrajectoryAcceleration2DImageDynamic1.setData(self.parameters.AccelerationsTrajectory2D[1:self.trajectory2DCounter,0,0],
-                                         self.parameters.AccelerationsTrajectory2D[1:self.trajectory2DCounter,0,1])
-            self.TrajectoryAcceleration2DImageDynamic2.setData(self.parameters.AccelerationsTrajectory2D[1:self.trajectory2DCounter,1,0],
-                                         self.parameters.AccelerationsTrajectory2D[1:self.trajectory2DCounter,1,1])
+            if not self.parameters.toggleAbsValues2DTrajectory:
+                self.TrajectoryAcceleration2DImageDynamic1.setData(self.parameters.AccelerationsTrajectory2D[1:self.trajectory2DCounter:10,0,0],
+                                         self.parameters.AccelerationsTrajectory2D[1:self.trajectory2DCounter:10,0,1])
+                self.TrajectoryAcceleration2DImageDynamic2.setData(self.parameters.AccelerationsTrajectory2D[1:self.trajectory2DCounter:10,1,0],
+                                         self.parameters.AccelerationsTrajectory2D[1:self.trajectory2DCounter:10,1,1])
+            else:
+                self.TrajectoryAcceleration2DImageDynamic1.setData(self.parameters.timeScale2DTrajectory[1:self.trajectory2DCounter:10],
+                                                                   (self.parameters.AccelerationsTrajectory2D[1:self.trajectory2DCounter:10,0,0]**2+
+                                         self.parameters.AccelerationsTrajectory2D[1:self.trajectory2DCounter:10,0,1]**2)**(1/2))
+                self.TrajectoryAcceleration2DImageDynamic2.setData(self.parameters.timeScale2DTrajectory[1:self.trajectory2DCounter:10],
+                                                                   (self.parameters.AccelerationsTrajectory2D[1:self.trajectory2DCounter:10,1,0]**2+
+                                         self.parameters.AccelerationsTrajectory2D[1:self.trajectory2DCounter:10,1,1]**2)**(1/2))
 
         else: 
             self.TrajectoryAcceleration2DImageDynamic1.setData()
             self.TrajectoryAcceleration2DImageDynamic2.setData()
 
         if self.parameters.toggleObjectPositions2DTrajectory:
-            self.TrajectoryAcceleration2DImageObject1.setData([self.parameters.AccelerationsTrajectory2D[self.trajectory2DCounter,0,0]],
+            if not self.parameters.toggleAbsValues2DTrajectory:
+                self.TrajectoryAcceleration2DImageObject1.setData([self.parameters.AccelerationsTrajectory2D[self.trajectory2DCounter,0,0]],
                                                                         [self.parameters.AccelerationsTrajectory2D[self.trajectory2DCounter,0,1]])
-            self.TrajectoryAcceleration2DImageObject2.setData([self.parameters.AccelerationsTrajectory2D[self.trajectory2DCounter,1,0]],
+                self.TrajectoryAcceleration2DImageObject2.setData([self.parameters.AccelerationsTrajectory2D[self.trajectory2DCounter,1,0]],
                                                                         [self.parameters.AccelerationsTrajectory2D[self.trajectory2DCounter,1,1]])
+            else:
+                self.TrajectoryAcceleration2DImageObject1.setData([self.parameters.timeScale2DTrajectory[self.trajectory2DCounter]],
+                                                                  [(self.parameters.AccelerationsTrajectory2D[self.trajectory2DCounter,0,0]**2+
+                                                                        self.parameters.AccelerationsTrajectory2D[self.trajectory2DCounter,0,1]**2)**(1/2)])
+                self.TrajectoryAcceleration2DImageObject2.setData([self.parameters.timeScale2DTrajectory[self.trajectory2DCounter]],
+                                                                  [(self.parameters.AccelerationsTrajectory2D[self.trajectory2DCounter,1,0]**2+
+                                                                        self.parameters.AccelerationsTrajectory2D[self.trajectory2DCounter,1,1]**2)**(1/2)])
+ 
         else: 
             self.TrajectoryAcceleration2DImageObject1.setData()
             self.TrajectoryAcceleration2DImageObject2.setData()      
     def updateImage2DTrajectory(self):
         if self.parameters.toggleDynamic2DTrajectory:
-            self.Trajectory2DImageDynamic1.setData(self.parameters.PositionsTrajectory2D[:self.trajectory2DCounter,0,0],
-                                         self.parameters.PositionsTrajectory2D[:self.trajectory2DCounter,0,1])
-            self.Trajectory2DImageDynamic2.setData(self.parameters.PositionsTrajectory2D[:self.trajectory2DCounter,1,0],
-                                         self.parameters.PositionsTrajectory2D[:self.trajectory2DCounter,1,1])
+            self.Trajectory2DImageDynamic1.setData(self.parameters.PositionsTrajectory2D[:self.trajectory2DCounter:10,0,0],
+                                         self.parameters.PositionsTrajectory2D[:self.trajectory2DCounter:10,0,1])
+            self.Trajectory2DImageDynamic2.setData(self.parameters.PositionsTrajectory2D[:self.trajectory2DCounter:10,1,0],
+                                         self.parameters.PositionsTrajectory2D[:self.trajectory2DCounter:10,1,1])
         else: 
             self.Trajectory2DImageDynamic1.setData()
             self.Trajectory2DImageDynamic2.setData()
@@ -1160,8 +1308,8 @@ class MechanicsWindow(QMainWindow):
     def updateImage3BodyProblem(self):
         for i in range(self.parameters.numberOfMass3BodyProblem):
             if self.parameters.toggleDynamic3BodyProblem:
-                self.Trajectory3BodyProblemDynamic[i].setData(self.parameters.PositionsTrajectory3BodyProblem[:self.trajectory3BodyProblemCounter,i,0],
-                                            self.parameters.PositionsTrajectory3BodyProblem[:self.trajectory3BodyProblemCounter,i,1])
+                self.Trajectory3BodyProblemDynamic[i].setData(self.parameters.PositionsTrajectory3BodyProblem[:self.trajectory3BodyProblemCounter:10,i,0],
+                                            self.parameters.PositionsTrajectory3BodyProblem[:self.trajectory3BodyProblemCounter:10,i,1])
             else: 
                 self.Trajectory3BodyProblemDynamic[i].setData()
 
@@ -1174,28 +1322,49 @@ class MechanicsWindow(QMainWindow):
     def updateVelocityImage3BodyProblem(self):
         for i in range(self.parameters.numberOfMass3BodyProblem):
             if self.parameters.toggleDynamic3BodyProblem:
-                self.TrajectoryVelocity3BodyProblemDynamic[i].setData(self.parameters.VelocitiesTrajectory3BodyProblem[:self.trajectory3BodyProblemCounter,i,0],
-                                            self.parameters.VelocitiesTrajectory3BodyProblem[:self.trajectory3BodyProblemCounter,i,1])
+                if not self.parameters.toggleAbsValues3BodyProblem:
+                    self.TrajectoryVelocity3BodyProblemDynamic[i].setData(self.parameters.VelocitiesTrajectory3BodyProblem[:self.trajectory3BodyProblemCounter:10,i,0],
+                                            self.parameters.VelocitiesTrajectory3BodyProblem[:self.trajectory3BodyProblemCounter:10,i,1])
+                else:
+                    self.TrajectoryVelocity3BodyProblemDynamic[i].setData(self.parameters.timeScale3BodyProblem[:self.trajectory3BodyProblemCounter:10],
+                                            (self.parameters.VelocitiesTrajectory3BodyProblem[:self.trajectory3BodyProblemCounter:10,i,0]**2+
+                                            self.parameters.VelocitiesTrajectory3BodyProblem[:self.trajectory3BodyProblemCounter:10,i,1]**2)**(1/2))
+
             else: 
                 self.TrajectoryVelocity3BodyProblemDynamic[i].setData()
 
             if self.parameters.toggleObjectPositions3BodyProblem:
-                self.TrajectoryVelocity3BodyProblemObject[i].setData([self.parameters.VelocitiesTrajectory3BodyProblem[self.trajectory3BodyProblemCounter,i,0]],
+                if not self.parameters.toggleAbsValues3BodyProblem:
+                    self.TrajectoryVelocity3BodyProblemObject[i].setData([self.parameters.VelocitiesTrajectory3BodyProblem[self.trajectory3BodyProblemCounter,i,0]],
                                                                             [self.parameters.VelocitiesTrajectory3BodyProblem[self.trajectory3BodyProblemCounter,i,1]])
+                else:
+                    self.TrajectoryVelocity3BodyProblemObject[i].setData([self.parameters.timeScale3BodyProblem[self.trajectory3BodyProblemCounter]],
+                                            [(self.parameters.VelocitiesTrajectory3BodyProblem[self.trajectory3BodyProblemCounter,i,0]**2+
+                                            self.parameters.VelocitiesTrajectory3BodyProblem[self.trajectory3BodyProblemCounter,i,1]**2)**(1/2)])
             else: 
                 self.TrajectoryVelocity3BodyProblemObject[i].setData()
 
     def updateAccelerationImage3BodyProblem(self):
         for i in range(self.parameters.numberOfMass3BodyProblem):
             if self.parameters.toggleDynamic3BodyProblem:
-                self.TrajectoryAcceleration3BodyProblemDynamic[i].setData(self.parameters.AccelerationsTrajectory3BodyProblem[:self.trajectory3BodyProblemCounter,i,0],
-                                            self.parameters.AccelerationsTrajectory3BodyProblem[:self.trajectory3BodyProblemCounter,i,1])
+                if not self.parameters.toggleAbsValues3BodyProblem:
+                    self.TrajectoryAcceleration3BodyProblemDynamic[i].setData(self.parameters.AccelerationsTrajectory3BodyProblem[:self.trajectory3BodyProblemCounter:10,i,0],
+                                            self.parameters.AccelerationsTrajectory3BodyProblem[:self.trajectory3BodyProblemCounter:10,i,1])
+                else:
+                    self.TrajectoryAcceleration3BodyProblemDynamic[i].setData(self.parameters.timeScale3BodyProblem[:self.trajectory3BodyProblemCounter:10],
+                                            (self.parameters.AccelerationsTrajectory3BodyProblem[:self.trajectory3BodyProblemCounter:10,i,0]**2+
+                                            self.parameters.AccelerationsTrajectory3BodyProblem[:self.trajectory3BodyProblemCounter:10,i,1]**2)*(1/2))
             else: 
                 self.TrajectoryAcceleration3BodyProblemDynamic[i].setData()
 
             if self.parameters.toggleObjectPositions3BodyProblem:
-                self.TrajectoryAcceleration3BodyProblemObject[i].setData([self.parameters.AccelerationsTrajectory3BodyProblem[self.trajectory3BodyProblemCounter,i,0]],
+                if not self.parameters.toggleAbsValues3BodyProblem:
+                    self.TrajectoryAcceleration3BodyProblemObject[i].setData([self.parameters.AccelerationsTrajectory3BodyProblem[self.trajectory3BodyProblemCounter,i,0]],
                                                                             [self.parameters.AccelerationsTrajectory3BodyProblem[self.trajectory3BodyProblemCounter,i,1]])
+                else:
+                    self.TrajectoryAcceleration3BodyProblemObject[i].setData([self.parameters.timeScale3BodyProblem[self.trajectory3BodyProblemCounter]],
+                                                [(self.parameters.AccelerationsTrajectory3BodyProblem[self.trajectory3BodyProblemCounter,i,0]**2+
+                                                self.parameters.AccelerationsTrajectory3BodyProblem[self.trajectory3BodyProblemCounter,i,1]**2)**(1/2)])
             else: 
                 self.TrajectoryAcceleration3BodyProblemObject[i].setData()
 
@@ -1203,17 +1372,25 @@ class MechanicsWindow(QMainWindow):
     def updateStaticImages3BodyProblem(self):
         for i in range(self.parameters.numberOfMass3BodyProblem):
             if self.parameters.toggleStatic3BodyProblem:
-                self.TrajectoryVelocity3BodyProblemStatic[i].setData(self.parameters.VelocitiesTrajectory3BodyProblem[:self.parameters.trajectory3BodyProblemEndValue,i,0],
+                if not self.parameters.toggleAbsValues3BodyProblem:
+                    self.TrajectoryVelocity3BodyProblemStatic[i].setData(self.parameters.VelocitiesTrajectory3BodyProblem[:self.parameters.trajectory3BodyProblemEndValue,i,0],
                                          self.parameters.VelocitiesTrajectory3BodyProblem[:self.parameters.trajectory3BodyProblemEndValue,i,1])   
-                self.TrajectoryAcceleration3BodyProblemStatic[i].setData(self.parameters.AccelerationsTrajectory3BodyProblem[1:self.parameters.trajectory3BodyProblemEndValue,i,0],
+                    self.TrajectoryAcceleration3BodyProblemStatic[i].setData(self.parameters.AccelerationsTrajectory3BodyProblem[1:self.parameters.trajectory3BodyProblemEndValue,i,0],
                                          self.parameters.AccelerationsTrajectory3BodyProblem[1:self.parameters.trajectory3BodyProblemEndValue,i,1])   
+                else:
+                    self.TrajectoryVelocity3BodyProblemStatic[i].setData(self.parameters.timeScale3BodyProblem[:self.parameters.trajectory3BodyProblemEndValue],
+                                        (self.parameters.VelocitiesTrajectory3BodyProblem[:self.parameters.trajectory3BodyProblemEndValue,i,0]**2+
+                                        self.parameters.VelocitiesTrajectory3BodyProblem[:self.parameters.trajectory3BodyProblemEndValue,i,1]**2)**(1/2))   
+                    self.TrajectoryAcceleration3BodyProblemStatic[i].setData(self.parameters.timeScale3BodyProblem[1:self.parameters.trajectory3BodyProblemEndValue],
+                                        (self.parameters.AccelerationsTrajectory3BodyProblem[1:self.parameters.trajectory3BodyProblemEndValue,i,0]**2+
+                                        self.parameters.AccelerationsTrajectory3BodyProblem[1:self.parameters.trajectory3BodyProblemEndValue,i,1]**2)**(1/2))   
+
                 self.Trajectory3BodyProblemStatic[i].setData(self.parameters.PositionsTrajectory3BodyProblem[:self.parameters.trajectory3BodyProblemEndValue,i,0],
                                          self.parameters.PositionsTrajectory3BodyProblem[:self.parameters.trajectory3BodyProblemEndValue,i,1])    
             else: 
                 self.TrajectoryVelocity3BodyProblemStatic[i].setData()
                 self.TrajectoryAcceleration3BodyProblemStatic[i].setData()
                 self.Trajectory3BodyProblemStatic[i].setData()
-
 
     def initializeVelocityImage1DTrajectory(self):
         """Updates the 1D Velocity Trajectory Image"""

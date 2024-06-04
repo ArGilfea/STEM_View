@@ -46,6 +46,7 @@ class GUIParameters(object):
         self.toggleDynamic2DTrajectory = False
         self.toggleStatic2DTrajectory = True
         self.toggleObjectPositions2DTrajectory = False
+        self.toggleAbsValues2DTrajectory = False
         self.dynamicSpeed2DTrajectory = 100
         self.step2DTrajectory = 25
 
@@ -78,6 +79,7 @@ class GUIParameters(object):
         self.toggleDynamic3BodyProblem = True
         self.toggleStatic3BodyProblem = True
         self.toggleObjectPositions3BodyProblem = True
+        self.toggleAbsValues3BodyProblem = False
         self.dynamicSpeed3BodyProblem = 100        
         self.step3BodyProblem = 25
 

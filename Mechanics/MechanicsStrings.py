@@ -96,6 +96,10 @@ collision = {
     "En" : "Collision",
     "Fr" : "Collision"
 }
+Abs = {
+    "En" : "Abs. Values",
+    "Fr" : "Val. Abs."
+}
 Position = {
     "En" : "Position",
     "Fr" : "Position"

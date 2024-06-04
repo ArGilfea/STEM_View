@@ -109,6 +109,10 @@ ButtonChoiceFunction = {
     "Sinc" : {
         "En" : "Sinc",
         "Fr" : "Sinc"
+    },
+    "Abs" : {
+        "En" : "Abs",
+        "Fr" : "Abs"
     }
 }
 BoundsLabel = {
@@ -143,6 +147,10 @@ SideDerivativesFunction = {
     "Exact" : {
         "En" : "Exact",
         "Fr" : "Exacte"
+    },
+    "Num" : {
+        "En" : "Numerical",
+        "Fr" : "Numériques"
     },
     "All" : {
         "En" : "All",
@@ -357,7 +365,11 @@ def CurveEquation(curveType:str, parameters:np.ndarray,operator : str = "None",p
             return f'${parameters[0]}\\frac{{sin({parameters[1]} {symbol})}}{{{parameters[2]} {symbol}}} + {parameters[3]}$'
         elif operator == "Derivative":
             return '0'
-        
+    elif curveType == "Abs":
+        if operator == "None":
+            return f'${parameters[0]} |{parameters[1]} {symbol} + {parameters[2]} | + {parameters[3]}$'
+        elif operator == "Derivative":
+            return '0'     
     else:
         return ""
 

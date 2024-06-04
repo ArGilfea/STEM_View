@@ -39,9 +39,11 @@ class MetaGUI(QMainWindow):
 
         self._createAnalysisButton()
         self._createCalculusButton()
+        self._createEMButton()
         self._createMechanicsButton()
         self._createPhysMedButton()
         self._createQMButton()
+        self._createStatisticsButton()
         self._createWavesAndOpticsButton()
         self._createExitButton()
 
@@ -67,6 +69,17 @@ class MetaGUI(QMainWindow):
         self.Calc.clicked.connect(self.openCalc)
         self.generalLayout.addWidget(self.Calc)  
 
+    def _createEMButton(self):
+        """Creates the button for the Electromagnetism GUI"""
+        self.EM = QPushButton(MetaGUIStrings.Electromagnetism[f"{self.language}"])
+        self.EM.setToolTip(MetaGUIStrings.OpenWindow1[f"{self.language}"] + 
+                             MetaGUIStrings.Electromagnetism[f"{self.language}"] + 
+                             MetaGUIStrings.OpenWindow2[f"{self.language}"] +
+                             " (Ctrl+E)")
+        self.EM.setShortcut("Ctrl+E")
+        self.EM.clicked.connect(self.openEM)
+        self.generalLayout.addWidget(self.EM)  
+
     def _createWavesAndOpticsButton(self):
         """Creates the button for the Waves and Optics GUI"""
 
@@ -85,9 +98,9 @@ class MetaGUI(QMainWindow):
         self.PhysMed.setToolTip(MetaGUIStrings.OpenWindow1[f"{self.language}"] + 
                              MetaGUIStrings.MedicalPhysics[f"{self.language}"] + 
                              MetaGUIStrings.OpenWindow2[f"{self.language}"] +
-                             " (Ctrl+M)")
+                             " (Ctrl+P)")
         self.PhysMed.clicked.connect(self.openPhysMed)
-        self.PhysMed.setShortcut("Ctrl+M")
+        self.PhysMed.setShortcut("Ctrl+P")
         self.generalLayout.addWidget(self.PhysMed)  
 
     def _createMechanicsButton(self):
@@ -101,15 +114,26 @@ class MetaGUI(QMainWindow):
         self.Mechanics.setShortcut("Ctrl+N")
         self.generalLayout.addWidget(self.Mechanics)  
 
+    def _createStatisticsButton(self):
+        """Creates the button for the Statistics GUI"""
+        self.Statistics = QPushButton(MetaGUIStrings.Statistics[f"{self.language}"])
+        self.Statistics.setToolTip(MetaGUIStrings.OpenWindow1[f"{self.language}"] + 
+                             MetaGUIStrings.Statistics[f"{self.language}"] + 
+                             MetaGUIStrings.OpenWindow2[f"{self.language}"] +
+                             " (Ctrl+S)")
+        self.Statistics.clicked.connect(self.openStatistics)
+        self.Statistics.setShortcut("Ctrl+S")
+        self.generalLayout.addWidget(self.Statistics)  
+
     def _createQMButton(self):
         """Creates the button for the Quantum Mechanics GUI"""
         self.QM = QPushButton(MetaGUIStrings.QuantumMechanics[f"{self.language}"])
         self.QM.setToolTip(MetaGUIStrings.OpenWindow1[f"{self.language}"] + 
                              MetaGUIStrings.QuantumMechanics[f"{self.language}"] + 
                              MetaGUIStrings.OpenWindow2[f"{self.language}"] +
-                             " (Ctrl+S)")
+                             " (Ctrl+M)")
         self.QM.clicked.connect(self.openQM)
-        self.QM.setShortcut("Ctrl+S")
+        self.QM.setShortcut("Ctrl+M")
         self.generalLayout.addWidget(self.QM)  
 
     def _createExitButton(self):
@@ -127,7 +151,7 @@ class MetaGUI(QMainWindow):
 
         self.exit = QPushButton(MetaGUIStrings.Exit[f"{self.language}"])
         self.exit.setToolTip(MetaGUIStrings.ExitTooltip[f"{self.language}"] + " (Ctrl + E)")
-        self.exit.setShortcut("Ctrl+E")
+        #self.exit.setShortcut("Ctrl+E")
         self.exit.clicked.connect(self.close)
 
         layout.addWidget(self.languageBox)
@@ -145,6 +169,12 @@ class MetaGUI(QMainWindow):
         window = CalculusWindow(self,language= self.language)
         window.show()
 
+    def openEM(self):
+        "Opens the Electromagnetism GUI"
+        pass
+        #window = CalculusWindow(self,language= self.language)
+        #window.show()
+
     def openWavesOptics(self):
         "Opens the Waves and Optics GUI"
         window = WavesAndOpticsWindow(self,language= self.language)
@@ -159,6 +189,12 @@ class MetaGUI(QMainWindow):
         "Opens the Medical Physics GUI"
         window = MedPhysWindow(self,language= self.language)
         window.show()
+
+    def openStatistics(self):
+        "Opens the Statistics GUI"
+        pass
+        #window = MedPhysWindow(self,language= self.language)
+        #window.show()
 
     def openQM(self):
         "Opens the Quantum Mechanics GUI"

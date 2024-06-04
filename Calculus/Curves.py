@@ -58,13 +58,15 @@ def ExponentialCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1
 
 def ExponentialPowerCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
     if typeCurve == 'Normal':
-        return param[0] * np.exp(param[1] * x ** param[2]) + param[3]
+        try:return param[0] * np.exp(param[1] * x ** param[2]) + param[3]
+        except:return param[0] * np.exp(param[1] * (x + 1e-10) ** param[2]) + param[3]
     elif typeCurve == 'Derivative':
         if degree == 1:
             try: return param[0] * param[1] * param[2] * x ** (param[2] - 1) * np.exp(param[1] * x ** param[2])
             except: return param[0] * param[1] * param[2] * (x + 1e-10) ** (param[2] - 1) * np.exp(param[1] * (x+1e-10) ** param[2])
         elif degree == 2:
-            return param[0] * param[1] * param[2] * np.exp(param[1] * x ** param[2]) * ((param[2]-1)*x**(param[2]-2)+ param[1] * param[2] * x ** (2*param[2] - 2))
+            try:return param[0] * param[1] * param[2] * np.exp(param[1] * x ** param[2]) * ((param[2]-1)*x**(param[2]-2)+ param[1] * param[2] * x ** (2*param[2] - 2))
+            except:return param[0] * param[1] * param[2] * np.exp(param[1] * (x + 1e-10) ** param[2]) * ((param[2]-1)*(x + 1e-10)**(param[2]-2)+ param[1] * param[2] * (x + 1e-10) ** (2*param[2] - 2))
         else:
             return np.zeros_like(x)
     elif typeCurve == 'Integral':
@@ -119,7 +121,11 @@ def TanCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
         return param[0] * np.tan(x * param[1] + param[2]) + param[3]
     elif typeCurve == 'Derivative':
         if degree == 1:
-            return param[0] * param[1] * (np.sec(x * param[1] + param[2])) ** 2
+            return param[0] * param[1] /( (np.cos(x * param[1] + param[2])) ** 2)
+        elif degree == 2:
+            return 2*param[0] * param[1] /( (np.cos(x * param[1] + param[2])) ** 2)*np.tan(x * param[1] + param[2])
+        elif degree == 3:
+            return 2*param[0] * param[1] *(1/( (np.cos(x * param[1] + param[2])) ** 4)+2*np.tan(x * param[1] + param[2])**2/( (np.cos(x * param[1] + param[2])) ** 2))
         else: return np.zeros_like(x)
     elif typeCurve == 'Integral':
         try: return - param[0] * np.log(np.cos(x * param[1] + param[2]))/param[1] + param[3] * x
@@ -163,6 +169,17 @@ def Sinc(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
         else: return np.zeros_like(x)
     elif typeCurve == 'Integral':
         return np.zeros_like(x)
+    
+def Abs(x, param:np.ndarray, typeCurve:str = 'Normal', degree:int = 1):
+    if typeCurve == 'Normal':
+        return param[0] * np.abs(param[1]*x+param[2])+param[3]
+    elif typeCurve == 'Derivative':
+        if degree == 1:
+            return np.zeros_like(x)
+        else: return np.zeros_like(x)
+    elif typeCurve == 'Integral':
+        return np.zeros_like(x)
+
 
 def discreteDerivative(x_0,h, curve,parameters: np.ndarray, side:str = 'both',imageRange = [0,0]):
     y_0 = curve(x_0,parameters)

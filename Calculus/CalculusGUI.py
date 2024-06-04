@@ -907,6 +907,8 @@ class CalculusWindow(QMainWindow):
             self.parameters.DerivativesCurve = Curves.ArcTanCurve  
         elif self.parameters.DerivativesCurveName == "Sinc":
             self.parameters.DerivativesCurve = Curves.Sinc   
+        elif self.parameters.DerivativesCurveName == "Abs":
+            self.parameters.DerivativesCurve = Curves.Abs   
         self.parameters.DerivativesYAxis = self.parameters.DerivativesCurve(self.parameters.DerivativesXAxis,self.parameters.DerivativesParameters)
         self.parameters.DerivativesDerivedYAxis = self.parameters.DerivativesCurve(self.parameters.DerivativesXAxis,self.parameters.DerivativesParameters,typeCurve = 'Derivative')
         self.parameters.DerivativesLeft = Curves.discreteDerivative(self.parameters.DerivativesCursorValue,
@@ -971,15 +973,15 @@ class CalculusWindow(QMainWindow):
                                                     CalculusStrings.ButtonChoiceFunction[f"{self.parameters.DerivativesCurveName}"][f"{self.language}"] +  
                                                     f" : y = {CalculusStrings.CurveEquation(self.parameters.DerivativesCurveName,self.parameters.DerivativesParameters)}")
         
-        if self.parameters.DerivativesTypeName in ["Left","All"]:
+        if self.parameters.DerivativesTypeName in ["Left","All","Num"]:
             self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesLeft[0],self.parameters.DerivativesLeft[1],color = 'orange')
             self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesLeft[2],self.parameters.DerivativesLeft[4],'o',color = 'orange')
             self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesLeft[3],self.parameters.DerivativesLeft[5],'o',color = 'orange')
-        if self.parameters.DerivativesTypeName in ["Right","All"]:
+        if self.parameters.DerivativesTypeName in ["Right","All","Num"]:
             self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesRight[0],self.parameters.DerivativesRight[1],color = 'red')
             self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesRight[2],self.parameters.DerivativesRight[4],'o',color = 'red')
             self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesRight[3],self.parameters.DerivativesRight[5],'o',color = 'red')
-        if self.parameters.DerivativesTypeName in ["Middle","All"]:
+        if self.parameters.DerivativesTypeName in ["Middle","All","Num"]:
             self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesBoth[0],self.parameters.DerivativesBoth[1],color = 'green')
             self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesBoth[2],self.parameters.DerivativesBoth[4],'o',color = 'green')
             self.DerivativesBasicImage.axes.plot(self.parameters.DerivativesBoth[3],self.parameters.DerivativesBoth[5],'o',color = 'green')
@@ -1128,7 +1130,9 @@ class CalculusWindow(QMainWindow):
         elif self.parameters.IntegralCurveName == "ArcTan":
             self.parameters.IntegralCurve = Curves.ArcTanCurve  
         elif self.parameters.IntegralCurveName == "Sinc":
-            self.parameters.IntegralCurve = Curves.Sinc        
+            self.parameters.IntegralCurve = Curves.Sinc     
+        elif self.parameters.IntegralCurveName == "Abs":
+            self.parameters.IntegralCurve = Curves.Abs      
         self.parameters.IntegralYAxis = self.parameters.IntegralCurve(self.parameters.IntegralXAxis,self.parameters.IntegralParameters)
 
         self.updateBaseImageIntegral()
@@ -1528,7 +1532,6 @@ class CalculusWindow(QMainWindow):
         elif self.parameters.TaylorCurveName == "Cos":
             self.parameters.TaylorCurve = Curves.CosCurve
         elif self.parameters.TaylorCurveName == "Tan":
-            self.parameters.TaylorXAxis = np.linspace(self.parameters.TaylorBoundsBox[0],self.parameters.TaylorBoundsBox[1],1000)
             self.parameters.TaylorCurve = Curves.TanCurve
         elif self.parameters.TaylorCurveName == "ArcSin":
             self.parameters.TaylorCurve = Curves.ArcSinCurve
@@ -1537,7 +1540,9 @@ class CalculusWindow(QMainWindow):
         elif self.parameters.TaylorCurveName == "ArcTan":
             self.parameters.TaylorCurve = Curves.ArcTanCurve   
         elif self.parameters.TaylorCurveName == "Sinc":
-            self.parameters.TaylorCurve = Curves.Sinc        
+            self.parameters.TaylorCurve = Curves.Sinc      
+        elif self.parameters.TaylorCurveName == "Abs":
+            self.parameters.TaylorCurve = Curves.Abs      
         self.parameters.TaylorYAxis = self.parameters.TaylorCurve(self.parameters.TaylorXAxis,self.parameters.TaylorParameters)
         self.updateImagesTaylor()
 
@@ -1585,7 +1590,12 @@ class CalculusWindow(QMainWindow):
         self.TaylorBaseImage.axes.grid()
         self.TaylorBaseImage.axes.set_xlabel("x")
         self.TaylorBaseImage.axes.set_ylabel("y")
-        self.TaylorBaseImage.axes.set_ylim(top = 2*max(self.parameters.TaylorYAxis)-0.1,bottom = 2*min(self.parameters.TaylorYAxis)+0.1)
+
+        maxValue = max(self.parameters.TaylorYAxis)
+        minValue = min(self.parameters.TaylorYAxis)
+        width = maxValue - minValue
+
+        self.TaylorBaseImage.axes.set_ylim(top = maxValue+0.1*width,bottom = minValue-0.1*width)
         self.TaylorBaseImage.axes.set_title(CalculusStrings.GraphTitleTaylor[f"{self.language}"]+
                                             str(self.parameters.TaylorDegree) +
                                             "\n" + 
@@ -1699,6 +1709,8 @@ class CalculusWindow(QMainWindow):
             self.parameters.PolarCurveFunction = Curves.ArcTanCurve  
         elif self.parameters.PolarCurveName == "Sinc":
             self.parameters.PolarCurveFunction = Curves.Sinc 
+        elif self.parameters.PolarCurveName == "Abs":
+            self.parameters.PolarCurveFunction = Curves.Abs 
         self.updatePolarAxes()
 
     def updateCurveParametersPolar(self):
