@@ -70,6 +70,10 @@ ButtonChoiceFunction = {
         "En" : "Cubic",
         "Fr" : "Cubique"
     },
+    "SqrRt" : {
+        "En" : "Square Root",
+        "Fr" : "Racine Carrée"
+    },
     "Exponential" : {
         "En" : "Exponential",
         "Fr" : "Exponentielle"
@@ -313,6 +317,11 @@ def CurveEquation(curveType:str, parameters:np.ndarray,operator : str = "None",p
     elif curveType == "Cubic":
         if operator == "None":
             return f'{parameters[0]}${symbol}^3$ + {parameters[1]}${symbol}^2$ + {parameters[2]}${symbol}$ + {parameters[3]}'
+        elif operator == "Derivative":
+            return f'{3*parameters[0]:.2g}${symbol}$ + {2*parameters[1]:.2g}${symbol}$ + {parameters[2]}'
+    elif curveType == "SqrRt":
+        if operator == "None":
+            return f'{parameters[0]}$\\sqrt{{{parameters[1]}{symbol}+{parameters[2]}}}$ + {parameters[3]}'
         elif operator == "Derivative":
             return f'{3*parameters[0]:.2g}${symbol}$ + {2*parameters[1]:.2g}${symbol}$ + {parameters[2]}'
     elif curveType == "Exponential":

@@ -887,6 +887,8 @@ class CalculusWindow(QMainWindow):
             self.parameters.DerivativesCurve = Curves.QuadraticCurve
         elif self.parameters.DerivativesCurveName == "Cubic":
             self.parameters.DerivativesCurve = Curves.CubicCurve
+        elif self.parameters.DerivativesCurveName == "SqrRt":
+            self.parameters.DerivativesCurve = Curves.SqrRtCurve
         elif self.parameters.DerivativesCurveName == "Exponential":
             self.parameters.DerivativesCurve = Curves.ExponentialCurve
         elif self.parameters.DerivativesCurveName == "Exp. Power":
@@ -1110,6 +1112,8 @@ class CalculusWindow(QMainWindow):
             self.parameters.IntegralCurve = Curves.QuadraticCurve
         elif self.parameters.IntegralCurveName == "Cubic":
             self.parameters.IntegralCurve = Curves.CubicCurve
+        elif self.parameters.IntegralCurveName == "SqrRt":
+            self.parameters.IntegralCurve = Curves.SqrRtCurve
         elif self.parameters.IntegralCurveName == "Exponential":
             self.parameters.IntegralCurve = Curves.ExponentialCurve
         elif self.parameters.IntegralCurveName == "Exp. Power":
@@ -1521,6 +1525,8 @@ class CalculusWindow(QMainWindow):
             self.parameters.TaylorCurve = Curves.QuadraticCurve
         elif self.parameters.TaylorCurveName == "Cubic":
             self.parameters.TaylorCurve = Curves.CubicCurve
+        elif self.parameters.TaylorCurveName == "SqrRt":
+            self.parameters.TaylorCurve = Curves.SqrRtCurve
         elif self.parameters.TaylorCurveName == "Exponential":
             self.parameters.TaylorCurve = Curves.ExponentialCurve
         elif self.parameters.TaylorCurveName == "Exp. Power":
@@ -1689,6 +1695,8 @@ class CalculusWindow(QMainWindow):
             self.parameters.PolarCurveFunction = Curves.QuadraticCurve
         elif self.parameters.PolarCurveName == "Cubic":
             self.parameters.PolarCurveFunction = Curves.CubicCurve
+        elif self.parameters.PolarCurveName == "SqrRt":
+            self.parameters.PolarCurveFunction = Curves.SqrRtCurve
         elif self.parameters.PolarCurveName == "Exponential":
             self.parameters.PolarCurveFunction = Curves.ExponentialCurve
         elif self.parameters.PolarCurveName == "Exp. Power":

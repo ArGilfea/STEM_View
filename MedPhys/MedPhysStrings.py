@@ -262,6 +262,10 @@ ImageTomoName = {
         "En" : "Heart",
         "Fr" : "Coeur"
     },
+    "Sinogram" : {
+        "En" : "Sinogram",
+        "Fr" : "Sinogramme"
+    },
     "SatelliteIles" : {
         "En" : "Satellite Islands",
         "Fr" : "Satellite Îles"

@@ -47,6 +47,38 @@ def CubicCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
     elif typeCurve == 'Integral':
         return param[0]/4 * x ** 4 + param[1]/3 * x **3 + param[2]/2 * x ** 2 + param[3] * x
 
+def SqrRtCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
+    if isinstance(x, (float,int)):
+        x = np.array([x])
+        wasInt = True
+    else:
+        wasInt = False
+    returnValue = np.zeros_like(x)
+    for i in range(returnValue.shape[0]):
+        if param[1] * x[i] + param[2] >= 0:
+            if typeCurve == 'Normal':
+                returnValue[i] = param[0] * (param[1] * x[i] + param[2])**(1/2) + param[3]
+            elif typeCurve == 'Derivative':
+                if degree == 1:
+                    returnValue[i] = param[0]*param[1]/(2*(param[1] * x[i] + param[2])**(1/2))
+                elif degree == 2:
+                    returnValue[i] = -param[0]*param[1]/(4*(param[1] * x[i] + param[2])**(3/2))
+                elif degree == 3:
+                    returnValue[i] = 3*param[0]*param[1]/(8*(param[1] * x[i] + param[2])**(5/2))
+                elif degree >= 4:
+                    returnValue[i] = 0    
+            elif typeCurve == 'Integral':
+                try:
+                    returnValue[i] = 2*param[0]/(8*param[1])*(param[1] * x[i] + param[2])**(3/2)
+                except: 
+                    returnValue[i] = 2*param[0]/(8*param[1]+1e-3)*(param[1] * x[i] + param[2])**(3/2)
+        else:
+            returnValue[i] = np.nan
+    if wasInt:
+        return returnValue[0]
+    else:
+        return returnValue
+
 def ExponentialCurve(x,param:np.ndarray, typeCurve:str = 'Normal',degree:int = 1):
     if typeCurve == 'Normal':
         return param[0] * np.exp(param[1] * x) + param[2]

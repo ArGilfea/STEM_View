@@ -585,8 +585,8 @@ class MedPhysWindow(QMainWindow):
         else:
             self.TomoImage.axes.pcolormesh(np.log10(self.parameters.ImageRotatedTomo+1),cmap = 'Greys_r')
         self.TomoImage.axes.invert_yaxis()
-        self.TomoImage.axes.axvline(self.parameters.ImageRotatedTomo.shape[0]/2)
-        self.TomoImage.axes.axhline(self.parameters.ImageRotatedTomo.shape[0]/2)
+        #self.TomoImage.axes.axvline(self.parameters.ImageRotatedTomo.shape[0]/2)
+        #self.TomoImage.axes.axhline(self.parameters.ImageRotatedTomo.shape[0]/2)
         self.TomoImage.axes.set_title(MedPhysStrings.ImageTomoName[self.parameters.ImageTomoName[0]][self.language] +
                                         ", " +
                                         MedPhysStrings.AngleTomoLabel[self.language] +  
