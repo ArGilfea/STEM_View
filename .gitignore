@@ -1,2 +1,7 @@
 # Auto detect text files and perform LF normalization
+Analysis/TestFiles
+Calculus/TestFiles
+Mechanics/TestFiles
+MedPhys/TestFiles
+QuantumMechanics/TestFiles
 WavesAndOptics/TestFiles

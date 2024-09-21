@@ -48,6 +48,25 @@ class GUIParameters(object):
                                                 self.TypeMovement2DWaves
                                             )  
         ###
+        self.numberSound = 3
+        self.durationSound = 5 #in seconds
+        self.bitRateSound = 16
+        self.SampleRate = 48000
+        self.maxAmpSound = np.iinfo(np.int16).max
+        self.FrequencySound = np.ones(self.numberSound, dtype=int) * 400
+        self.RelativeAmplitudeSound = np.ones(self.numberSound)
+        self.ToggleSound = np.ones(self.numberSound, dtype=bool)
+
+        self.clockTicksSound = np.arange(start=0, stop=self.SampleRate*self.durationSound, step=1, dtype=int)
+
+        self.MusicSounds = np.zeros((self.numberSound, self.clockTicksSound.shape[0]))
+
+        self.SaveSound = True
+
+        for i in range(self.numberSound):
+            self.FrequencySound[i] *= (i+1)
+            self.MusicSounds[i,:] = (self.RelativeAmplitudeSound[i] * np.sin((2*np.pi*self.FrequencySound[i]/self.SampleRate)*self.clockTicksSound)*self.maxAmpSound).astype(np.int16)
+        ###
         self.CurrentNumberInterfacesRefraction = 1
         self.maxNumberInterfacesRefraction = 10
         self.IndicesRefraction = np.ones(self.maxNumberInterfacesRefraction+1)
@@ -75,7 +94,6 @@ class GUIParameters(object):
         for i in range(1,self.AnglesRefraction.shape[0]-1):
             self.AnglesRefraction[i] = GeometricOptics.RefractionLaw(self.IndicesRefraction[i-1],self.AnglesRefraction[i-1],self.IndicesRefraction[i])
             self.PointOfIntersectXRefraction[i+1] = self.PointOfIntersectXRefraction[i] + np.abs((self.PointOfIntersectYRefraction[i+1]-self.PointOfIntersectYRefraction[i])*np.tan(self.AnglesRefraction[i]*np.pi/180))
-
 
         ###
         self.MirrorType = "Concave"

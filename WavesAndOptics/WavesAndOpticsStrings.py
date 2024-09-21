@@ -14,6 +14,10 @@ Waves2DTabName = {
     "En" : "2D Waves",
     "Fr" : "Ondes 2D"    
 }
+SoundTabName = {
+    "En" : "Sound",
+    "Fr" : "Son"    
+}
 RefractionTabName = {
     "En" : "Refraction",
     "Fr" : "Réfraction"
@@ -193,6 +197,47 @@ ButtonChoiceTypeMotion2DWaves = {
         "En" : "Packet",
         "Fr" : "Paquet"
     }
+}
+##########################################
+Sound = {
+    "En" : "Sound",
+    "Fr" : "Son"
+}
+BitRateSound = {
+    "En" : "Bit Rate",
+    "Fr" : "Bit Rate"
+}
+RelativeAmplitudeSound = {
+    "En" : "Rel. Ampl.",
+    "Fr" : "Ampl. Rel."
+}
+Frequency = {
+    "En" : "Frequency",
+    "Fr" : "Fréquence"
+}
+Use = {
+    "En" : "Use",
+    "Fr" : "Utiliser"
+}
+Length = {
+    "En" : "Length (s)",
+    "Fr" : "Durée (s)"
+}
+SumSounds = {
+    "En" : "Sum of Sounds",
+    "Fr" : "Somme des Sons"
+}
+PlaySound = {
+    "En" : "Play Sound",
+    "Fr" : "Jouer le Son"
+}
+SaveSound = {
+    "En" : "Save Sound",
+    "Fr" : "Sauvegarder le Son"
+}
+PlaySoundToolTip = {
+    "En" : "Plays the Sound determined by the parameters",
+    "Fr" : "Joue le Son déterminé par les paramètres"
 }
 ##########################################
 InitialAngle = {

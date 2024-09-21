@@ -5,10 +5,12 @@ import time
 import sys
 import numpy as np
 import time
+from scipy.io.wavfile import write
 ###
+from PyQt5 import QtGui
+from PyQt5 import QtMultimedia
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
-from PyQt5 import QtGui
 from functools import partial
 ###
 try:
@@ -44,6 +46,7 @@ class WavesAndOpticsWindow(QMainWindow):
         self.currentLineSHM = 1
         self.currentLineDamped = 1
         self.currentLine2DWaves = 1
+        self.currentLineSound = 1
         self.currentLineRefraction = 1
         self.currentLineMirrors = 1
         super().__init__(parent=parent)
@@ -53,6 +56,7 @@ class WavesAndOpticsWindow(QMainWindow):
         self.generalLayoutSHM = QGridLayout()
         self.generalLayoutDamped = QGridLayout()
         self.generalLayout2DWaves = QGridLayout()
+        self.generalLayoutSound = QGridLayout()
         self.generalLayoutRefraction = QGridLayout()
         self.generalLayoutMirrors = QGridLayout()
         self.generalLayoutReadMe = QGridLayout()
@@ -60,6 +64,7 @@ class WavesAndOpticsWindow(QMainWindow):
         centralWidgetSHM = QWidget(self)
         centralWidgetDamped = QWidget(self)
         centralWidget2DWaves = QWidget(self)
+        centralWidgetSound = QWidget(self)
         centralWidgetRefraction = QWidget(self)
         centralWidgetMirrors = QWidget(self)
         centralWidgetReadMe = QWidget(self)
@@ -67,6 +72,7 @@ class WavesAndOpticsWindow(QMainWindow):
         centralWidgetSHM.setLayout(self.generalLayoutSHM)
         centralWidgetDamped.setLayout(self.generalLayoutDamped)
         centralWidget2DWaves.setLayout(self.generalLayout2DWaves)
+        centralWidgetSound.setLayout(self.generalLayoutSound)
         centralWidgetRefraction.setLayout(self.generalLayoutRefraction)
         centralWidgetMirrors.setLayout(self.generalLayoutMirrors)
         centralWidgetReadMe.setLayout(self.generalLayoutReadMe)
@@ -74,6 +80,7 @@ class WavesAndOpticsWindow(QMainWindow):
         self.tabs.addTab(centralWidgetSHM,WavesAndOpticsStrings.SHMTabName[f"{self.language}"])
         #self.tabs.addTab(centralWidgetDamped,WavesAndOpticsStrings.DampedTabName[f"{self.language}"])
         self.tabs.addTab(centralWidget2DWaves,WavesAndOpticsStrings.Waves2DTabName[f"{self.language}"])
+        self.tabs.addTab(centralWidgetSound,WavesAndOpticsStrings.SoundTabName[f"{self.language}"])
         self.tabs.addTab(centralWidgetRefraction,WavesAndOpticsStrings.RefractionTabName[f"{self.language}"])
         self.tabs.addTab(centralWidgetMirrors,WavesAndOpticsStrings.MirrorsTabName[f"{self.language}"])
         self.tabs.addTab(centralWidgetReadMe,WavesAndOpticsStrings.ReadMeTabName[f"{self.language}"])
@@ -94,6 +101,10 @@ class WavesAndOpticsWindow(QMainWindow):
         self._createPositionSliceImage2DWaves()
         self._createParametersButtons2DWaves()
         ###
+        #Sounds
+        self._createSoundShapeImageSound()
+        self._createParametersButtonsSound()
+        ###
         #Refraction
         self._createImageRefraction()
         self._createParametersButtonsRefraction()
@@ -109,6 +120,8 @@ class WavesAndOpticsWindow(QMainWindow):
         self.generalLayoutSHM.setColumnStretch(2,5)
         self.generalLayout2DWaves.setColumnStretch(1,5)
         self.generalLayout2DWaves.setColumnStretch(2,5)
+        self.generalLayoutSound.setColumnStretch(1,5)
+        self.generalLayoutSound.setColumnStretch(2,5)
         self.generalLayoutRefraction.setColumnStretch(1,10)
         self.generalLayoutRefraction.setColumnStretch(2,10)
         self.generalLayoutMirrors.setColumnStretch(1,10)
@@ -375,6 +388,90 @@ class WavesAndOpticsWindow(QMainWindow):
         self.generalLayout2DWaves.addWidget(subWidget,self.currentLine2DWaves,2)
         self.currentLine2DWaves += 1
         self.updateAll2DWave()
+
+    def _createSoundShapeImageSound(self):
+        """Creates the Image for the Sound"""
+        self.ImageSound = MplCanvas(self, width=6, height=6, dpi=75)
+        self.ImageSound_cid = self.ImageSound.fig.canvas.mpl_connect('button_press_event', partial(self.onClick, which = self.ImageSound))
+        self.ImageSound_cod = self.ImageSound.fig.canvas.mpl_connect('scroll_event', partial(self.onRoll, which = self.ImageSound))
+
+        self.generalLayoutSound.addWidget(self.ImageSound,self.currentLineSound,1)
+
+        self.updateImageSound()
+################################################################################################
+################################################################################################
+################################################################################################
+################################################################################################
+    def _createParametersButtonsSound(self):
+        """Creates the Parameters Buttons for Sounds"""
+        subWidget = QWidget()
+        layout = QGridLayout()
+        subWidget.setLayout(layout)
+
+        self.bitRateSoundLineEdit = QLineEdit()
+        self.bitRateSoundLineEdit.setFixedWidth(90)
+        self.bitRateSoundLineEdit.setText(str(self.parameters.bitRateSound))
+        self.bitRateSoundLineEdit.setReadOnly(True)
+        self.bitRateSoundLineEdit.setStyleSheet("background-color: grey")
+
+        self.DurationSoundLineEdit = QLineEdit()
+        self.DurationSoundLineEdit.setFixedWidth(90)
+        self.DurationSoundLineEdit.setText(str(self.parameters.durationSound))
+        self.DurationSoundLineEdit.editingFinished.connect(self.updateValuesSound)
+
+        self.RelativeAmplitudeLineEditSound = []
+        self.soundFrequencyLineEditSound = []
+        self.soundToggleComboSound = []
+        for i in range(self.parameters.numberSound):
+            newLineEdit = QLineEdit()
+            newLineEdit.setFixedWidth(120)
+            newLineEdit.setText(f"{self.parameters.FrequencySound[i]}")
+            newLineEdit.editingFinished.connect(self.updateValuesSound)
+            self.soundFrequencyLineEditSound.append(newLineEdit)
+
+            newLineEdit = QLineEdit()
+            newLineEdit.setFixedWidth(120)
+            newLineEdit.setText(f"{self.parameters.RelativeAmplitudeSound[i]}")
+            newLineEdit.editingFinished.connect(self.updateValuesSound)
+            self.RelativeAmplitudeLineEditSound.append(newLineEdit)
+
+            newCheckBox = QCheckBox()
+            newCheckBox.setChecked(self.parameters.ToggleSound[i])
+            newCheckBox.stateChanged.connect(self.updateValuesSound)
+            self.soundToggleComboSound.append(newCheckBox)
+
+        self.PlaySoundButton = QPushButton(WavesAndOpticsStrings.PlaySound[f"{self.language}"])
+        self.PlaySoundButton.setToolTip(WavesAndOpticsStrings.PlaySoundToolTip[f"{self.language}"] + " (Ctrl+P)")
+        self.PlaySoundButton.setShortcut("Ctrl+P")
+        self.PlaySoundButton.clicked.connect(self.PlaySoundsPushed)
+
+        self.saveSoundToggle = QCheckBox()
+        self.saveSoundToggle.setChecked(self.parameters.SaveSound)
+        self.saveSoundToggle.stateChanged.connect(self.updateValuesSound)
+
+        layout.addWidget(QLabel(WavesAndOpticsStrings.BitRateSound[f"{self.language}"]),1,1)
+        layout.addWidget(self.bitRateSoundLineEdit,1,2)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.Length[f"{self.language}"]),1,3)
+        layout.addWidget(self.DurationSoundLineEdit,1,4)
+
+        layout.addWidget(QLabel(WavesAndOpticsStrings.RelativeAmplitudeSound[f"{self.language}"]),2,2)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.Frequency[f"{self.language}"]),2,3)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.Use[f"{self.language}"]),2,4)
+
+        for i in range(self.parameters.numberSound):
+            layout.addWidget(QLabel(WavesAndOpticsStrings.Sound[f"{self.language}"]+f" {i+1}:"),3+i,1)
+            layout.addWidget(self.RelativeAmplitudeLineEditSound[i],3+i,2)
+            layout.addWidget(self.soundFrequencyLineEditSound[i],3+i,3)
+            layout.addWidget(self.soundToggleComboSound[i],3+i,4)
+
+        layout.addWidget(self.PlaySoundButton,4 + self.parameters.numberSound,1)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.SaveSound[f"{self.language}"]+f" {i+1}:"),4 + self.parameters.numberSound,3)
+        layout.addWidget(self.saveSoundToggle,4 + self.parameters.numberSound,4)
+
+
+        self.generalLayoutSound.addWidget(subWidget,self.currentLineSound,2)
+        self.currentLineSound += 1
+        self.updateAll2DWave()
 ################################################################################################
 ################################################################################################
 ################################################################################################
@@ -583,36 +680,42 @@ class WavesAndOpticsWindow(QMainWindow):
         self.exitSHM = QPushButton(WavesAndOpticsStrings.ExitButton[f"{self.language}"])
         self.exitDamped = QPushButton(WavesAndOpticsStrings.ExitButton[f"{self.language}"])
         self.exit2DWaves = QPushButton(WavesAndOpticsStrings.ExitButton[f"{self.language}"])
+        self.exitSound = QPushButton(WavesAndOpticsStrings.ExitButton[f"{self.language}"])
         self.exitRefraction = QPushButton(WavesAndOpticsStrings.ExitButton[f"{self.language}"])
         self.exitMirrors = QPushButton(WavesAndOpticsStrings.ExitButton[f"{self.language}"])
         
         self.exitSHM.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
         self.exitDamped.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
         self.exit2DWaves.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
+        self.exitSound.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
         self.exitRefraction.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
         self.exitMirrors.setToolTip(WavesAndOpticsStrings.ExitButtonTooltip[f"{self.language}"] + " (Ctrl+Shift+E)")
 
         self.exitSHM.setShortcut("Ctrl+Shift+E")
         self.exitDamped.setShortcut("Ctrl+Shift+E")
         self.exit2DWaves.setShortcut("Ctrl+Shift+E")
+        self.exitSound.setShortcut("Ctrl+Shift+E")
         self.exitRefraction.setShortcut("Ctrl+Shift+E")
         self.exitMirrors.setShortcut("Ctrl+Shift+E")
 
         self.exitSHM.clicked.connect(self.close)
         self.exitDamped.clicked.connect(self.close)
         self.exit2DWaves.clicked.connect(self.close)
+        self.exitSound.clicked.connect(self.close)
         self.exitRefraction.clicked.connect(self.close)
         self.exitMirrors.clicked.connect(self.close)
 
         self.generalLayoutSHM.addWidget(self.exitSHM,self.currentLineSHM+1,3)  
         #self.generalLayoutDamped.addWidget(self.exitDamped,self.currentLineDamped+1,3)  
         self.generalLayout2DWaves.addWidget(self.exit2DWaves,self.currentLine2DWaves+1,3)  
+        self.generalLayoutSound.addWidget(self.exitSound,self.currentLineSound+1,3)  
         self.generalLayoutRefraction.addWidget(self.exitRefraction,self.currentLineRefraction+1,3)  
         self.generalLayoutMirrors.addWidget(self.exitMirrors,self.currentLineMirrors+1,3)  
 
         self.currentLineSHM += 1
         self.currentLineDamped += 1
         self.currentLine2DWaves += 1
+        self.currentLineSound += 1
         self.currentLineRefraction += 1
         self.currentLineMirrors += 1
 ################################################################################################
@@ -997,7 +1100,107 @@ class WavesAndOpticsWindow(QMainWindow):
             self.PositionSliceImage2DWaves.axes.set_ylim(-2.1*self.parameters.Parameters2DWaves[0],2.1*self.parameters.Parameters2DWaves[0])  
         self.PositionSliceImage2DWaves.axes.grid()   
         self.PositionSliceImage2DWaves.draw()
+##############################################################################################################################
+    def updateValuesSound(self):
+        """Updates the values of the Sounds"""
+        try:
+            self.parameters.durationSound = int(self.DurationSoundLineEdit.text())
+        except:
+            self.DurationSoundLineEdit.setText(str(self.parameters.durationSound))
 
+        for i in range(self.parameters.numberSound):
+            try:
+                self.parameters.FrequencySound[i] = int(self.soundFrequencyLineEditSound[i].text())
+            except:
+                self.soundFrequencyLineEditSound[i].setText(f"{self.parameters.FrequencySound[i]}")           
+            try:
+                self.parameters.RelativeAmplitudeSound[i] = float(self.RelativeAmplitudeLineEditSound[i].text())
+            except:
+                self.RelativeAmplitudeLineEditSound[i].setText(f"{self.parameters.RelativeAmplitudeSound[i]}")   
+
+
+            if self.soundToggleComboSound[i].isChecked():
+                self.parameters.ToggleSound[i] = True
+            else:
+                self.parameters.ToggleSound[i] = False
+        
+        if self.saveSoundToggle.isChecked():
+            self.parameters.SaveSound = True
+        else:
+            self.parameters.SaveSound = False
+
+        self.updateSoundWaves()
+
+    def updateSoundWaves(self):
+        """Updates the Sound Waves of the Sounds"""
+
+        self.parameters.clockTicksSound = np.arange(start=0, stop=self.parameters.SampleRate*self.parameters.durationSound, step=1, dtype=int)
+
+        self.parameters.MusicSounds = np.zeros((self.parameters.numberSound, self.parameters.clockTicksSound.shape[0]))
+
+        for i in range(self.parameters.numberSound):
+            self.parameters.MusicSounds[i,:] = (self.parameters.RelativeAmplitudeSound[i]*np.sin((2*np.pi*self.parameters.FrequencySound[i]/self.parameters.SampleRate)*self.parameters.clockTicksSound)*self.parameters.maxAmpSound).astype(np.int16)
+        self.updateImageSound()
+
+    def updateImageSound(self):
+        """Updates the Image of the Sound"""
+        try:
+            self.ImageSound.axes.cla()
+        except : pass
+
+        for i in range(self.parameters.numberSound):
+            if self.parameters.ToggleSound[i]:
+                self.ImageSound.axes.plot(self.parameters.clockTicksSound[:100],
+                                      self.parameters.MusicSounds[i,:100]/self.parameters.maxAmpSound,
+                                      label = WavesAndOpticsStrings.Sound[f"{self.language}"]+f" {i+1}",
+                                      linewidth = 1.0)
+            else:
+                self.ImageSound.axes.plot(self.parameters.clockTicksSound[:100],
+                                      self.parameters.MusicSounds[i,:100]/self.parameters.maxAmpSound,
+                                      label = WavesAndOpticsStrings.Sound[f"{self.language}"]+f" {i+1}",
+                                      linestyle = "dotted",
+                                      linewidth = 0.6)
+
+        SumSound = np.zeros(self.parameters.clockTicksSound.shape[0])
+        counter = 0
+        for i in range(self.parameters.numberSound):
+            if self.parameters.ToggleSound[i]:
+                SumSound += self.parameters.MusicSounds[i,:]
+                counter += 1
+
+        if counter != 0:
+            self.ImageSound.axes.plot(self.parameters.clockTicksSound[:100],
+                                        SumSound[:100]/(self.parameters.maxAmpSound*counter),
+                                        label = WavesAndOpticsStrings.SumSounds[f"{self.language}"],
+                                        linewidth = 1.5)
+
+        self.ImageSound.axes.grid()   
+        self.ImageSound.axes.set_xlabel("t")
+        self.ImageSound.axes.set_ylabel("y")
+        self.ImageSound.axes.legend()   
+        self.ImageSound.draw()
+
+    def PlaySoundsPushed(self):
+        """Plays the Sounds with the determined frequencies when the button is pushed
+        Starts by saving the sound to a .wav file,
+        then plays that .wav file.
+        """
+        SoundToPlay = np.zeros(self.parameters.clockTicksSound.shape[0])
+        saveName = "Sound"
+        counter = 0
+        for i in range(self.parameters.numberSound):
+            if self.parameters.ToggleSound[i]:
+                SoundToPlay += self.parameters.MusicSounds[i,:]
+                counter += 1
+                if self.parameters.SaveSound:
+                    saveName += "_" + str(self.parameters.FrequencySound[i])
+
+        write(filename = f'WavesAndOptics/SoundFiles/FileToPlaySound.wav', rate=self.parameters.SampleRate, data = (SoundToPlay/counter).astype(np.int16))
+
+        if self.parameters.SaveSound and counter != 0: 
+              write(filename = f'WavesAndOptics/SoundFiles/{saveName}.wav', rate=self.parameters.SampleRate, data = (SoundToPlay/counter).astype(np.int16))
+
+        QtMultimedia.QSound.play(f'WavesAndOptics/SoundFiles/FileToPlaySound.wav')
 ##############################################################################################################################
     def updateCursorRefraction(self):
         """Updates the values of the refraction"""
