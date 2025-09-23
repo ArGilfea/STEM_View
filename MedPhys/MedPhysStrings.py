@@ -290,6 +290,10 @@ ImageTomoName = {
         "En" : "Ellipsoid",
         "Fr" : "Ellipse"
     },
+    "Ellipsoid Crescent" : {
+        "En" : "Ellipsoid Crescent",
+        "Fr" : "Croissant d'Ellipse"
+    },
     "Dense Shell Ellipsoid" : {
         "En" : "Dense Shell Ellipsoid",
         "Fr" : "Ellipse avec Capsule Dense"

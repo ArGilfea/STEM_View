@@ -26,8 +26,8 @@ class GUIParameters(object):
         self.TypeMotion2DWaves = "Full"
         self.BoundsT2DWaves = np.array([0.0,10.0])
         self.BoundsX2DWaves = np.array([0.0,10.0])
-        self.XAxis2DWaves = np.linspace(self.BoundsX2DWaves[0],self.BoundsX2DWaves[1],100)
-        self.TAxis2DWaves = np.linspace(self.BoundsT2DWaves[0],self.BoundsT2DWaves[1],100)
+        self.XAxis2DWaves = np.linspace(self.BoundsX2DWaves[0],self.BoundsX2DWaves[1],300)
+        self.TAxis2DWaves = np.linspace(self.BoundsT2DWaves[0],self.BoundsT2DWaves[1],300)
         self.Parameters2DWaves = np.array([1.0,1.0,1.0,0.0])      #Amplitude, k, omega, and phi
         self.PhysicalParameters2DWaves = np.array([1.0,1.0])  #Mass and k of Spring
         self.ShowAll2DWaves = False
@@ -61,7 +61,7 @@ class GUIParameters(object):
 
         self.MusicSounds = np.zeros((self.numberSound, self.clockTicksSound.shape[0]))
 
-        self.SaveSound = True
+        self.SaveSound = False
 
         for i in range(self.numberSound):
             self.FrequencySound[i] *= (i+1)

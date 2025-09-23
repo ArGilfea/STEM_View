@@ -635,7 +635,7 @@ class MedPhysWindow(QMainWindow):
 
         self.FlatImage.axes.plot(self.parameters.FlatImageAngleTomo)
         self.FlatImage.axes.set_title(MedPhysStrings.LineIntensityLabel[self.language] +
-                                        self.parameters.ImageTomoName[0] +
+                                        MedPhysStrings.ImageTomoName[self.parameters.ImageTomoName[0]][self.language] + 
                                         MedPhysStrings.LineIntensity2Label[self.language] +
                                         f"{self.parameters.angleTomo:.1f}" +
                                         MedPhysStrings.LineIntensity3Label[self.language])
@@ -737,7 +737,7 @@ class MedPhysWindow(QMainWindow):
             for dict, names in MedPhysStrings.ImageTomoName.items():
                 if name_tmp in names.values():
                     self.parameters.ImageTomoName[i] = dict
-            if self.parameters.ImageTomoName[i] not in ["Rectangle","Ellipsoid","Dense Shell Ellipsoid","Dense Core Ellipsoid",
+            if self.parameters.ImageTomoName[i] not in ["Rectangle","Ellipsoid", "Ellipsoid Crescent","Dense Shell Ellipsoid","Dense Core Ellipsoid",
                                                     "Gaussian","Sinc"]:
                 tmpImg = mpimg.imread(f'{basedir}/TomoImage/{self.parameters.ImageTomoName[i]}.pgm')
                 self.parameters.ImageTomo += self.parameters.ParameterTomo[i,3,0]*rescale(tmpImg, scale = [self.parameters.ParameterTomo[0,0,0]/tmpImg.shape[0],self.parameters.ParameterTomo[0,0,1]/tmpImg.shape[1]])
@@ -748,7 +748,7 @@ class MedPhysWindow(QMainWindow):
     def update_ImageTomo(self):
         self.parameters.ImageRotatedTomo = Tomography.Rotate(self.parameters.ImageTomo,angle = self.parameters.angleTomo*2*np.pi/360)
 
-        self.parameters.FlatImageAngleTomo = np.sum(self.parameters.ImageRotatedTomo,axis=1)
+        self.parameters.FlatImageAngleTomo = np.sum(self.parameters.ImageRotatedTomo,axis=0)
         self.parameters.SinogramTomo = Tomography.Sinogram(self.parameters.ImageTomo, angles_step = self.parameters.AngleStepTomo)
         self.parameters.ReconstructedTomo = Tomography.Reconstruction(self.parameters.SinogramTomo, 
                                                                 angles_step = self.parameters.AngleStepTomo,
@@ -970,9 +970,10 @@ class MedPhysWindow(QMainWindow):
     def updateLineEditAngleTomo(self):
         """Updates the Angle of tomography based on the Line Edit"""
         try:
-            self.parameters.angleTomo = int(self.lineEditAngleTomo.text())
+            self.parameters.angleTomo = float(self.lineEditAngleTomo.text())
         except:
             self.parameters.angleTomo = 0
+        self.sliderAngleTomo.setValue(int(self.parameters.angleTomo))
         self.updateRotatedImageTomo()
         self.updateImageSliceTomo()
 
@@ -982,6 +983,7 @@ class MedPhysWindow(QMainWindow):
             self.parameters.angleTomo = int(self.sliderAngleTomo.value())
         except:
             self.parameters.angleTomo = 0
+        self.lineEditAngleTomo.setText(str(self.parameters.angleTomo))
         self.updateRotatedImageTomo()
         self.updateImageSliceTomo()
         
@@ -1008,7 +1010,7 @@ class MedPhysWindow(QMainWindow):
         self.updateImageReconstructed()
 
     def updateImageSliceTomo(self):
-        self.parameters.FlatImageAngleTomo = np.sum(self.parameters.ImageRotatedTomo,axis=1)
+        self.parameters.FlatImageAngleTomo = np.sum(self.parameters.ImageRotatedTomo,axis=0)
         self.updateImageTomoSlice()
         self.updateImageTomoBase()
         self.updateImageTomoSino()
@@ -1028,6 +1030,7 @@ class MedPhysWindow(QMainWindow):
         elif which == self.SinoImage:
             self.parameters.angleTomo = ix * self.parameters.AngleStepTomo
             self.lineEditAngleTomo.setText(str(f"{ix:.1f}"))
+            self.sliderAngleTomo.setValue(int(self.parameters.angleTomo))
             self.updateRotatedImageTomo()
             self.updateImageSliceTomo()
     def onRoll(self,event,which):
@@ -1053,6 +1056,7 @@ class MedPhysWindow(QMainWindow):
             actual = float(self.lineEditAngleTomo.text())
             self.parameters.angleTomo = actual + scale_factor * self.parameters.AngleStepTomo
             self.lineEditAngleTomo.setText(str(f"{(actual + scale_factor * self.parameters.AngleStepTomo):.1f}"))
+            self.sliderAngleTomo.setValue(int(self.parameters.angleTomo))
             self.updateImageSliceTomo()
             self.updateRotatedImageTomo()
 

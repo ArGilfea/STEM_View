@@ -465,7 +465,7 @@ class WavesAndOpticsWindow(QMainWindow):
             layout.addWidget(self.soundToggleComboSound[i],3+i,4)
 
         layout.addWidget(self.PlaySoundButton,4 + self.parameters.numberSound,1)
-        layout.addWidget(QLabel(WavesAndOpticsStrings.SaveSound[f"{self.language}"]+f" {i+1}:"),4 + self.parameters.numberSound,3)
+        layout.addWidget(QLabel(WavesAndOpticsStrings.SaveSound[f"{self.language}"]),4 + self.parameters.numberSound,3)
         layout.addWidget(self.saveSoundToggle,4 + self.parameters.numberSound,4)
 
 
@@ -1005,8 +1005,8 @@ class WavesAndOpticsWindow(QMainWindow):
 
     def updateCurves2DWaves(self):
         """Updates the Data of the 2D Waves"""
-        self.parameters.XAxis2DWaves = np.linspace(self.parameters.BoundsX2DWaves[0],self.parameters.BoundsX2DWaves[1],100)
-        self.parameters.TAxis2DWaves = np.linspace(self.parameters.BoundsT2DWaves[0],self.parameters.BoundsT2DWaves[1],100)
+        self.parameters.XAxis2DWaves = np.linspace(self.parameters.BoundsX2DWaves[0],self.parameters.BoundsX2DWaves[1],300)
+        self.parameters.TAxis2DWaves = np.linspace(self.parameters.BoundsT2DWaves[0],self.parameters.BoundsT2DWaves[1],300)
         self.parameters.Position2DWaves = Waves.Waves2D(
                                                             self.parameters.TAxis2DWaves,
                                                             self.parameters.XAxis2DWaves,
@@ -1104,13 +1104,13 @@ class WavesAndOpticsWindow(QMainWindow):
     def updateValuesSound(self):
         """Updates the values of the Sounds"""
         try:
-            self.parameters.durationSound = int(self.DurationSoundLineEdit.text())
+            self.parameters.durationSound = float(self.DurationSoundLineEdit.text())
         except:
             self.DurationSoundLineEdit.setText(str(self.parameters.durationSound))
 
         for i in range(self.parameters.numberSound):
             try:
-                self.parameters.FrequencySound[i] = int(self.soundFrequencyLineEditSound[i].text())
+                self.parameters.FrequencySound[i] = float(self.soundFrequencyLineEditSound[i].text())
             except:
                 self.soundFrequencyLineEditSound[i].setText(f"{self.parameters.FrequencySound[i]}")           
             try:

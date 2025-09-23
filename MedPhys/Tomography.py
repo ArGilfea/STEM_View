@@ -71,6 +71,14 @@ def CreateImage(parameters: np.ndarray, name: str)->np.ndarray:
             for j in range(newImage.shape[1]):
                 if (((i-parameters[1,0])/parameters[2,0])**2 + ((j - parameters[1,1])/parameters[2,1])**2) <= 1:
                     newImage[i,j] = parameters[3,0]
+    elif name == "Ellipsoid Crescent":
+        for i in range(newImage.shape[0]):
+            for j in range(newImage.shape[1]):
+                if (((i-parameters[1,0])/parameters[2,0])**2 + ((j - parameters[1,1])/parameters[2,1])**2) <= 1:
+                    if np.arctan((i-parameters[1,0])/(j - parameters[1,1]))/np.pi*180 + 0 <= parameters[3,0]:
+                        if np.arctan((i-parameters[1,0])/(j - parameters[1,1]))/np.pi*180 + 0>= 0:
+                            if (i-parameters[1,0]) > 0 or (j - parameters[1,1]) > 0:
+                                newImage[i,j] = parameters[3,1]
     elif name == "Dense Shell Ellipsoid":
         for i in range(newImage.shape[0]):
             for j in range(newImage.shape[1]):
